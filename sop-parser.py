@@ -1,8 +1,6 @@
 from docx import Document
 import re
 import json
-from collections import defaultdict
-
 
 
 latin_alphabets= "([A-Za-z])"
