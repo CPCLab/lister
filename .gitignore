@@ -1,4 +1,5 @@
 personal-comments.txt
 venv/
 etcs/
-idea/
+.idea/
+dekstop.ini
