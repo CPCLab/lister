@@ -3,4 +3,5 @@ venv/
 etcs/
 .idea/
 desktop.ini
-~$sop.docx
+~$*
+*/~*
