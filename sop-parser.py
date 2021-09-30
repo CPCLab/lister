@@ -58,7 +58,7 @@ def parse_docx_content(doc_content):
             if key != "" and str_values != "" :                     # only add when none of the key or value is empty
                 one_key_val = [par_no, key, str_values]
                 key_val.append(one_key_val)
-        par_no = par_no + 1  # count paragraph index, starting from 1 and iterate
+        par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     return key_val
 
 
