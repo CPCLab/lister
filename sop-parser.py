@@ -36,7 +36,7 @@ def split_into_sentences(content):
     return sentences
 
 def list_to_json(list, filename):
-    json.dump(list, open(filename, 'w'))
+    json.dump(list, open(filename, 'w', encoding="utf-8"), ensure_ascii=False)
 
 def get_docx_content(filename):
     f = open(filename, 'rb')
@@ -70,13 +70,15 @@ def extract_kv(kv):
     kv_split = re.split("\|", kv)
     key = kv_split[1]
     key = key.strip()
+    # get comments, if any - "”.*?\”"
+
     val = kv_split[0]
     val = val.strip()
     #key = ""
     #val = ""
     return key, val
 
-# parse opened document, first draft of sop
+# parse opened document, second draft of sop
 def parse_docx2_content(doc_content):
     par_no = 0
     key_val = []
