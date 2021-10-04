@@ -1,8 +1,8 @@
-from docx import Document
-import re
 import json
+import re
 from enum import Enum
-
+import xlsxwriter
+from docx import Document
 
 latin_alphabets= "([A-Za-z])"
 openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
@@ -36,7 +36,7 @@ def split_into_sentences(content):
     sentences = [s.strip() for s in sentences]
     return sentences
 
-def list_to_json(list, filename):
+def write_to_json(list, filename):
     json.dump(list, open(filename, 'w', encoding="utf-8"), ensure_ascii=False)
 
 def get_docx_content(filename):
@@ -205,7 +205,16 @@ def parse_docx2_content(doc_content):
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     return key_val
 
+def write_to_xlsx(key_val, filename):
+    header = ["STEP NUMBER","KEY","VALUE"]
+    with xlsxwriter.Workbook(filename) as workbook:
+        worksheet = workbook.add_worksheet()
+        worksheet.write_row(0, 0, header)
+        for row_no, data in enumerate(key_val):
+            worksheet.write_row(row_no+1, 0, data)
+
 # open docx document
 document = get_docx_content('input/sop2.docx')
-list_to_json(parse_docx2_content(document),"output/key_val2.json")
+write_to_json(parse_docx2_content(document), "output/key_val2.json")
+write_to_xlsx(parse_docx2_content(document), "output/key_val2.xlsx")
 print('amount of paragraphs: ' + str(len(document.paragraphs)))
