@@ -1,6 +1,7 @@
 from docx import Document
 import re
 import json
+from enum import Enum
 
 
 latin_alphabets= "([A-Za-z])"
@@ -71,19 +72,135 @@ def extract_kv(kv):
     key = kv_split[1]
     key = key.strip()
     # get comments, if any - "”.*?\”"
-
     val = kv_split[0]
     val = val.strip()
     #key = ""
     #val = ""
     return key, val
 
+#def enum_flow_keys():
+#    flow_metadata = ["step type", "flow type", "flow parameter", "flow logical operator", "flow compared value",
+#                      "flow range", "flow operation", "flow magnitude"]
+#    return flow_metadata
+
+class Ctrl_metadata(Enum):
+    STEP_TYPE = "step type"
+    FLOW_TYPE = "flow type"
+    FLOW_PARAM = "flow parameter"
+    FLOW_LGCL_OPRTR = "flow logical parameter"
+    FLOW_CMPRD_VAL = "flow compared value"
+    FLOW_RANGE = "flow range"
+    FLOW_OPRTN = "flow operation"
+    FLOW_MGNTD = "flow magnitude"
+
+def process_foreach(par_no, cf_split):
+    key_val = []
+    step_type = "iteration"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    flow_param = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    return key_val
+
+def process_while(par_no, cf_split):
+    key_val = []
+    step_type = "iteration"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    flow_param = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    flow_logical_operator = cf_split[2]
+    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
+    flow_compared_value = cf_split[3]
+    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+    return key_val
+
+def process_if(par_no, cf_split):
+    key_val = []
+    step_type = "conditional"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    flow_param = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    flow_logical_operator = cf_split[2]
+    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
+    flow_compared_value = cf_split[3]
+    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+    return key_val
+
+def process_elseif(par_no, cf_split):
+    key_val = []
+    step_type = "conditional"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    flow_param = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    flow_logical_operator = cf_split[2]
+    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
+    flow_compared_value = cf_split[3]
+    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+    return key_val
+
+def process_else(par_no, cf_split):
+    key_val = []
+    step_type = "conditional"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    return key_val
+
+def process_for(par_no, cf_split):
+    key_val = []
+    step_type = "iteration"
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    flow_param = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    flow_range = cf_split[2]
+    key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_range])
+    flow_operation = cf_split[3]
+    key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
+    flow_magnitude = cf_split[4]
+    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
+    return key_val
+
+def extract_flow_type(par_no, flow_control_pair):
+    key_val = []
+    cf = flow_control_pair[1:-1]
+    cf_split = re.split("\|", cf)
+    flow_type = cf_split[0]
+    flow_type = flow_type.strip()
+    if flow_type == "for each":
+        key_val = process_foreach(par_no, cf_split)
+    elif flow_type == "while":
+        key_val = process_while(par_no, cf_split)
+    elif flow_type == "if":
+        key_val = process_if(par_no, cf_split)
+    elif flow_type == "else if":
+        key_val = process_elseif(par_no, cf_split)
+    elif flow_type == "else":
+        key_val = process_else(par_no, cf_split)
+    elif flow_type == "for":
+        key_val = process_for(par_no, cf_split)
+    return key_val
+
+
 # parse opened document, second draft of sop
 def parse_docx2_content(doc_content):
     par_no = 0
     key_val = []
     for para in doc_content.paragraphs:
-        kvs = re.findall(r'\{.+?\}', para.text)             # get values and keys
+        flow_control_pairs = re.findall("<.+?>", para.text)
+        if len(flow_control_pairs)>0:
+            for flow_control_pair in flow_control_pairs:
+                flow_metadata = extract_flow_type(par_no, flow_control_pair)
+                key_val.append(flow_metadata)
+        kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
             for kv in kvs:
                 key, val = extract_kv(kv)
