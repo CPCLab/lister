@@ -215,6 +215,7 @@ def write_to_xlsx(key_val, filename):
 
 # open docx document
 document = get_docx_content('input/sop2.docx')
+
 write_to_json(parse_docx2_content(document), "output/key_val2.json")
 write_to_xlsx(parse_docx2_content(document), "output/key_val2.xlsx")
 print('amount of paragraphs: ' + str(len(document.paragraphs)))
