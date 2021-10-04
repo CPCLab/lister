@@ -3,5 +3,6 @@ venv/
 etcs/
 .idea/
 desktop.ini
+.get-pip.py
 ~$*
 */~*
