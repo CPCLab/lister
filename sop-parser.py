@@ -78,11 +78,6 @@ def extract_kv(kv):
     #val = ""
     return key, val
 
-#def enum_flow_keys():
-#    flow_metadata = ["step type", "flow type", "flow parameter", "flow logical operator", "flow compared value",
-#                      "flow range", "flow operation", "flow magnitude"]
-#    return flow_metadata
-
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
     FLOW_TYPE = "flow type"
@@ -199,7 +194,7 @@ def parse_docx2_content(doc_content):
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
                 flow_metadata = extract_flow_type(par_no, flow_control_pair)
-                key_val.append(flow_metadata)
+                key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
             for kv in kvs:
