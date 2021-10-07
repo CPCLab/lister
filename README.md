@@ -1,22 +1,12 @@
 # DOCX Standard Operating Procedure (SOP) Parser for Life Science Experiments
 
- 
-
 This repository contains a set of files to parse SOP from lab experiments.
-
- 
 
 # Why?
 
- 
-
 As research lab usually has their own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To do this, the SOP should follow some annotation rules (described later below). 
 
- 
-
 # How is this repo structured?
-
- 
 
 \-     The base directory contains the metadata extraction script
 
@@ -24,23 +14,33 @@ As research lab usually has their own set of SOP to conduct experiments, a tool 
 
 \-     *output* directory contains extracted steps order – key – value in both JSON and XLSX format
 
- 
-
 # What is extracted from the SOP, and how is it represented in the docx document?
 
 The parser extracts: 
 
+| Extracted Items | Description | Representation | Example | Extracted order,key,value |
+
+| ---                      | ----                                                         | ---                         | ---                                       | ---                                                          |
+| ------------------------ | ------------------------------------------------------------ | --------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
+| Order                    | The *order* of the steps, based on the order of the paragraph in the docx SOP document | -                           | -                                         | -                                                            |
+| Key                      | The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value\|key}. | {value\|key}                | {sequence alignment\|stage}               | n, *stage*, sequence alignment                               |
+| Comment                  | *Comments* are allowed within the key, represented within regular brackets after the pipe symbol. | {value\|(comment) key}      | {receptor residue\|(minimization) target} | n,(*minimization*) target, receptor residue                  |
+| Value                    | The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value\|key}. Example:  with ‘sequence alignment’ as the value. | {value\|key}                | {sequence alignment\|stage}               | n, stage, *sequence alignment*                               |
+| Control flow: *for each* | Extract multiple key value pairs related to *for each*  iterations | <flow type\|iterated value> | <for each\|generated pose>                | <ul><li>n, step type, iteration</li><li>n, for each, iteration </li><li>n, flow parameter, iteration</li></ul> |
+
+
+
 \1.    The *order* of the steps, based on the order of the paragraph in the docx SOP document.
 
-\2.    The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value|key}. Example: {sequence alignment|stage} with ‘stage’ as the key.
+\2.    The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value\\|key}. Example: {sequence alignment\|stage} with ‘stage’ as the key.
 
-\3.    Comments are allowed within the key, represented within regular brackets after the pipe symbol. Example: {receptor residue|(minimization) target}, with ‘minimization’ as the comment.
+\3.    Comments are allowed within the key, represented within regular brackets after the pipe symbol. Example: {receptor residue\|(minimization) target}, with ‘minimization’ as the comment.
 
-\4.     The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value|key}. Example: {sequence alignment|stage} with ‘sequence alignment’ as the value.
+\4.     The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value\|key}. Example: {sequence alignment\|stage} with ‘sequence alignment’ as the value.
 
 \5.    Specific *flow control* type, such as for each, while, if, else if, and for. Some examples:
 
-a.    <for each| generated pose> which corresponds to <flow type| iterated value>
+a.    <for each\|generated pose> which corresponds to <flow type\|iterated value>
 
 b.    <while|pH|lte|7> which corresponds to < flow type|key|logical operator|value>. This is continued with e.g., Iterate over <+|1> which corresponds to  <increment/decrement operation|increment/decrement value> 
 
