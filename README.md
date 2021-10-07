@@ -18,15 +18,13 @@ As research lab usually has their own set of SOP to conduct experiments, a tool 
 
 The parser extracts: 
 
-| Extracted Items | Description | Representation | Example | Extracted order,key,value |
-
-| ---                      | ----                                                         | ---                         | ---                                       | ---                                                          |
+| Extracted Items          | Description                                                  | Representation              | Example                                   | Extracted order,key,value                                    |
 | ------------------------ | ------------------------------------------------------------ | --------------------------- | ----------------------------------------- | ------------------------------------------------------------ |
 | Order                    | The *order* of the steps, based on the order of the paragraph in the docx SOP document | -                           | -                                         | -                                                            |
-| Key                      | The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value\|key}. | {value\|key}                | {sequence alignment\|stage}               | n, *stage*, sequence alignment                               |
-| Comment                  | *Comments* are allowed within the key, represented within regular brackets after the pipe symbol. | {value\|(comment) key}      | {receptor residue\|(minimization) target} | n,(*minimization*) target, receptor residue                  |
-| Value                    | The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value\|key}. Example:  with ‘sequence alignment’ as the value. | {value\|key}                | {sequence alignment\|stage}               | n, stage, *sequence alignment*                               |
-| Control flow: *for each* | Extract multiple key value pairs related to *for each*  iterations | <flow type\|iterated value> | <for each\|generated pose>                | <ul><li>n, step type, iteration</li><li>n, for each, iteration </li><li>n, flow parameter, iteration</li></ul> |
+| Key                      | The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value\|key}. | {value\|key}                | {sequence alignment\|stage}               | <ul><li> \<order\>, *stage*, sequence alignment</li></ul>    |
+| Comment                  | *Comments* are allowed within the key, represented within regular brackets after the pipe symbol. | {value\|(comment) key}      | {receptor residue\|(minimization) target} | <ul><li> \<order\>, (*minimization*) target, receptor residue</li></ul> |
+| Value                    | The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value\|key}. Example:  with ‘sequence alignment’ as the value. | {value\|key}                | {sequence alignment\|stage}               | <ul><li> \<order\>, stage, *sequence alignment*</li></ul>    |
+| Control flow: *for each* | Extract multiple key value pairs related to *for each*  iterations | <flow type\|iterated value> | <for each\|generated pose>                | <ul><li>\<order\>, step type, iteration</li><li>\<order\>, for each, iteration </li><li>\<order\>, flow parameter, iteration</li></ul> |
 
 
 
