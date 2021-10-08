@@ -164,6 +164,13 @@ def process_for(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val
 
+# should happen only after having while iterations to provide additional steps on the iterator
+def process_others(par_no, cf_split):
+    key_val = []
+    key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, cf_split[0]])
+    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, cf_split[1]])
+    return key_val
+
 def extract_flow_type(par_no, flow_control_pair):
     key_val = []
     cf = flow_control_pair[1:-1]
@@ -182,6 +189,8 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val = process_else(par_no, cf_split)
     elif flow_type == "for":
         key_val = process_for(par_no, cf_split)
+    # else:
+    #    key_val = process_others(par_no, cf_split)
     return key_val
 
 
