@@ -87,6 +87,7 @@ class Ctrl_metadata(Enum):
     FLOW_RANGE = "flow range"
     FLOW_OPRTN = "flow operation"
     FLOW_MGNTD = "flow magnitude"
+    FLOW_SECTION = "section"
 
 def process_foreach(par_no, cf_split):
     key_val = []
@@ -167,8 +168,15 @@ def process_for(par_no, cf_split):
 # should happen only after having while iterations to provide additional steps on the iterator
 def process_others(par_no, cf_split):
     key_val = []
-    key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, cf_split[0]])
-    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, cf_split[1]])
+    flow_operation = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
+    flow_magnitude = cf_split[1]
+    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
+    return key_val
+
+def process_section(cf_split):
+    key_val = []
+    key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
     return key_val
 
 def extract_flow_type(par_no, flow_control_pair):
@@ -189,8 +197,11 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val = process_else(par_no, cf_split)
     elif flow_type == "for":
         key_val = process_for(par_no, cf_split)
-    # else:
-    #    key_val = process_others(par_no, cf_split)
+    # elif flow_type == "+":
+    elif flow_type.casefold() == "section".casefold():
+        key_val = process_section(cf_split)
+    else:
+       key_val = process_others(par_no, cf_split)
     return key_val
 
 
