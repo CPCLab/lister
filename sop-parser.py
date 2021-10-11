@@ -69,13 +69,10 @@ def parse_docx1_content(doc_content):
 def extract_kv(kv):
     kv = kv[1:-1]
     kv_split = re.split("\|", kv)
-    key = kv_split[1]
+    key = kv_split[1]                                              #TODO: COMMENT EXTRACTION CAN BE DONE HERE FOR KEYS
     key = key.strip()
-    # get comments, if any - "”.*?\”"
-    val = kv_split[0]
+    val = kv_split[0]                                              #TODO: COMMENT EXTRACTION CAN BE DONE HERE FOR VALUES
     val = val.strip()
-    #key = ""
-    #val = ""
     return key, val
 
 class Ctrl_metadata(Enum):
@@ -203,6 +200,8 @@ def extract_flow_type(par_no, flow_control_pair):
     cf = flow_control_pair[1:-1]
     cf_split = re.split("\|", cf)
     flow_type = cf_split[0]
+    print(cf_split)
+    print(flow_type)
     flow_type = flow_type.strip()
     if flow_type == "for each":
         key_val = process_foreach(par_no, cf_split)
@@ -232,9 +231,9 @@ def parse_docx2_content(doc_content):
         flow_control_pairs = re.findall("<.+?>", para.text)
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
-                if re.search("\[.*?\]",flow_control_pair):
-                    flow_metadata = extract_flow_type(par_no, flow_control_pair)
-                    key_val.extend(flow_metadata)
+                #if re.search("\[.*?\]",flow_control_pair):
+                flow_metadata = extract_flow_type(par_no, flow_control_pair)
+                key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
             for kv in kvs:
