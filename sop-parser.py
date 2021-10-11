@@ -88,6 +88,8 @@ class Ctrl_metadata(Enum):
     FLOW_OPRTN = "flow operation"
     FLOW_MGNTD = "flow magnitude"
     FLOW_SECTION = "section"
+    FLOW_ITRTN_STRT = "start iteration value"
+    FLOW_ITRTN_END = "end iteration value"
 
 def process_foreach(par_no, cf_split):
     key_val = []
@@ -138,7 +140,13 @@ def process_elseif(par_no, cf_split):
     flow_logical_operator = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
     flow_compared_value = cf_split[3]
-    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+    if re.search("\[.*?\]",flow_compared_value):
+        key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value])
+        start, end = process_range(flow_compared_value)
+        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
+        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
+    else:
+        key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
     return key_val
 
 def process_else(par_no, cf_split):
@@ -159,13 +167,16 @@ def process_for(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
     flow_range = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_range])
+    start, end = process_range(flow_range)
+    key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
+    key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
     flow_operation = cf_split[3]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
     flow_magnitude = cf_split[4]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val
 
-# should happen only after having while iterations to provide additional steps on the iterator
+# should happen only after having 'while' iterations to provide additional steps on the iterator
 def process_others(par_no, cf_split):
     key_val = []
     flow_operation = cf_split[0]
@@ -173,6 +184,14 @@ def process_others(par_no, cf_split):
     flow_magnitude = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val
+
+def process_comments():
+    print("function to process comments")
+    # comments happen in either or both key/value pairs so it should detect any () brackets there.
+
+def process_range(flow_range):
+    range_values = re.split("-", flow_range[1:-1])
+    return float(range_values[0]), float(range_values[1])
 
 def process_section(cf_split):
     key_val = []
@@ -213,8 +232,9 @@ def parse_docx2_content(doc_content):
         flow_control_pairs = re.findall("<.+?>", para.text)
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
-                flow_metadata = extract_flow_type(par_no, flow_control_pair)
-                key_val.extend(flow_metadata)
+                if re.search("\[.*?\]",flow_control_pair):
+                    flow_metadata = extract_flow_type(par_no, flow_control_pair)
+                    key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
             for kv in kvs:
