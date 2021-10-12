@@ -69,9 +69,9 @@ def parse_docx1_content(doc_content):
 def extract_kv(kv):
     kv = kv[1:-1]
     kv_split = re.split("\|", kv)
-    key = kv_split[1]                                              #TODO: COMMENT EXTRACTION CAN BE DONE HERE FOR KEYS
+    key = kv_split[1]
     key = key.strip()
-    val = kv_split[0]                                              #TODO: COMMENT EXTRACTION CAN BE DONE HERE FOR VALUES
+    val = kv_split[0]
     val = val.strip()
     return key, val
 
@@ -182,9 +182,13 @@ def process_others(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val
 
-def process_comments():
-    print("function to process comments")
-    # comments happen in either or both key/value pairs so it should detect any () brackets there.
+def process_comment(str_with_brackets):
+    comment_regex = "\(.+?\)"
+    comment = re.search(comment_regex, str_with_brackets)
+    comment = comment.group(0)
+    remains = str_with_brackets.replace(comment,'')
+    comment = comment[1:-1]
+    return remains.strip(), comment.strip()
 
 def process_range(flow_range):
     range_values = re.split("-", flow_range[1:-1])
@@ -200,8 +204,6 @@ def extract_flow_type(par_no, flow_control_pair):
     cf = flow_control_pair[1:-1]
     cf_split = re.split("\|", cf)
     flow_type = cf_split[0]
-    print(cf_split)
-    print(flow_type)
     flow_type = flow_type.strip()
     if flow_type == "for each":
         key_val = process_foreach(par_no, cf_split)
@@ -227,11 +229,11 @@ def extract_flow_type(par_no, flow_control_pair):
 def parse_docx2_content(doc_content):
     par_no = 0
     key_val = []
+    comment_regex = "\(.+?\)"
     for para in doc_content.paragraphs:
         flow_control_pairs = re.findall("<.+?>", para.text)
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
-                #if re.search("\[.*?\]",flow_control_pair):
                 flow_metadata = extract_flow_type(par_no, flow_control_pair)
                 key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
@@ -239,6 +241,11 @@ def parse_docx2_content(doc_content):
             for kv in kvs:
                 key, val = extract_kv(kv)
                 if key != "" and val != "":
+                    if re.search(comment_regex, key):
+                        key, comment = process_comment(key)
+                    if re.search(comment_regex, val):
+                        val, comment = process_comment(val)
+                    #NOTE: comment from key or value is available but not yet serialized into files. TBD.
                     one_key_val = [par_no, key, val]
                     key_val.append(one_key_val)
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
