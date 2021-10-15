@@ -8,4 +8,4 @@ desktop.ini
 */~*
 */.~*
 */__pycache__/*
-*/validator/__pycache__/*
+/validator/__pycache__/*
