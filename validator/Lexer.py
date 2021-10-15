@@ -1,3 +1,7 @@
+import re
+from LexerError import LexerError
+from Token import Token
+
 class Lexer(object):
     """ A simple regex-based lexer/tokenizer.
     """

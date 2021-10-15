@@ -1,3 +1,6 @@
+from Lexer import Lexer
+from LexerError import LexerError
+
 rules = [
     ('\d+',             'NUMBER'),
     ('[a-zA-Z_]\w*',    'IDENTIFIER'),
