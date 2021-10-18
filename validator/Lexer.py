@@ -33,10 +33,13 @@ class Lexer(object):
 
         for regex, type in rules:
             groupname = 'GROUP%s' % idx
+            print(groupname)
             regex_parts.append('(?P<%s>%s)' % (groupname, regex))
+            print('(?P<%s>%s)' % (groupname, regex))
             self.group_type[groupname] = type
+            print(self.group_type[groupname])
             idx += 1
-
+            print(self.group_type)
         self.regex = re.compile('|'.join(regex_parts))
         self.skip_whitespace = skip_whitespace
         self.re_ws_skip = re.compile('\S')
