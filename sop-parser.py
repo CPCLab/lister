@@ -94,40 +94,68 @@ class Ctrl_metadata(Enum):
     FLOW_ITRTN_STRT = "start iteration value"
     FLOW_ITRTN_END = "end iteration value"
 
+class Bracket_pair_error(Enum):
+    IMPROPER_COMMENT_BRACKET = "ERROR: Mismatch between '(' and ')'. Check line "
+    IMPROPER_RANGE_BRACKET = "ERROR: Mismatch between '[' and ']'.  Check line "
+    IMPROPER_KV_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
+    IMPROPER_FLOW_BRACKET = "ERROR: Mismatch between '<' and '>'.  Check line "
 
-# class Regex_validation(Enum):
-# #     UNCLOSED_RANGE =
-# #     UNOPENED_RANGE =
-# #     UNCLOSED_COMMENT =
-# #     UNOPENED_COMMENT =
-# #     UNCLOSED_FLOW =
-# #     UNOPENED_FLOW =
-# #     UNCLOSED_KVPAIR =
-# #     UNOPENED_KVPAIR =
+class Arg_num_error_msg(Enum):
+    IMPROPER_ARGNO_IF = "ERROR: Expected number of arguments in the IF statement is %s, but %s was found."
+    IMPROPER_ARGNO_ELSEIF  = "ERROR: Expected number of arguments in the ELSE IF statement is %s, but %s was found."
+    IMPROPER_ARGNO_ELSE = "ERROR: Expected number of arguments in the ELSE statement is %s, but %s was found."
+    IMPROPER_ARGNO_WHILE = "ERROR: Expected number of arguments in the WHILE statement is %s, but %s was found."
+    IMPROPER_ARGNO_FOR = "ERROR: Expected number of arguments in the FOR statement is %s, but %s was found."
+    IMPROPER_ARGNO_FOREACH = "ERROR: Expected number of arguments in the FOR EACH statement is %s, but %s was found."
 
-class Bracket_pair_validation(Enum):
-    IMPROPER_COMMENT_BRACKET = "Mismatch between '(' and ')'. Check line "
-    IMPROPER_RANGE_BRACKET = "Mismatch between '[' and ']'.  Check line "
-    IMPROPER_KV_BRACKET = "Mismatch between '{' and '}'.  Check line "
-    IMPROPER_FLOW_BRACKET = "Mismatch between '<' and '>'.  Check line "
+class Arg_num(Enum):
+    ARG_NUM_FOREACH = 2
+    ARG_NUM_IF = 4
+    ARG_NUM_ELSEIF = 4
+    ARG_NUM_ELSE = 1
+    ARG_NUM_WHILE = 4
+    ARG_NUM_FOR = 5
+    ARG_NUM_KV = 2
+    ARG_NUM_COMMENT = 1
 
-class Argno_validation(Enum):
-    IMPROPER_ARGNO_IF = "Number of arguments in the IF statement is wrong."
-    IMPROPER_ARGNO_ELSEIF  = "Number of arguments in the ELSE IF statement is wrong."
-    IMPROPER_ARGNO_ELSE = "Number of arguments in the ELSE statement is wrong."
-    IMPROPER_ARGNO_WHILE = "Number of arguments in the WHILE statement is wrong."
-    IMPROPER_ARGNO_FOR = "Number of arguments in the FOR statement is wrong."
-    IMPROPER_ARGNO_FOREACH = "Number of arguments in the FOREACH statement is wrong."
+def is_num(s):
+    s = s.replace('.', '', 1)
+    s = s.replace(',', '', 1)
+    if s[0] in ('-', '+'):
+        return s[1:].isdigit()
+    return s.isdigit()
+
+class Misc_error_msg(Enum):
+    DATATYPE_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while str was expected"
+
+def validate_foreach(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_FOREACH.value:
+        if is_num(cf_split[1]): #Alternative: variable name can be used (?) instead of num value to indicate validity
+            # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
+            is_error = True
+            log = Misc_error_msg.DATATYPE_MISMATCH.value
+    else:
+        log = Arg_num_error_msg.IMPROPER_ARGNO_FOREACH.value
+        is_error = True
+    return log, is_error
 
 def process_foreach(par_no, cf_split):
     key_val = []
+    print(cf_split)
+    log, is_error = validate_foreach(cf_split)
+    print(log)
+    if is_error:
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
     flow_param = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
-    return key_val
+    return key_val, log, is_error
 
 def process_while(par_no, cf_split):
     key_val = []
@@ -236,28 +264,31 @@ def check_bracket_num(par_no, text):
     is_error = False
     if text.count("{") != text.count("}"):
         is_error = True
-        log = base_error_warning % (Bracket_pair_validation.IMPROPER_KV_BRACKET.value, str(par_no), text)
+        log = base_error_warning % (Bracket_pair_error.IMPROPER_KV_BRACKET.value, str(par_no), text)
     if text.count("<") != text.count(">"):
         is_error = True
-        log = base_error_warning % (Bracket_pair_validation.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
+        log = base_error_warning % (Bracket_pair_error.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
     if text.count("[") != text.count("]"):
         is_error = True
-        log = base_error_warning % (Bracket_pair_validation.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
+        log = base_error_warning % (Bracket_pair_error.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
     if text.count("(") != text.count(")"):
         is_error = True
-        log = base_error_warning % (Bracket_pair_validation.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
+        log = base_error_warning % (Bracket_pair_error.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
     # print(log)
     return log, is_error
 
 
 def extract_flow_type(par_no, flow_control_pair):
+    flow_log = ""
+    is_error = False
     key_val = []
     cf = flow_control_pair[1:-1]
     cf_split = re.split("\|", cf)
     flow_type = cf_split[0]
     flow_type = flow_type.strip()
     if flow_type == "for each":
-        key_val = process_foreach(par_no, cf_split)
+        print("for each")
+        key_val, flow_log, is_error = process_foreach(par_no, cf_split)
     elif flow_type == "while":
         key_val = process_while(par_no, cf_split)
     elif flow_type == "if":
@@ -273,8 +304,7 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val = process_section(cf_split)
     else:
        key_val = process_others(par_no, cf_split)
-    return key_val
-
+    return key_val, flow_log, is_error
 
 # parse opened document, second draft of sop
 def parse_docx2_content(doc_content):
@@ -291,7 +321,10 @@ def parse_docx2_content(doc_content):
             break
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
-                flow_metadata = extract_flow_type(par_no, flow_control_pair)
+                flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, flow_control_pair)
+                log = log + flow_log + "\n"
+                if is_flow_error:
+                    break
                 key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
@@ -321,8 +354,8 @@ def write_to_xlsx(key_val, log, xlsx_filename):
 
 
 # open docx document
-document = get_docx_content('input/cai-immunofluorescence-rewritten.docx')
+document = get_docx_content('input/cpc-rewritten.docx')
 print('amount of paragraphs: ' + str(len(document.paragraphs)))
 kv, log = parse_docx2_content(document)
-write_to_json(kv, log, "output/cai-immunofluorescence-rewritten.json")
-write_to_xlsx(kv, log, "output/cai-immunofluorescence-rewritten.xlsx")
+write_to_json(kv, log, "output/cpc-rewritten.json")
+write_to_xlsx(kv, log, "output/cpc-rewritten.xlsx")
