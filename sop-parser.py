@@ -36,8 +36,14 @@ def split_into_sentences(content):
     sentences = [s.strip() for s in sentences]
     return sentences
 
-def write_to_json(list, filename):
+def write_to_json(list, log, filename):
+    log_filename = filename[:-5] + ".log"
     json.dump(list, open(filename, 'w', encoding="utf-8"), ensure_ascii=False)
+    write_log(log, log_filename)
+
+def write_log(log, filename):
+    with open(filename, 'w', encoding="utf-8") as f:
+        f.write(log)
 
 def get_docx_content(filename):
     f = open(filename, 'rb')
@@ -87,6 +93,31 @@ class Ctrl_metadata(Enum):
     FLOW_SECTION = "section"
     FLOW_ITRTN_STRT = "start iteration value"
     FLOW_ITRTN_END = "end iteration value"
+
+
+# class Regex_validation(Enum):
+# #     UNCLOSED_RANGE =
+# #     UNOPENED_RANGE =
+# #     UNCLOSED_COMMENT =
+# #     UNOPENED_COMMENT =
+# #     UNCLOSED_FLOW =
+# #     UNOPENED_FLOW =
+# #     UNCLOSED_KVPAIR =
+# #     UNOPENED_KVPAIR =
+
+class Bracket_pair_validation(Enum):
+    IMPROPER_COMMENT_BRACKET = "Mismatch between '(' and ')'. Check line "
+    IMPROPER_RANGE_BRACKET = "Mismatch between '[' and ']'.  Check line "
+    IMPROPER_KV_BRACKET = "Mismatch between '{' and '}'.  Check line "
+    IMPROPER_FLOW_BRACKET = "Mismatch between '<' and '>'.  Check line "
+
+class Argno_validation(Enum):
+    IMPROPER_ARGNO_IF = "Number of arguments in the IF statement is wrong."
+    IMPROPER_ARGNO_ELSEIF  = "Number of arguments in the ELSE IF statement is wrong."
+    IMPROPER_ARGNO_ELSE = "Number of arguments in the ELSE statement is wrong."
+    IMPROPER_ARGNO_WHILE = "Number of arguments in the WHILE statement is wrong."
+    IMPROPER_ARGNO_FOR = "Number of arguments in the FOR statement is wrong."
+    IMPROPER_ARGNO_FOREACH = "Number of arguments in the FOREACH statement is wrong."
 
 def process_foreach(par_no, cf_split):
     key_val = []
@@ -199,6 +230,26 @@ def process_section(cf_split):
     key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
     return key_val
 
+def check_bracket_num(par_no, text):
+    log = "No bracketing error was found on par no %s." % (par_no)
+    base_error_warning = "BRACKETING ERROR: %s %s: %s"
+    is_error = False
+    if text.count("{") != text.count("}"):
+        is_error = True
+        log = base_error_warning % (Bracket_pair_validation.IMPROPER_KV_BRACKET.value, str(par_no), text)
+    if text.count("<") != text.count(">"):
+        is_error = True
+        log = base_error_warning % (Bracket_pair_validation.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
+    if text.count("[") != text.count("]"):
+        is_error = True
+        log = base_error_warning % (Bracket_pair_validation.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
+    if text.count("(") != text.count(")"):
+        is_error = True
+        log = base_error_warning % (Bracket_pair_validation.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
+    # print(log)
+    return log, is_error
+
+
 def extract_flow_type(par_no, flow_control_pair):
     key_val = []
     cf = flow_control_pair[1:-1]
@@ -229,9 +280,15 @@ def extract_flow_type(par_no, flow_control_pair):
 def parse_docx2_content(doc_content):
     par_no = 0
     key_val = []
-    comment_regex = "\(.+?\)"
+    comment_regex = "\(.+?\)"                                      # define regex for parsing comment
+    log = ""
     for para in doc_content.paragraphs:
         flow_control_pairs = re.findall("<.+?>", para.text)
+        # check para.text bracket balance
+        bracketnum_log, is_bracket_error = check_bracket_num(par_no, para.text)
+        log = log + bracketnum_log + "\n"
+        if is_bracket_error:
+            break
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
                 flow_metadata = extract_flow_type(par_no, flow_control_pair)
@@ -249,18 +306,23 @@ def parse_docx2_content(doc_content):
                     one_key_val = [par_no, key, val]
                     key_val.append(one_key_val)
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
-    return key_val
+    print(log)
+    return key_val, log
 
-def write_to_xlsx(key_val, filename):
+def write_to_xlsx(key_val, log, xlsx_filename):
     header = ["STEP NUMBER","KEY","VALUE"]
-    with xlsxwriter.Workbook(filename) as workbook:
+    log_filename = xlsx_filename[:-5] + ".log"
+    with xlsxwriter.Workbook(xlsx_filename) as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
         for row_no, data in enumerate(key_val):
             worksheet.write_row(row_no+1, 0, data)
+    write_log(log, log_filename)
+
 
 # open docx document
 document = get_docx_content('input/cai-immunofluorescence-rewritten.docx')
 print('amount of paragraphs: ' + str(len(document.paragraphs)))
-write_to_json(parse_docx2_content(document), "output/cai-immunofluorescence-rewritten.json")
-write_to_xlsx(parse_docx2_content(document), "output/cai-immunofluorescence-rewritten.xlsx")
+kv, log = parse_docx2_content(document)
+write_to_json(kv, log, "output/cai-immunofluorescence-rewritten.json")
+write_to_xlsx(kv, log, "output/cai-immunofluorescence-rewritten.xlsx")
