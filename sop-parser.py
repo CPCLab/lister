@@ -105,8 +105,10 @@ class Arg_num_error_msg(Enum):
     IMPROPER_ARGNO_ELSEIF  = "ERROR: Expected number of arguments in the ELSE IF statement is %s, but %s was found."
     IMPROPER_ARGNO_ELSE = "ERROR: Expected number of arguments in the ELSE statement is %s, but %s was found."
     IMPROPER_ARGNO_WHILE = "ERROR: Expected number of arguments in the WHILE statement is %s, but %s was found."
+    IMPROPER_ARGNO_POST_WHILE = "ERROR: Expected number of arguments in the WHILE statement is %s, but %s was found."
     IMPROPER_ARGNO_FOR = "ERROR: Expected number of arguments in the FOR statement is %s, but %s was found."
     IMPROPER_ARGNO_FOREACH = "ERROR: Expected number of arguments in the FOR EACH statement is %s, but %s was found."
+    IMPROPER_ARGNO_SECTION= "ERROR: Expected number of arguments in the SECTION statement is %s, but %s was found."
 
 class Arg_num(Enum):
     ARG_NUM_FOREACH = 2
@@ -114,9 +116,25 @@ class Arg_num(Enum):
     ARG_NUM_ELSEIF = 4
     ARG_NUM_ELSE = 1
     ARG_NUM_WHILE = 4
+    ARG_NUM_POST_WHILE = 2
     ARG_NUM_FOR = 5
     ARG_NUM_KV = 2
     ARG_NUM_COMMENT = 1
+    ARG_NUM_SECTION = 2
+
+def is_valid_comparative_operator(operator):
+    operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
+    if operator.lower() in operators_list:
+        return True
+    else:
+        return False
+
+def is_valid_iteration_operator(operator):
+    operators_list = ["+", "-", "-", ":"]
+    if operator.lower() in operators_list:
+        return True
+    else:
+        return False
 
 def is_num(s):
     s = s.replace('.', '', 1)
@@ -126,27 +144,31 @@ def is_num(s):
     return s.isdigit()
 
 class Misc_error_msg(Enum):
-    DATATYPE_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while str was expected"
+    ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while str was expected."
+    UNRECOGNIZED_OPERATOR = "ERROR: The logical operator %s is not recognized."
+    RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-)."
+    RANGE_NOT_NUMBERS = "ERROR: There range values should only contain numbers."
+    INVALID_ITERATION_OPERATOR = "ERROR: %s is not a valid iteration operators. Only +, -, *, / and %% are supported."
 
 def validate_foreach(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
     if elements == Arg_num.ARG_NUM_FOREACH.value:
-        if is_num(cf_split[1]): #Alternative: variable name can be used (?) instead of num value to indicate validity
+        if is_num(cf_split[1]): #or
             # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
             is_error = True
-            log = Misc_error_msg.DATATYPE_MISMATCH.value
+            log = log + Misc_error_msg.ARGUMENT_MISMATCH.value + "\n"
     else:
-        log = Arg_num_error_msg.IMPROPER_ARGNO_FOREACH.value
+        log = log + Arg_num_error_msg.IMPROPER_ARGNO_FOREACH.value % (Arg_num.ARG_NUM_FOREACH.value, elements) + "\n"
         is_error = True
+    print(log)
     return log, is_error
 
 def process_foreach(par_no, cf_split):
+    print("PROCESSING FOREACH")
     key_val = []
-    print(cf_split)
     log, is_error = validate_foreach(cf_split)
-    print(log)
     if is_error:
         exit()
     step_type = "iteration"
@@ -157,8 +179,30 @@ def process_foreach(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
     return key_val, log, is_error
 
+def validate_while(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_WHILE.value:
+        if is_num(cf_split[1]):
+            is_error = True
+            log = log + Misc_error_msg.ARGUMENT_MISMATCH.value + "\n"
+        if not is_valid_comparative_operator(cf_split[2]):
+            is_error = True
+            log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2]) + "\n"
+    else:
+        log = Arg_num_error_msg.IMPROPER_ARGNO_WHILE.value
+        is_error = True
+    print(log)
+    # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
+    return log, is_error
+
 def process_while(par_no, cf_split):
+    print("PROCESSING WHILE")
     key_val = []
+    log, is_error = validate_while(cf_split)
+    if is_error:
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -169,10 +213,32 @@ def process_while(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
     flow_compared_value = cf_split[3]
     key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
-    return key_val
+    return key_val, log, is_error
+
+def validate_if(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_IF.value:
+        if is_num(cf_split[1]):
+            is_error = True
+            log = log + Misc_error_msg.ARGUMENT_MISMATCH.value + "\n"
+        if not is_valid_comparative_operator(cf_split[2]):
+            is_error = True
+            log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2]) + "\n"
+    else:
+        log = Arg_num_error_msg.IMPROPER_ARGNO_IF.value
+        is_error = True
+    # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
+    print(log)
+    return log, is_error
 
 def process_if(par_no, cf_split):
+    print("PROCESSING IF")
     key_val = []
+    log, is_error = validate_if(cf_split)
+    if is_error:
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -183,10 +249,35 @@ def process_if(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
     flow_compared_value = cf_split[3]
     key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
-    return key_val
+    return key_val, log, is_error
+
+# Validation functions for else if, while and if have similar properties. Hence, these functions can be integrated, but
+# if there are changes for each of those, it may be difficult to refactor. For now these validation functions are
+# provided individually.
+def validate_elseif(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_ELSEIF.value:
+        if is_num(cf_split[1]):
+            is_error = True
+            log = log + Misc_error_msg.ARGUMENT_MISMATCH.value + "\n"
+        if not is_valid_comparative_operator(cf_split[2]):
+            is_error = True
+            log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2]) + "\n"
+    else:
+        log = Arg_num_error_msg.IMPROPER_ARGNO_ELSEIF.value
+        is_error = True
+    # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
+    print(log)
+    return log, is_error
 
 def process_elseif(par_no, cf_split):
+    print("PROCESSING ELSEIF")
     key_val = []
+    log, is_error = validate_elseif(cf_split)
+    if is_error:
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -198,23 +289,94 @@ def process_elseif(par_no, cf_split):
     flow_compared_value = cf_split[3]
     if re.search("\[.*?\]",flow_compared_value):
         key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value])
-        start, end = process_range(flow_compared_value)
+        start, end, range_log, range_is_error = process_range(flow_compared_value)
         key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
         key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
     else:
         key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
-    return key_val
+    return key_val, log, is_error
 
+def validate_else(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements != Arg_num.ARG_NUM_ELSE.value:
+        log = log + Arg_num_error_msg.IMPROPER_ARGNO_ELSE.value % (Arg_num.ARG_NUM_ELSE.value, elements) + "\n"
+        is_error = True
+    print(log)
+    return log, is_error
+
+# no arguments is passed so no validation is needed.
 def process_else(par_no, cf_split):
+    print("PROCESSING ELSE")
     key_val = []
+    log = ""
+    is_error = False
+    else_log, else_is_error = validate_else(cf_split)
+    if else_is_error:
+        is_error = True
+        log = log + else_log + "\n"
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
-    return key_val
+    return key_val, log, is_error
+
+def validate_range(flow_range):
+    is_error = False
+    log = ""
+    range_values = re.split("-", flow_range[1:-1])
+    if len(range_values) == 2:
+        if not (is_num(range_values[0]) and is_num(range_values[0])):
+            is_error = True
+            log = log + Misc_error_msg.RANGE_NOT_NUMBERS.value + "\n"
+    else:
+        is_error = True
+        log = log +  Misc_error_msg.RANGE_NOT_TWO_ARGS.value + "\n"
+    print(log)
+    return log, is_error
+
+def process_range(flow_range):
+    print("PROCESSING RANGE")
+    log, is_error = "", False
+    range_log, range_is_error = validate_range(flow_range)
+    if range_is_error:
+        is_error = True
+        log = log + range_log + "\n"
+        exit()
+    else:
+        range_values = re.split("-", flow_range[1:-1])
+    return float(range_values[0]), float(range_values[1]), log, is_error
+
+def validate_for(cf_split):
+    # argument example: <for|pH|[1-7]|+|1>
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_FOR.value:                       # validating number of arguments in FOR
+        if is_num(cf_split[1]):                                     # in case 2nd argument is number, throw an error
+            is_error = True
+            log = log + Misc_error_msg.ARGUMENT_MISMATCH.value + "\n"
+        range_error_log, is_range_error = validate_range(cf_split[2])
+        if is_range_error == True:                                  # check whether it is a valid range
+            is_error = True
+            log = log + is_range_error + "\n"
+        if not is_valid_iteration_operator(cf_split[3]):            # check whether it is a valid operator
+            is_error = True
+            log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[3]) + "\n"
+    else: # if number of argument is invalid
+        log = log + Arg_num_error_msg.IMPROPER_ARGNO_FOR.value + "\n"
+        is_error = True
+    print(log)
+    return log, is_error
 
 def process_for(par_no, cf_split):
+    print("PROCESSING FOR")
     key_val = []
+    log, is_error = validate_for(cf_split)
+    if is_error:
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -223,23 +385,44 @@ def process_for(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
     flow_range = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_range])
-    start, end = process_range(flow_range)
+    start, end, log, is_error = process_range(flow_range)
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
     flow_operation = cf_split[3]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
     flow_magnitude = cf_split[4]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
-    return key_val
+    return key_val, log, is_error
+
+def validate_post_while(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements == Arg_num.ARG_NUM_POST_WHILE.value:
+        if not is_valid_iteration_operator(cf_split[0]):
+            is_error = True
+            log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % cf_split[0] + "\n"
+    else:  # if number of argument is invalid
+        log = log + Arg_num_error_msg.IMPROPER_ARGNO_POST_WHILE.value + "\n"
+        is_error = True
+    print(log)
+    return log, is_error
 
 # should happen only after having 'while' iterations to provide additional steps on the iterator
-def process_others(par_no, cf_split):
+def process_post_while(par_no, cf_split):
     key_val = []
+    log = ""
+    is_error = False
+    pw_log, pw_is_error = validate_post_while(cf_split)
+    if pw_is_error:
+        log = log + pw_log + "\n"
+        exit()
     flow_operation = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
     flow_magnitude = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
-    return key_val
+    print(key_val)
+    return key_val, log, is_error
 
 def process_comment(str_with_brackets):
     comment_regex = "\(.+?\)"
@@ -249,14 +432,27 @@ def process_comment(str_with_brackets):
     comment = comment[1:-1]
     return remains.strip(), comment.strip()
 
-def process_range(flow_range):
-    range_values = re.split("-", flow_range[1:-1])
-    return float(range_values[0]), float(range_values[1])
+def validate_section(cf_split):
+    log = ""
+    is_error = False
+    elements = len(cf_split)
+    if elements != Arg_num.ARG_NUM_SECTION.value:
+        log = log + Arg_num_error_msg.IMPROPER_ARGNO_SECTION.value + "\n"
+        is_error = True
+    print(log)
+    return log, is_error
 
 def process_section(cf_split):
     key_val = []
-    key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
-    return key_val
+    log = ""
+    is_error = False
+    sect_log, sect_is_error = validate_section(cf_split)
+    if sect_is_error:
+        is_error = True
+        log = log + sect_log + "\n"
+    else:
+        key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
+    return key_val, log, is_error
 
 def check_bracket_num(par_no, text):
     log = "No bracketing error was found on par no %s." % (par_no)
@@ -287,23 +483,22 @@ def extract_flow_type(par_no, flow_control_pair):
     flow_type = cf_split[0]
     flow_type = flow_type.strip()
     if flow_type == "for each":
-        print("for each")
         key_val, flow_log, is_error = process_foreach(par_no, cf_split)
     elif flow_type == "while":
-        key_val = process_while(par_no, cf_split)
+        key_val, flow_log, is_error = process_while(par_no, cf_split)
     elif flow_type == "if":
-        key_val = process_if(par_no, cf_split)
+        key_val, flow_log, is_error = process_if(par_no, cf_split)
     elif flow_type == "else if":
-        key_val = process_elseif(par_no, cf_split)
+        key_val, flow_log, is_error = process_elseif(par_no, cf_split)
     elif flow_type == "else":
-        key_val = process_else(par_no, cf_split)
+        key_val, flow_log, is_error = process_else(par_no, cf_split)
     elif flow_type == "for":
-        key_val = process_for(par_no, cf_split)
+        key_val, flow_log, is_error = process_for(par_no, cf_split)
     # elif flow_type == "+":
     elif flow_type.casefold() == "section".casefold():
-        key_val = process_section(cf_split)
+        key_val, flow_log, is_error = process_section(cf_split)
     else:
-       key_val = process_others(par_no, cf_split)
+       key_val, flow_log, is_error = process_post_while(par_no, cf_split)
     return key_val, flow_log, is_error
 
 # parse opened document, second draft of sop
@@ -313,6 +508,7 @@ def parse_docx2_content(doc_content):
     comment_regex = "\(.+?\)"                                      # define regex for parsing comment
     log = ""
     for para in doc_content.paragraphs:
+        print(para.text)
         flow_control_pairs = re.findall("<.+?>", para.text)
         # check para.text bracket balance
         bracketnum_log, is_bracket_error = check_bracket_num(par_no, para.text)
@@ -338,6 +534,7 @@ def parse_docx2_content(doc_content):
                     #NOTE: comment from key or value is available but not yet serialized into files. TBD.
                     one_key_val = [par_no, key, val]
                     key_val.append(one_key_val)
+                    print(key_val)
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     print(log)
     return key_val, log
@@ -351,7 +548,6 @@ def write_to_xlsx(key_val, log, xlsx_filename):
         for row_no, data in enumerate(key_val):
             worksheet.write_row(row_no+1, 0, data)
     write_log(log, log_filename)
-
 
 # open docx document
 document = get_docx_content('input/cpc-rewritten.docx')
