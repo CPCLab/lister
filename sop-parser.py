@@ -37,12 +37,11 @@ def split_into_sentences(content):
     return sentences
 
 def write_to_json(list, log, filename):
-    log_filename = filename[:-5] + ".log"
-    json.dump(list, open(filename, 'w', encoding="utf-8"), ensure_ascii=False)
-    write_log(log, log_filename)
+    json.dump(list, open(filename + "json", 'w', encoding="utf-8"), ensure_ascii=False)
+    write_log(log)
 
-def write_log(log, filename):
-    with open(filename, 'w', encoding="utf-8") as f:
+def write_log(log):
+    with open(output_file_prefix + "log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 def get_docx_content(filename):
@@ -193,7 +192,6 @@ def validate_while(cf_split):
     else:
         log = Arg_num_error_msg.IMPROPER_ARGNO_WHILE.value
         is_error = True
-    print(log)
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
 
@@ -229,7 +227,6 @@ def validate_if(cf_split):
     else:
         log = Arg_num_error_msg.IMPROPER_ARGNO_IF.value
         is_error = True
-    # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     print(log)
     return log, is_error
 
@@ -520,6 +517,8 @@ def parse_docx2_content(doc_content):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, flow_control_pair)
                 log = log + flow_log + "\n"
                 if is_flow_error:
+                    write_log(log)
+                    print(log)
                     break
                 key_val.extend(flow_metadata)
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
@@ -539,19 +538,20 @@ def parse_docx2_content(doc_content):
     print(log)
     return key_val, log
 
-def write_to_xlsx(key_val, log, xlsx_filename):
+def write_to_xlsx(key_val, log, output_file):
     header = ["STEP NUMBER","KEY","VALUE"]
-    log_filename = xlsx_filename[:-5] + ".log"
-    with xlsxwriter.Workbook(xlsx_filename) as workbook:
+    with xlsxwriter.Workbook(output_file + "xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
         for row_no, data in enumerate(key_val):
             worksheet.write_row(row_no+1, 0, data)
-    write_log(log, log_filename)
+    write_log(log)
 
 # open docx document
-document = get_docx_content('input/cpc-rewritten.docx')
+input_file = 'input/cpc-rewritten.docx'
+document = get_docx_content(input_file)
 print('amount of paragraphs: ' + str(len(document.paragraphs)))
 kv, log = parse_docx2_content(document)
-write_to_json(kv, log, "output/cpc-rewritten.json")
-write_to_xlsx(kv, log, "output/cpc-rewritten.xlsx")
+output_file_prefix = "output/cpc-rewritten."
+write_to_json(kv, log, output_file_prefix)
+write_to_xlsx(kv, log, output_file_prefix)
