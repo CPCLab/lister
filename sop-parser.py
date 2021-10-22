@@ -101,16 +101,6 @@ class Bracket_pair_error(Enum):
     IMPROPER_KV_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
     IMPROPER_FLOW_BRACKET = "ERROR: Mismatch between '<' and '>'.  Check line "
 
-class Arg_num_error_msg(Enum):
-    IMPROPER_ARGNO_IF = "ERROR: Expected number of arguments in the IF statement is %s, but %s was found."
-    IMPROPER_ARGNO_ELSEIF  = "ERROR: Expected number of arguments in the ELSE IF statement is %s, but %s was found."
-    IMPROPER_ARGNO_ELSE = "ERROR: Expected number of arguments in the ELSE statement is %s, but %s was found."
-    IMPROPER_ARGNO_WHILE = "ERROR: Expected number of arguments in the WHILE statement is %s, but %s was found."
-    IMPROPER_ARGNO_POST_WHILE = "ERROR: Expected number of arguments in the WHILE statement is %s, but %s was found."
-    IMPROPER_ARGNO_FOR = "ERROR: Expected number of arguments in the FOR statement is %s, but %s was found."
-    IMPROPER_ARGNO_FOREACH = "ERROR: Expected number of arguments in the FOR EACH statement is %s, but %s was found."
-    IMPROPER_ARGNO_SECTION= "ERROR: Expected number of arguments in the SECTION statement is %s, but %s was found."
-
 class Arg_num(Enum):
     ARG_NUM_FOREACH = 2
     ARG_NUM_IF = 4
@@ -145,17 +135,19 @@ def is_num(s):
     return s.isdigit()
 
 class Misc_error_msg(Enum):
-    ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected." \
-                        " Check the value '%s' in the following set of values: %s"
+    ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected. " \
+                        "Check the value '%s' in the following set of values: %s."
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
                             "Please check the operator '%s' in the following set of values: %s. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
-                         "Please check the following set of values: %s"
+                         "Please check the following set of values: %s."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
-                        "Check the following part: %s"
+                        "Check the following part: %s."
     INVALID_ITERATION_OPERATOR = "ERROR: %s is not a valid iteration operators. Only +, -, *, / and %% are supported." \
-                                 "Check the following part: %s"
+                                 "Check the following part: %s."
+    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the %s statement is %s, but %s was found." \
+                     "Check the following part: %s"
 
 def validate_foreach(cf_split):
     log = ""
@@ -167,7 +159,8 @@ def validate_foreach(cf_split):
             is_error = True
             log = log + Misc_error_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
     else:
-        log = log + Arg_num_error_msg.IMPROPER_ARGNO_FOREACH.value % (Arg_num.ARG_NUM_FOREACH.value, elements) + "\n"
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     #print(log)
     return log, is_error
@@ -200,7 +193,8 @@ def validate_while(cf_split):
             is_error = True
             log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = Arg_num_error_msg.IMPROPER_ARGNO_WHILE.value
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
@@ -237,7 +231,8 @@ def validate_if(cf_split):
             is_error = True
             log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = Arg_num_error_msg.IMPROPER_ARGNO_IF.value
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
     return log, is_error
@@ -277,7 +272,8 @@ def validate_elseif(cf_split):
             is_error = True
             log = log + Misc_error_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = Arg_num_error_msg.IMPROPER_ARGNO_ELSEIF.value
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     # print(log)
@@ -314,7 +310,8 @@ def validate_else(cf_split):
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_ELSE.value:
-        log = log + Arg_num_error_msg.IMPROPER_ARGNO_ELSE.value % (Arg_num.ARG_NUM_ELSE.value, elements) + "\n"
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # print(log)
     return log, is_error
@@ -379,7 +376,8 @@ def validate_for(cf_split):
             is_error = True
             log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[3], cf_split) + "\n"
     else: # if number of argument is invalid
-        log = log + Arg_num_error_msg.IMPROPER_ARGNO_FOR.value + "\n"
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # print(log)
     return log, is_error
@@ -418,7 +416,8 @@ def validate_post_while(cf_split):
             is_error = True
             log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[0], cf_split) + "\n"
     else:  # if number of argument is invalid
-        log = log + Arg_num_error_msg.IMPROPER_ARGNO_POST_WHILE.value + "\n"
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_POST_WHILE.value, elements,
+                                                           cf_split) + "\n"
         is_error = True
     # print(log)
     return log, is_error
@@ -452,7 +451,8 @@ def validate_section(cf_split):
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_SECTION.value:
-        log = log + Arg_num_error_msg.IMPROPER_ARGNO_SECTION.value + "\n"
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
+                                                           elements, cf_split) + "\n"
         is_error = True
     # print(log)
     return log, is_error
@@ -470,8 +470,9 @@ def process_section(cf_split):
     return key_val, log, is_error
 
 def check_bracket_num(par_no, text):
-    log = "No bracketing error was found on line no %s." % (par_no)
+    # log = "No bracketing error was found on line no %s." % (par_no)
     # print("THIS IS THE TEXT:" + text)
+    log = ""
     base_error_warning = "BRACKETING ERROR: %s %s: %s"
     is_error = False
     if text.count("{") != text.count("}"):
