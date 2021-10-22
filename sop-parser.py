@@ -227,6 +227,7 @@ def validate_if(cf_split):
     else:
         log = Arg_num_error_msg.IMPROPER_ARGNO_IF.value
         is_error = True
+    # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
     print(log)
     return log, is_error
 
@@ -511,6 +512,8 @@ def parse_docx2_content(doc_content):
         bracketnum_log, is_bracket_error = check_bracket_num(par_no, para.text)
         log = log + bracketnum_log + "\n"
         if is_bracket_error:
+            write_log(log)
+            print(log)
             break
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
