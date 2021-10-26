@@ -97,7 +97,7 @@ def is_valid_comparative_operator(operator):
         return False
 
 def is_valid_iteration_operator(operator):
-    operators_list = ["+", "-", "-", ":"]
+    operators_list = ["+", "-", "*", "/", "%"]
     if operator.lower() in operators_list:
         return True
     else:
