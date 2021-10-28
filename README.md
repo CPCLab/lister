@@ -2,21 +2,25 @@
 
 This repository contains a set of files to parse SOP from lab experiments.
 
-# Why?
+
+
+# Motivation
 
 As research lab usually has their own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the SOP should follow some annotation rules (described later below).
 
 
 
-# How is this repo structured?
+# Repository structure
 
 - The base directory contains the metadata extraction script.
+
 - *input* directory contains the docx SOPs example for extraction.
+
 - *output* directory contains extracted steps order – key – value in both JSON and XLSX format.
 
+  
 
-
-# What is extracted from the SOP, and how is it represented in the docx document?
+# List of supported annotations
 
 The parser extracts: 
 
@@ -79,9 +83,23 @@ Iteration operator is used to change the value of compared variable during a loo
 
   
 
+# Constraints and recommendations
 
+## Constraint
 
-# How the parser should be run?
+- Only one unique key per step is supported. If there are similar keys within one step, only the last pair of that key will be saved and the previous ones will be overridden (**TODO**: create a warning in the validator if a non-empty KV already existed).
+- Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
+- Some of the keys are not officially on the Amber's output parameter list (e.g., No. of atom in the used PDB molecules), but please feel free to suggest a new key. These suggested keys will be analyzed for further inclusion in metadata standard in the specific domain. 
+- Avoid use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
+- Comments are currently not yet extracted in the parser's output but it is already parsed in the background - still need to find a way how to simplify the data serialization.
+
+## Recommendations
+
+- To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units as a comment within the value portion of the KV-pair, e.g., ` {0.01 (ps)|gamma_ln}`.
+- Default  measurement unit should be used (e.g., `ps` instead of `fs` in e.g., AmberMD's `gamma_ln` variable). 
+-  Avoid superfluous blank lines (**TODO**: Discard step numbering on an empty line/section - or implement specific step numbering functionality).
+
+# Running the parser
 
 1.   Create SOP according to the above annotation rules.
 2.  Change the input directory/file name in the python script (2nd last line).
@@ -90,7 +108,7 @@ Iteration operator is used to change the value of compared variable during a loo
 
  
 
-# What are the further plans?
+# Further plans
 
 1. Fixes for while control flow, and logical operators in general control flow.
 2. Consult CAi and Biochemistry1 for its implementability on other labs.
