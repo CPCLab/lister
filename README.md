@@ -110,6 +110,7 @@ LISTER checks the following problems upon parsing, and report accordingly:
 6. Integration with eLabFTW.
 7. Whether integration with SWATE and ARC is feasible.
 8. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
+9. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
 # Further plans
 

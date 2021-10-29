@@ -543,7 +543,7 @@ def write_log(log):
         f.write(log)
 
 def write_to_xlsx(key_val, log, output_file):
-    header = ["STEP NUMBER","KEY","VALUE"]
+    header = ["LINE NUMBER","KEY","VALUE"]
     with xlsxwriter.Workbook(output_file + "xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
