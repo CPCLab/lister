@@ -4,7 +4,7 @@ This repository contains a set of files to parse SOP from lab experiments.
 
 # Motivation
 
-As research lab usually has their own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the SOP should follow some annotation rules (described later below).
+As research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the SOP should follow some annotation rules (described later below).
 
 # Repository structure
 
@@ -67,6 +67,14 @@ Iteration operator is used to change the value of compared variable during a loo
 
 - `/`: iteration using division
 
+# Document validation 
+
+LISTER checks the following problems upon parsing, and report accordingly:
+
+- Orphaned brackets and indicates which line the error is located.
+- Mismatched data types for conditionals and iterations.
+- Mismatched argument numbers for conditionals and iterations. 
+
 # Constraints and recommendations
 
 ## Constraint
@@ -86,9 +94,22 @@ Iteration operator is used to change the value of compared variable during a loo
 # Running the parser
 
 1.   Create SOP according to the above annotation rules.
-2.  Change the input directory/file name in the python script (2nd last line).
-3. Change the output directory/filename (last line).
-4.  Run the script. 
+2.   Change the input directory/file name in the python script (2nd last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
+3.   Change the output directory/filename (last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
+4.   Run the script. 
+
+# Open for discussion
+
+1. Comments serialization, as well as representing and structuring comments in the output file.
+2. The necessity of supporting substeps parsing and serialization.
+3. Support for plain text format.
+4. Support for markdown: 
+   1. This will require redesign on how the text should be annotated, as the bracketing method will break (or requires a lot of metacharacters).
+   2. On the plus side, MD is supported by eLabFTW, and since it is a non binary file, the changes can be tracked on version control system.
+5. Maintaining information in the form of images, tables, figures etc.
+6. Integration with eLabFTW.
+7. Whether integration with SWATE and ARC is feasible.
+8. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
 
 # Further plans
 

@@ -4,7 +4,7 @@ from enum import Enum
 import xlsxwriter
 from docx import Document
 
-output_file_prefix = "output/cpc-rewritten."
+
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -558,7 +558,10 @@ def get_docx_content(filename):
     f.close()
     return content
 
-input_file = 'input/cpc-rewritten.docx'
+# ADJUST INPUT/OUTPUT FILE HERE
+output_file_prefix = "output/cpc-bile-salt."
+input_file = 'input/cpc-bile-salt.docx'
+
 document = get_docx_content(input_file)
 print('No. of lines: ' + str(len(document.paragraphs)))
 kv, log = parse_docx2_content(document)
