@@ -33,6 +33,8 @@ class Misc_error_msg(Enum):
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
                             "Please check the operator '%s' in the following set of values: %s. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
+    UNRECOGNIZED_FLOW_TYPE = "ERROR: The flow type is not recognized. " \
+                            "Please check the flow type '%s' in the following set of values: %s."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
                          "Please check the following set of values: %s."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
@@ -48,7 +50,7 @@ class Arg_num(Enum):
     ARG_NUM_ELSEIF = 4
     ARG_NUM_ELSE = 1
     ARG_NUM_WHILE = 4
-    ARG_NUM_POST_WHILE = 2
+    ARG_NUM_ITERATE = 3
     ARG_NUM_FOR = 5
     ARG_NUM_KV = 2
     ARG_NUM_COMMENT = 1
@@ -246,16 +248,16 @@ def validate_for(cf_split):
         is_error = True
     return log, is_error
 
-def validate_post_while(cf_split):
+def validate_iterate(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
-    if elements == Arg_num.ARG_NUM_POST_WHILE.value:
-        if not is_valid_iteration_operator(cf_split[0]):
+    if elements == Arg_num.ARG_NUM_ITERATE.value:
+        if not is_valid_iteration_operator(cf_split[1]):
             is_error = True
-            log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[0], cf_split) + "\n"
+            log = log + Misc_error_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[1], cf_split) + "\n"
     else:  # if number of argument is invalid
-        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_POST_WHILE.value, elements,
+        log = log + Misc_error_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
                                                            cf_split) + "\n"
         is_error = True
     return log, is_error
@@ -401,19 +403,21 @@ def process_for(par_no, cf_split):
     return key_val, log, is_error
 
 # should happen only after having 'while' iterations to provide additional steps on the iterator
-def process_post_while(par_no, cf_split):
+def process_iterate(par_no, cf_split):
     key_val = []
     log = ""
     is_error = False
-    pw_log, pw_is_error = validate_post_while(cf_split)
+    pw_log, pw_is_error = validate_iterate(cf_split)
     if pw_is_error:
         log = log + pw_log + "\n"
         print(log)
         write_log(log)
         exit()
-    flow_operation = cf_split[0]
+    flow_type = cf_split[0]
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
+    flow_operation = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
-    flow_magnitude = cf_split[1]
+    flow_magnitude = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
@@ -456,23 +460,27 @@ def extract_flow_type(par_no, flow_control_pair):
     cf_split = re.split("\|", cf)
     flow_type = cf_split[0]
     flow_type = flow_type.strip()
+    flow_type = flow_type.lower()
     if flow_type == "for each":
         key_val, flow_log, is_error = process_foreach(par_no, cf_split)
     elif flow_type == "while":
         key_val, flow_log, is_error = process_while(par_no, cf_split)
     elif flow_type == "if":
         key_val, flow_log, is_error = process_if(par_no, cf_split)
-    elif flow_type == "else if":
+    elif flow_type == "else if" or flow_type == "elif":
         key_val, flow_log, is_error = process_elseif(par_no, cf_split)
     elif flow_type == "else":
         key_val, flow_log, is_error = process_else(par_no, cf_split)
     elif flow_type == "for":
         key_val, flow_log, is_error = process_for(par_no, cf_split)
-    # elif flow_type == "+":
     elif flow_type.casefold() == "section".casefold():
         key_val, flow_log, is_error = process_section(cf_split)
+    elif flow_type == "iterate":
+        key_val, flow_log, is_error = process_iterate(par_no, cf_split)
     else:
-       key_val, flow_log, is_error = process_post_while(par_no, cf_split)
+        # key_val, flow_log, is_error = process_post_while(par_no, cf_split)
+        is_error = True
+        flow_log = Misc_error_msg.UNRECOGNIZED_FLOW_TYPE.value % (cf_split[0].upper(), cf_split)  + "\n"
     return key_val, flow_log, is_error
 
 def parse_docx1_content(doc_content):
@@ -533,7 +541,7 @@ def parse_docx2_content(doc_content):
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     return key_val, log
 
-# -------------------------------- SETIALIZING TO FILES --------------------------------
+# -------------------------------- SERIALIZING TO FILES --------------------------------
 def write_to_json(list, log, filename):
     json.dump(list, open(filename + "json", 'w', encoding="utf-8"), ensure_ascii=False)
     write_log(log)
@@ -559,8 +567,11 @@ def get_docx_content(filename):
     return content
 
 # ADJUST INPUT/OUTPUT FILE HERE
-output_file_prefix = "output/cpc-bile-salt."
-input_file = 'input/cpc-bile-salt.docx'
+# output_file_prefix = "output/cpc-material-method."
+# input_file = 'input/cpc-material-method.docx'
+output_file_prefix = "output/cpc-rewritten."
+input_file = 'input/cpc-rewritten.docx'
+
 
 document = get_docx_content(input_file)
 print('No. of lines: ' + str(len(document.paragraphs)))
