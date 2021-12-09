@@ -523,8 +523,8 @@ def parse_docx2_content(doc_content):
         flow_pattern = r'<.+?>'
         section_pattern = r'\<section|.>'
         kv_and_flow_pairs = re.findall(kv_and_flow_pattern, para.text)
-        if len(kv_and_flow_pairs) > 0 and bool(re.match(section_pattern, kv_and_flow_pairs[0], re.IGNORECASE)) is False:
-            # THhe definition of paragraph here is therefore anything non section that has at least 1 KV/Control Flow
+        para_len = len(split_into_sentences(para.text))
+        if para_len > 0:
             par_no = par_no + 1  # count paragraph index, starting from 1 and iterate
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(kv_pattern, kv_and_flow_pair):
