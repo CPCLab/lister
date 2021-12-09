@@ -510,13 +510,15 @@ def parse_docx2_content(doc_content):
     comment_regex = "\(.+?\)"                                      # define regex for parsing comment
     log = ""
     for para in doc_content.paragraphs:
-        flow_control_pairs = re.findall("<.+?>", para.text)
+        # Check bracketing validity
         bracketnum_log, is_bracket_error = check_bracket_num(par_no, para.text)
         log = log + bracketnum_log + "\n"
         if is_bracket_error:
             write_log(log)
             print(log)
             break
+        # Extract flow control pairs
+        flow_control_pairs = re.findall("<.+?>", para.text)
         if len(flow_control_pairs)>0:
             for flow_control_pair in flow_control_pairs:
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, flow_control_pair)
@@ -526,6 +528,7 @@ def parse_docx2_content(doc_content):
                     print(log)
                     break
                 key_val.extend(flow_metadata)
+        # Extract key value pairs
         kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
         if len(kvs)>0:
             for kv in kvs:
@@ -538,6 +541,7 @@ def parse_docx2_content(doc_content):
                     #NOTE: comment from key or value is available but not yet serialized into files. TBD.
                     one_key_val = [par_no, key, val]
                     key_val.append(one_key_val)
+                    print([par_no, key, val])
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     return key_val, log
 
@@ -567,10 +571,10 @@ def get_docx_content(filename):
     return content
 
 # ADJUST INPUT/OUTPUT FILE HERE
-# output_file_prefix = "output/cpc-material-method."
-# input_file = 'input/cpc-material-method.docx'
-output_file_prefix = "output/cpc-rewritten."
-input_file = 'input/cpc-rewritten.docx'
+output_file_prefix = "output/cpc-material-method."
+input_file = 'input/cpc-material-method.docx'
+# output_file_prefix = "output/cpc-rewritten."
+# input_file = 'input/cpc-rewritten.docx'
 
 
 document = get_docx_content(input_file)

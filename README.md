@@ -85,6 +85,7 @@ LISTER checks the following problems upon parsing, and report accordingly:
 - Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
 - Comments are currently not yet extracted in the parser's output but it is already parsed in the background - still need to find a way how to simplify the data serialization.
 - An additional annotation using underscore (''__"")  is needed to indicate a not-yet considered terms. (**TODO**)
+- Flow control can not be followed consecutively with following key value-pairs. Instead, all flow control are parsed first, and then all KV pairs are parsed afterwards.
 
 ## Recommendations
 
@@ -110,8 +111,8 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 4. Support for markdown: 
    
-   1. This will require redesign on how the text should be annotated, as the bracketing method will break (or requires a lot of metacharacters).
-   2. On the plus side, MD is supported by eLabFTW, and since it is a non binary file, the changes can be tracked on version control system.
+   1. This will require redesign on how the text should be annotated, as the bracketing method will break  or at least  requires a lot of metacharacters.
+   2. On the plus side, MD is supported by eLabFTW, also the changes can be tracked on version control system.
 
 5. Maintaining information in the form of images, tables, figures etc.
 
@@ -123,13 +124,13 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 9. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
-10. How can we group corresponding conditionals if it is not done on a step-by-step basis?
+10. How can werecognize a group corresponding conditionals if it is not done on a step-by-step basis?
 
-11. Is it better to provide if-else in one single statement? (see Jesko’s example)
+11. Whether it is better to provide if-else in one single statement (see Jesko’s example).
 
-12. Do formulas need to be preserved in the text?
+12. Whether formulas to derive metadata need to be preserved in the text.
 
-13. How can we accommodate the paragraph with similar key having several values?
+13. How can we accommodate the paragraph with similar key having several values? (mainly for me)
 
 # Further plans
 
