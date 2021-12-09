@@ -517,22 +517,14 @@ def parse_docx2_content(doc_content):
             write_log(log)
             print(log)
             break
-        # Extract flow control pairs
-        flow_control_pairs = re.findall("<.+?>", para.text)
-        if len(flow_control_pairs)>0:
-            for flow_control_pair in flow_control_pairs:
-                flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, flow_control_pair)
-                log = log + flow_log + "\n"
-                if is_flow_error:
-                    write_log(log)
-                    print(log)
-                    break
-                key_val.extend(flow_metadata)
-        # Extract key value pairs
-        kvs = re.findall(r'\{.+?\}', para.text)                     # get values and keys
-        if len(kvs)>0:
-            for kv in kvs:
-                key, val = extract_kv(kv)
+        # Extract KV and flow metadata
+        kv_and_flow_pattern = r'\{.+?\}|<.+?>'
+        kv_pattern = r'\{.+?\}'
+        flow_pattern = r'<.+?>'
+        kv_and_flow_pairs = re.findall(kv_and_flow_pattern, para.text)
+        for kv_and_flow_pair in kv_and_flow_pairs:
+            if re.match(kv_pattern, kv_and_flow_pair):
+                key, val = extract_kv(kv_and_flow_pair)
                 if key != "" and val != "":
                     if re.search(comment_regex, key):
                         key, comment = process_comment(key)
@@ -542,6 +534,15 @@ def parse_docx2_content(doc_content):
                     one_key_val = [par_no, key, val]
                     key_val.append(one_key_val)
                     print([par_no, key, val])
+            if re.match(flow_pattern, kv_and_flow_pair):
+                flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
+                log = log + flow_log + "\n"
+                if is_flow_error:
+                    write_log(log)
+                    print(log)
+                    break
+                key_val.extend(flow_metadata)
+
         par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
     return key_val, log
 
