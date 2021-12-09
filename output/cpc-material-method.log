@@ -6,29 +6,40 @@
 
 
 
+WARNING: A combination of similar paragraph number and key has been found, [1, 'box type']. Please make sure that this is intended.
+
+
+
+WARNING: A combination of similar paragraph number and key has been found, [2, 'force field']. Please make sure that this is intended.
+
+
+
+
+WARNING: A combination of similar paragraph number and key has been found, [3, 'dt']. Please make sure that this is intended.
+WARNING: A combination of similar paragraph number and key has been found, [3, 'cut']. Please make sure that this is intended.
 
 
 
 
 
+WARNING: A combination of similar paragraph number and key has been found, [5, 'maxcyc']. Please make sure that this is intended.
 
 
 
 
 
+WARNING: A combination of similar paragraph number and key has been found, [6, 'MD']. Please make sure that this is intended.
+
+
+
+
+WARNING: A combination of similar paragraph number and key has been found, [8, 'MD']. Please make sure that this is intended.
+WARNING: A combination of similar paragraph number and key has been found, [8, 'simulation time']. Please make sure that this is intended.
+WARNING: A combination of similar paragraph number and key has been found, [8, 'nstlim']. Please make sure that this is intended.
+WARNING: A combination of similar paragraph number and key has been found, [8, 'dt']. Please make sure that this is intended.
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+WARNING: A combination of similar paragraph number and key has been found, [9, 'MD']. Please make sure that this is intended.

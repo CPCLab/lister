@@ -74,24 +74,25 @@ LISTER checks the following problems upon parsing, and report accordingly:
 - Orphaned brackets and indicates which line the error is located.
 - Mismatched data types for conditionals and iterations.
 - Mismatched argument numbers for conditionals and iterations. 
+- Invalid control flows.
 
 # Constraints and recommendations
 
 ## Constraint
 
-- Only one unique key per step is supported. If there are similar keys within one step, only the last pair of that key will be saved and the previous ones will be overridden (**TODO**: create a warning in the validator if a non-empty KV already existed).
+- Multiple key per step is supported. (**TODO**: create a warning in the validator if a non-empty KV already existed).
 - Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
 - Some of the keys are not officially on the Amber's output parameter list (e.g., No. of atom in the used PDB molecules), but please feel free to suggest a new key. These suggested keys will be analyzed for further inclusion in metadata standard in the specific domain. 
+- An additional annotation using underscore (''__"") is needed to indicate a not-yet considered terms. (**TODO**)
 - Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
 - Comments are currently not yet extracted in the parser's output but it is already parsed in the background - still need to find a way how to simplify the data serialization.
-- An additional annotation using underscore (''__"")  is needed to indicate a not-yet considered terms. (**TODO**)
-- Flow control can not be followed consecutively with following key value-pairs. Instead, all flow control are parsed first, and then all KV pairs are parsed afterwards.
+  
+  
 
 ## Recommendations
 
 - To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units as a comment within the value portion of the KV-pair, e.g., ` {0.01 (ps)|gamma_ln}`.
 - Default  measurement unit should be used (e.g., `ps` instead of `fs` in e.g., AmberMD's `gamma_ln` variable). 
-- Avoid superfluous blank lines (**TODO**: Discard step numbering on an empty line/section - or implement explicit (instead of implicit by line number) step numbering functionality).
 - A more intuitive logical operators (instead of using chars)
 
 # Running the parser
