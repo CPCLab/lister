@@ -4,9 +4,6 @@ from enum import Enum
 import xlsxwriter
 from docx import Document
 
-
-
-
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
@@ -274,7 +271,7 @@ def validate_section(cf_split):
         is_error = True
     return log, is_error
 
-# -------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS --------------------------------
+# --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
     key_val = []
     log, is_error = validate_foreach(cf_split)
@@ -443,7 +440,7 @@ def process_section(cf_split):
         key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
     return key_val, log, is_error
 
-# -------------------------------- METADATA EXTRACTION FUNCTIONS --------------------------------
+# ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
 def extract_kv(kv):
     kv = kv[1:-1]
@@ -553,7 +550,7 @@ def parse_docx2_content(doc_content):
                 par_key_val.extend(flow_metadata)
     return par_key_val, log
 
-# -------------------------------- SERIALIZING TO FILES --------------------------------
+# ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 def write_to_json(list, log, filename):
     json.dump(list, open(filename + "json", 'w', encoding="utf-8"), ensure_ascii=False)
     write_log(log)
@@ -563,7 +560,7 @@ def write_log(log):
         f.write(log)
 
 def write_to_xlsx(key_val, log, output_file):
-    header = ["LINE NUMBER","KEY","VALUE"]
+    header = ["PARAGRAPH NUMBER","KEY","VALUE"]
     with xlsxwriter.Workbook(output_file + "xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)

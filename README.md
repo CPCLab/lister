@@ -78,16 +78,15 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 # Constraints and recommendations
 
-## Constraint
 
-- Multiple key per step is supported. (**TODO**: create a warning in the validator if a non-empty KV already existed).
+
+## Constraints
+
 - Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
-- Some of the keys are not officially on the Amber's output parameter list (e.g., No. of atom in the used PDB molecules), but please feel free to suggest a new key. These suggested keys will be analyzed for further inclusion in metadata standard in the specific domain. 
-- An additional annotation using underscore (''__"") is needed to indicate a not-yet considered terms. (**TODO**)
+- Some of the keys are not officially on the Amber's output parameter list (e.g., No. of atom in the used PDB molecules), but please feel free to suggest a new key. These suggested keys will be analyzed for further inclusion in metadata standard in the specific domain.
+- To indicate a not-yet considered terms, an additional annotation using underscore (''__"") is recommended.
 - Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
 - Comments are currently not yet extracted in the parser's output but it is already parsed in the background - still need to find a way how to simplify the data serialization.
-  
-  
 
 ## Recommendations
 
@@ -101,6 +100,10 @@ LISTER checks the following problems upon parsing, and report accordingly:
 2. Change the input directory/file name in the python script (2nd last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
 3. Change the output directory/filename (last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
 4. Run the script. 
+
+
+
+
 
 # Open for discussion
 
