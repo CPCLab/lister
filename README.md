@@ -78,8 +78,6 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 # Constraints and recommendations
 
-
-
 ## Constraints
 
 - Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
@@ -100,10 +98,6 @@ LISTER checks the following problems upon parsing, and report accordingly:
 2. Change the input directory/file name in the python script (2nd last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
 3. Change the output directory/filename (last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
 4. Run the script. 
-
-
-
-
 
 # Open for discussion
 
@@ -128,13 +122,19 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 9. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
-10. How can werecognize a group corresponding conditionals if it is not done on a step-by-step basis?
+10. How can werecognize a group corresponding conditionals if it is not done on a step-by-step basis? And how to serialize this on a table
 
 11. Whether it is better to provide if-else in one single statement (see Jesko’s example).
 
 12. Whether formulas to derive metadata need to be preserved in the text.
 
-13. How can we accommodate the paragraph with similar key having several values? (mainly for me)
+13. How can we accommodate the paragraph with similar key having several values? (mainly for me).
+
+14. How to enable enumeration of possible values in the SOP?
+
+15. How to enforce a particular data type in the SOP?
+
+16. How to map enumerated values of one key into corresponding values of a related key?
 
 # Further plans
 
