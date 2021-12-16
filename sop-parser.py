@@ -576,8 +576,8 @@ def get_docx_content(filename):
     return content
 
 # ADJUST INPUT/OUTPUT FILE HERE
-output_file_prefix = "output/cpc1-JK."
-input_file = 'input/cpc/cpc1-JK.docx'
+output_file_prefix = "output/cpc-bile-salt."
+input_file = 'input/cpc-bile-salt.docx'
 # output_file_prefix = "output/cpc-rewritten."
 # input_file = 'input/cpc-rewritten.docx'
 

@@ -11,6 +11,18 @@ all_exp = manager.get_all_experiments()
 exp = manager.get_experiment(1)
 #print(exp["body"])
 soup = BeautifulSoup(exp["body"], features="lxml")
-print(soup.get_text())
+nonBreakSpace = u'\xa0'
+# soup = soup.replace(nonBreakSpace, ' ')
+text = soup.get_text().splitlines()
+#text = list(filter('\xa0', text))
+stext = [x for x in text if x != '\xa0']
+line_no = 1
+pline = []
+for line in stext:
+    line = line.replace(nonBreakSpace, ' ')
+    pline.append(line)
+    line_no = line_no + 1
+print(pline)
+#print(soup.get_text())
 #print(json.dumps(exp, indent=4, sort_keys=True))
 
