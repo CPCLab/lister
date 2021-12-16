@@ -9,3 +9,5 @@ requests==2.26.0
 urllib3==1.26.7
 yarg==0.1.9
 XlsxWriter==3.0.1
+elabapy~=0.8.2
+beautifulsoup4~=4.8.2
