@@ -3,6 +3,9 @@ import re
 from enum import Enum
 import xlsxwriter
 from docx import Document
+from bs4 import BeautifulSoup
+import elabapy
+
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
@@ -18,11 +21,13 @@ class Ctrl_metadata(Enum):
     FLOW_ITRTN_STRT = "start iteration value"
     FLOW_ITRTN_END = "end iteration value"
 
+
 class Bracket_pair_error(Enum):
     IMPROPER_COMMENT_BRACKET = "ERROR: Mismatch between '(' and ')'. Check line "
     IMPROPER_RANGE_BRACKET = "ERROR: Mismatch between '[' and ']'.  Check line "
     IMPROPER_KV_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
     IMPROPER_FLOW_BRACKET = "ERROR: Mismatch between '<' and '>'.  Check line "
+
 
 class Misc_error_and_warning_msg(Enum):
     ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected. " \
@@ -31,7 +36,7 @@ class Misc_error_and_warning_msg(Enum):
                             "Please check the operator '%s' in the following set of values: %s. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     UNRECOGNIZED_FLOW_TYPE = "ERROR: The flow type is not recognized. " \
-                            "Please check the flow type '%s' in the following set of values: %s."
+                             "Please check the flow type '%s' in the following set of values: %s."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
                          "Please check the following set of values: %s."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
@@ -42,6 +47,7 @@ class Misc_error_and_warning_msg(Enum):
                      "Check the following part: %s"
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, %s. Please " \
                             "make sure that this is intended."
+
 
 class Arg_num(Enum):
     ARG_NUM_FOREACH = 2
@@ -57,12 +63,14 @@ class Arg_num(Enum):
 
 
 # -------------------------------- SPLIT TEXT INTO SENTENCES --------------------------------
-latin_alphabets= "([A-Za-z])"
+latin_alphabets = "([A-Za-z])"
 openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
 abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
 pref = "(Mr|St|Mrs|Ms|Dr)[.]"
 sites = "[.](com|net|org|io|gov|de|eu)"
 suff = "(Inc|Ltd|Jr|Sr|Co)"
+
+
 def split_into_sentences(content):
     content = " " + content + "  "
     content = content.replace("\n", " ")
@@ -89,6 +97,7 @@ def split_into_sentences(content):
     sentences = [s.strip() for s in sentences]
     return sentences
 
+
 # -------------------------------- TYPE-VALIDATOR HELPER FUNCTIONS --------------------------------
 def is_valid_comparative_operator(operator):
     operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
@@ -97,6 +106,7 @@ def is_valid_comparative_operator(operator):
     else:
         return False
 
+
 def is_valid_iteration_operator(operator):
     operators_list = ["+", "-", "*", "/", "%"]
     if operator.lower() in operators_list:
@@ -104,12 +114,14 @@ def is_valid_iteration_operator(operator):
     else:
         return False
 
+
 def is_num(s):
     s = s.replace('.', '', 1)
     s = s.replace(',', '', 1)
     if s[0] in ('-', '+'):
         return s[1:].isdigit()
     return s.isdigit()
+
 
 # -------------------------------- CONTROL-FLOW VALIDATOR FUNCTIONS --------------------------------
 def check_bracket_num(par_no, text):
@@ -131,20 +143,23 @@ def check_bracket_num(par_no, text):
     # print(log)
     return log, is_error
 
+
 def validate_foreach(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
     if elements == Arg_num.ARG_NUM_FOREACH.value:
-        if is_num(cf_split[1]): #or
+        if is_num(cf_split[1]):  # or
             # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
             is_error = True
             log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
+        cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 def validate_while(cf_split):
     log = ""
@@ -158,11 +173,13 @@ def validate_while(cf_split):
             is_error = True
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
+        cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
+
 
 def validate_if(cf_split):
     log = ""
@@ -176,11 +193,13 @@ def validate_if(cf_split):
             is_error = True
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
+        cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
     return log, is_error
+
 
 # Validation functions for else if, while and if have similar properties. Hence, these functions can be integrated, but
 # if there are changes for each of those, it may be difficult to refactor. For now these validation functions are
@@ -197,21 +216,25 @@ def validate_elseif(cf_split):
             is_error = True
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
+        cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
+
 
 def validate_else(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_ELSE.value:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
+        cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 def validate_range(flow_range):
     is_error = False
@@ -226,26 +249,29 @@ def validate_range(flow_range):
         log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value % (flow_range) + "\n"
     return log, is_error
 
+
 def validate_for(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
-    if elements == Arg_num.ARG_NUM_FOR.value:                       # validating number of arguments in FOR
-        if is_num(cf_split[1]):                                     # in case 2nd argument is number, throw an error
+    if elements == Arg_num.ARG_NUM_FOR.value:  # validating number of arguments in FOR
+        if is_num(cf_split[1]):  # in case 2nd argument is number, throw an error
             is_error = True
             log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
         range_error_log, is_range_error = validate_range(cf_split[2])
-        if is_range_error == True:                                  # check whether it is a valid range
+        if is_range_error == True:  # check whether it is a valid range
             is_error = True
             log = log + range_error_log + "\n"
-        if not is_valid_iteration_operator(cf_split[3]):            # check whether it is a valid operator
+        if not is_valid_iteration_operator(cf_split[3]):  # check whether it is a valid operator
             is_error = True
             log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[3], cf_split) + "\n"
-    else: # if number of argument is invalid
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
-                                                                       cf_split) + "\n"
+    else:  # if number of argument is invalid
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
+        cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 def validate_iterate(cf_split):
     log = ""
@@ -256,20 +282,24 @@ def validate_iterate(cf_split):
             is_error = True
             log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[1], cf_split) + "\n"
     else:  # if number of argument is invalid
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
-                                                                       cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
+        cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 def validate_section(cf_split):
     log = ""
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_SECTION.value:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
-                                                                       elements, cf_split) + "\n"
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
+        elements, cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
@@ -286,6 +316,7 @@ def process_foreach(par_no, cf_split):
     flow_param = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
     return key_val, log, is_error
+
 
 def process_while(par_no, cf_split):
     key_val = []
@@ -306,6 +337,7 @@ def process_while(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
     return key_val, log, is_error
 
+
 def process_if(par_no, cf_split):
     key_val = []
     log, is_error = validate_if(cf_split)
@@ -325,6 +357,7 @@ def process_if(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
     return key_val, log, is_error
 
+
 def process_elseif(par_no, cf_split):
     key_val = []
     log, is_error = validate_elseif(cf_split)
@@ -341,7 +374,7 @@ def process_elseif(par_no, cf_split):
     flow_logical_operator = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
     flow_compared_value = cf_split[3]
-    if re.search("\[.*?\]",flow_compared_value):
+    if re.search("\[.*?\]", flow_compared_value):
         key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value])
         start, end, range_log, range_is_error = process_range(flow_compared_value)
         key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
@@ -349,6 +382,7 @@ def process_elseif(par_no, cf_split):
     else:
         key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
     return key_val, log, is_error
+
 
 # no arguments is passed so no validation is needed.
 def process_else(par_no, cf_split):
@@ -366,6 +400,7 @@ def process_else(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
     return key_val, log, is_error
 
+
 def process_range(flow_range):
     log, is_error = "", False
     log, is_error = validate_range(flow_range)
@@ -376,6 +411,7 @@ def process_range(flow_range):
     else:
         range_values = re.split("-", flow_range[1:-1])
     return float(range_values[0]), float(range_values[1]), log, is_error
+
 
 def process_for(par_no, cf_split):
     key_val = []
@@ -401,6 +437,7 @@ def process_for(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
+
 # should happen only after having 'while' iterations to provide additional steps on the iterator
 def process_iterate(par_no, cf_split):
     key_val = []
@@ -420,13 +457,15 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
+
 def process_comment(str_with_brackets):
     comment_regex = "\(.+?\)"
     comment = re.search(comment_regex, str_with_brackets)
     comment = comment.group(0)
-    remains = str_with_brackets.replace(comment,'')
+    remains = str_with_brackets.replace(comment, '')
     comment = comment[1:-1]
     return remains.strip(), comment.strip()
+
 
 def process_section(cf_split):
     key_val = []
@@ -437,8 +476,9 @@ def process_section(cf_split):
         is_error = True
         log = log + sect_log + "\n"
     else:
-        key_val.append(["-",Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
+        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
     return key_val, log, is_error
+
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
@@ -450,6 +490,7 @@ def extract_kv(kv):
     val = kv_split[0]
     val = val.strip()
     return key, val
+
 
 def extract_flow_type(par_no, flow_control_pair):
     flow_log = ""
@@ -482,49 +523,41 @@ def extract_flow_type(par_no, flow_control_pair):
         flow_log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value % (cf_split[0].upper(), cf_split) + "\n"
     return key_val, flow_log, is_error
 
-def parse_docx1_content(doc_content):
-    par_no = 0
-    key_val = []
-    for para in doc_content.paragraphs:
-        sentences = split_into_sentences(para.text)
-        for sentence in sentences:
-            key = ""
-            key = str(re.findall('\[.*?\]', sentence))              # get keys
-            key = ''.join(key[3:-3])                                # remove unnecessary brackets/hyphens
-            lst_values = re.findall('\{.*?\}', sentence)            # get lst_values
-            lst_values = [value[1:-1] for value in lst_values]      # remove the curly brackets
-            str_values = str(lst_values)                            # convert list to string
-            str_values = re.sub(r'[\'][\"]*', '', str_values)       # remove superfluous apostrophe and quotation marks
-            str_values = str_values[1:-1]
-            if key != "" and str_values != "" :                     # only add when none of the key or value is empty
-                one_key_val = [par_no, key, str_values]
-                key_val.append(one_key_val)
-        par_no = par_no + 1                                         # count paragraph index, starting from 1 and iterate
-    return key_val
 
-# parse opened document, second draft of sop
-def parse_docx2_content(doc_content):
+def get_docx_par_list(doc_content):
+    par_no = 0
+    par_lines = []
+    for para in doc_content.paragraphs:
+        par_lines.append(para.text)
+        par_no = par_no + 1
+    par_lines = list(line for line in par_lines if line)
+    print(par_no, par_lines)
+    return par_lines
+
+
+def parse_list(lines):
     par_no = 0
     par_key_val = []
     par_key = []
-    comment_regex = "\(.+?\)"                                      # define regex for parsing comment
+    comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
-    for para in doc_content.paragraphs:
+    for line in lines:
         # Check bracketing validity
-        bracketnum_log, is_bracket_error = check_bracket_num(par_no, para.text)
-        log = log + bracketnum_log + "\n"
+        bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
+        log = log + bracketing_log + "\n"
         if is_bracket_error:
             write_log(log)
             print(log)
             break
         # Extract KV and flow metadata
-        kv_and_flow_pattern = r'\{.+?\}|<.+?>'
-        kv_pattern = r'\{.+?\}'
-        flow_pattern = r'<.+?>'
-        kv_and_flow_pairs = re.findall(kv_and_flow_pattern, para.text)
-        para_len = len(split_into_sentences(para.text))
+        kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
+        kv_pattern = r'\{.+?\}'  # Find any occurrences of KV
+        flow_pattern = r'<.+?>'  # Find any occurrences of control flows
+        kv_and_flow_pairs = re.findall(kv_and_flow_pattern, line)
+        para_len = len(split_into_sentences(line))
         if para_len > 0:
-            par_no = par_no + 1  # count paragraph index, starting from 1 and iterate
+            par_no = par_no + 1  # count paragraph index, starting from 1
+            # only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(kv_pattern, kv_and_flow_pair):
                 key, val = extract_kv(kv_and_flow_pair)
@@ -534,7 +567,7 @@ def parse_docx2_content(doc_content):
                     if re.search(comment_regex, val):
                         val, comment = process_comment(val)
                     one_par_key = [par_no, key]
-                    if(one_par_key in par_key):
+                    if (one_par_key in par_key):
                         log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (one_par_key) + "\n"
                         print(log)
                     one_par_key_val = [par_no, key, val]
@@ -550,24 +583,35 @@ def parse_docx2_content(doc_content):
                 par_key_val.extend(flow_metadata)
     return par_key_val, log
 
+
+def extract_docx_content(doc_content):
+    par_lines = get_docx_par_list(doc_content)
+    par_key_val, log = parse_list(par_lines)
+    return par_key_val, log
+
+
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 def write_to_json(list, log, filename):
     json.dump(list, open(filename + "json", 'w', encoding="utf-8"), ensure_ascii=False)
     write_log(log)
 
+
 def write_log(log):
     with open(output_file_prefix + "log", 'w', encoding="utf-8") as f:
         f.write(log)
 
+
 def write_to_xlsx(key_val, log, output_file):
-    header = ["PARAGRAPH NUMBER","KEY","VALUE"]
+    header = ["PARAGRAPH NUMBER", "KEY", "VALUE"]
     with xlsxwriter.Workbook(output_file + "xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
         for row_no, data in enumerate(key_val):
-            worksheet.write_row(row_no+1, 0, data)
+            worksheet.write_row(row_no + 1, 0, data)
     write_log(log)
 
+
+# ----------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API ------------------------------------------------------
 # open docx document
 def get_docx_content(filename):
     f = open(filename, 'rb')
@@ -575,14 +619,44 @@ def get_docx_content(filename):
     f.close()
     return content
 
-# ADJUST INPUT/OUTPUT FILE HERE
-output_file_prefix = "output/cpc-bile-salt."
-input_file = 'input/cpc-bile-salt.docx'
-# output_file_prefix = "output/cpc-rewritten."
-# input_file = 'input/cpc-rewritten.docx'
 
+def get_elab_exp_lines(exp_number, current_endpoint, current_token):
+    line_no = 1
+    clean_lines = []
+    # PLEASE CHANGE THE VERIFY FLAG TO TRUE UPON DEPLOYMENT
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    exp = manager.get_experiment(exp_number)
+    soup = BeautifulSoup(exp["body"], features="lxml")
+    non_break_space = u'\xa0'
+    text = soup.get_text().splitlines()
+    lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
+    # Replace NBSP with space if it is inside the text
+    for line in lines:
+        line = line.replace(non_break_space, ' ')
+        clean_lines.append(line)
+        line_no = line_no + 1
+    return clean_lines
+
+
+def extract_elab_exp_content(exp_no, endpoint, token):
+    exp_lines = get_elab_exp_lines(exp_no, endpoint, token)
+    kv, log = parse_list(exp_lines)
+    return kv, log
+
+
+# EXAMPLE: PARSING FROM DOCX DOCUMENT
+output_file_prefix = "output/cpc2-DM."  # ADJUST INPUT/OUTPUT FILE HERE
+input_file = 'input/cpc/cpc2-DM.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 document = get_docx_content(input_file)
-print('No. of lines: ' + str(len(document.paragraphs)))
-kv, log = parse_docx2_content(document)
+kv, log = extract_docx_content(document)
+
+# EXAMPLE: PARSING FROM ELABFTW CONTENT
+# output_file_prefix = "output/cpc2-DM-elab."
+# token = "db45c9c6db52cdf73256913a57fb4c2cffec602006436a5271193c094cbc29721febfccaf556dae3a3c0"
+# endpoint = "https://localhost/api/v1/"
+# exp_no = 2
+# kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+
+# Writing to JSON and XLSX
 write_to_json(kv, log, output_file_prefix)
 write_to_xlsx(kv, log, output_file_prefix)
