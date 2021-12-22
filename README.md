@@ -1,15 +1,17 @@
-# LISTER: **Li**fe **S**cience Pro**t**ocol M**e**tadata Parse**r**
+# 
+
+# LISTER: **Li**fe **S**cience Experimen**t** M**e**tadata Parse**r**
 
 This repository contains a set of files to parse SOP from lab experiments.
 
 # Motivation
 
-As research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the SOP should follow some annotation rules (described later below).
+As research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the experiment documentation should follow some annotation rules (described later below).
 
 # Repository structure
 
 - The base directory contains the metadata extraction script.
-- *input* directory contains the docx SOP examples for the extraction.
+- *input* directory contains the docx experiment documentation examples for the extraction.
 - *output* directory contains extracted steps order – key – value in both JSON and XLSX format.
 
 # List of supported annotations
@@ -88,8 +90,6 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 - Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
 - To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units  within the value portion of the KV-pair, e.g., ` {0.01 ps|gamma_ln}`.
-  
-  
 
 # Running the parser
 
@@ -109,8 +109,8 @@ Requirement: a *.docx file adhering to annotation rules.
 Requirement: an eLabFTW experiment entry adhering to annotation rules, the experiment number from that experiment and eLabFTW API Token from your user account. 
 
 1. Create SOP according to the above annotation rules, save it into an experiment.
-2. Ensure that the code under `PARSING FROM DPCX DOCUMENT` block is commented.
-3. Uncomment the code block under `PARSING FROM ELABFTW CONTENT`.
+2. Ensure that the code under `# PARSING FROM DPCX DOCUMENT` block is commented.
+3. Uncomment the code block under `# PARSING FROM ELABFTW CONTENT`.
 4. Change the output directory/filename (last line).
 5. Change the input directory/file name in the python script.
 6. Run the script.
