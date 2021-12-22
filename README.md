@@ -81,60 +81,64 @@ LISTER checks the following problems upon parsing, and report accordingly:
 ## Constraints
 
 - Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
-- Some of the keys are not officially on the Amber's output parameter list (e.g., No. of atom in the used PDB molecules), but please feel free to suggest a new key. These suggested keys will be analyzed for further inclusion in metadata standard in the specific domain.
-- To indicate a not-yet considered terms, an additional annotation using underscore (''__"") is recommended.
-- Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
-- Comments are currently not yet extracted in the parser's output but it is already parsed in the background - still need to find a way how to simplify the data serialization.
+
+- Comments are currently not yet extracted in the parser's output but it is already parsed in the background - it is mainly intended to provide more detail about a particular key/value for SOP adopters.
 
 ## Recommendations
 
-- To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units as a comment within the value portion of the KV-pair, e.g., ` {0.01 (ps)|gamma_ln}`.
-- Default  measurement unit should be used (e.g., `ps` instead of `fs` in e.g., AmberMD's `gamma_ln` variable). 
-- A more intuitive logical operators (instead of using chars)
+- Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
+- To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units  within the value portion of the KV-pair, e.g., ` {0.01 ps|gamma_ln}`.
+  
+  
 
 # Running the parser
 
-1. Create SOP according to the above annotation rules.
-2. Change the input directory/file name in the python script (2nd last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
-3. Change the output directory/filename (last line). - check ´# ADJUST INPUT/OUTPUT FILE HERE´ in the code.
-4. Run the script. 
+## Using a *.docx file as an input
+
+Requirement: a *.docx file adhering to annotation rules.
+
+1. Create SOP according to the above annotation rules, save it into a *.docx file.
+2. Ensure that the code under  `PARSING FROM ELABFTW CONTENT` block is commented.
+3. Uncomment the code block under  `# PARSING FROM DOCX DOCUMENT`.
+4. Change the output directory/filename (last line).
+5. Change the input directory/file name in the python script .
+6. Run the script. 
+
+## Using an eLabFTW experiment entry via API
+
+Requirement: an eLabFTW experiment entry adhering to annotation rules, the experiment number from that experiment and eLabFTW API Token from your user account. 
+
+1. Create SOP according to the above annotation rules, save it into an experiment.
+2. Ensure that the code under `PARSING FROM DPCX DOCUMENT` block is commented.
+3. Uncomment the code block under `PARSING FROM ELABFTW CONTENT`.
+4. Change the output directory/filename (last line).
+5. Change the input directory/file name in the python script.
+6. Run the script.
 
 # Open for discussion
 
 1. Comments serialization, as well as representing and structuring comments in the output file.
 
-2. The necessity of supporting substeps parsing and serialization.
+2. **The necessity of supporting substeps parsing and serialization.**
 
-3. Support for plain text format.
-
-4. Support for markdown: 
+3. Support for markdown: 
    
    1. This will require redesign on how the text should be annotated, as the bracketing method will break  or at least  requires a lot of metacharacters.
    2. On the plus side, MD is supported by eLabFTW, also the changes can be tracked on version control system.
 
-5. Maintaining information in the form of images, tables, figures etc.
+4. Maintaining information in the form of images, tables, figures etc.
 
-6. Integration with eLabFTW.
+5. Integration with eLabFTW.
 
-7. Whether integration with SWATE and ARC is feasible.
+6. Whether integration with SWATE and ARC is feasible.
 
-8. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
+7. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
 
-9. How step number should be counted, e.g., should it be restarted from 1 after a new section.
+8. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
-10. How can werecognize a group corresponding conditionals if it is not done on a step-by-step basis? And how to serialize this on a table
+9. **How can we accommodate the paragraph with similar key having several values? (mainly for me).**
 
-11. Whether it is better to provide if-else in one single statement (see Jesko’s example).
-
-12. Whether formulas to derive metadata need to be preserved in the text.
-
-13. How can we accommodate the paragraph with similar key having several values? (mainly for me).
-
-14. How to enable enumeration of possible values in the SOP?
-
-15. How to enforce a particular data type in the SOP?
-
-16. How to map enumerated values of one key into corresponding values of a related key?
+10. How to map enumerated values of one key into corresponding values of a related key?
 
 # Further plans
 

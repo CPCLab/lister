@@ -644,13 +644,13 @@ def extract_elab_exp_content(exp_no, endpoint, token):
     return kv, log
 
 
-# EXAMPLE: PARSING FROM DOCX DOCUMENT
+# PARSING FROM DOCX DOCUMENT
 output_file_prefix = "output/cpc2-DM."  # ADJUST INPUT/OUTPUT FILE HERE
 input_file = 'input/cpc/cpc2-DM.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 document = get_docx_content(input_file)
 kv, log = extract_docx_content(document)
 
-# EXAMPLE: PARSING FROM ELABFTW CONTENT
+# PARSING FROM ELABFTW CONTENT
 # output_file_prefix = "output/cpc2-DM-elab."
 # token = "db45c9c6db52cdf73256913a57fb4c2cffec602006436a5271193c094cbc29721febfccaf556dae3a3c0"
 # endpoint = "https://localhost/api/v1/"
