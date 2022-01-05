@@ -63,15 +63,15 @@ class Arg_num(Enum):
 
 
 # -------------------------------- SPLIT TEXT INTO SENTENCES --------------------------------
-latin_alphabets = "([A-Za-z])"
-openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-pref = "(Mr|St|Mrs|Ms|Dr)[.]"
-sites = "[.](com|net|org|io|gov|de|eu)"
-suff = "(Inc|Ltd|Jr|Sr|Co)"
 
 
 def split_into_sentences(content):
+    latin_alphabets = "([A-Za-z])"
+    openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+    abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+    pref = "(Mr|St|Mrs|Ms|Dr)[.]"
+    sites = "[.](com|net|org|io|gov|de|eu)"
+    suff = "(Inc|Ltd|Jr|Sr|Co)"
     content = " " + content + "  "
     content = content.replace("\n", " ")
     content = re.sub(pref, "\\1<prd>", content)
@@ -307,7 +307,7 @@ def process_foreach(par_no, cf_split):
     log, is_error = validate_foreach(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -323,7 +323,7 @@ def process_while(par_no, cf_split):
     log, is_error = validate_while(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -343,7 +343,7 @@ def process_if(par_no, cf_split):
     log, is_error = validate_if(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -363,7 +363,7 @@ def process_elseif(par_no, cf_split):
     log, is_error = validate_elseif(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -392,7 +392,7 @@ def process_else(par_no, cf_split):
     log, is_error = validate_else(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -406,7 +406,7 @@ def process_range(flow_range):
     log, is_error = validate_range(flow_range)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     else:
         range_values = re.split("-", flow_range[1:-1])
@@ -418,7 +418,7 @@ def process_for(par_no, cf_split):
     log, is_error = validate_for(cf_split)
     if is_error:
         write_log(log)
-        print(log)
+        # print(log)
         exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -446,7 +446,7 @@ def process_iterate(par_no, cf_split):
     pw_log, pw_is_error = validate_iterate(cf_split)
     if pw_is_error:
         log = log + pw_log + "\n"
-        print(log)
+        # print(log)
         write_log(log)
         exit()
     flow_type = cf_split[0]
@@ -531,7 +531,7 @@ def get_docx_par_list(doc_content):
         par_lines.append(para.text)
         par_no = par_no + 1
     par_lines = list(line for line in par_lines if line)
-    print(par_no, par_lines)
+    # print(par_no, par_lines)
     return par_lines
 
 
@@ -544,10 +544,10 @@ def parse_list(lines):
     for line in lines:
         # Check bracketing validity
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
-        log = log + bracketing_log + "\n"
+        log = log + bracketing_log # + "\n"
         if is_bracket_error:
             write_log(log)
-            print(log)
+            # print(log)
             break
         # Extract KV and flow metadata
         kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
@@ -569,16 +569,16 @@ def parse_list(lines):
                     one_par_key = [par_no, key]
                     if (one_par_key in par_key):
                         log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (one_par_key) + "\n"
-                        print(log)
+                        # print(log)
                     one_par_key_val = [par_no, key, val]
                     par_key.append(one_par_key)
                     par_key_val.append(one_par_key_val)
             if re.match(flow_pattern, kv_and_flow_pair):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
-                log = log + flow_log + "\n"
+                log = log + flow_log # + "\n"
                 if is_flow_error:
                     write_log(log)
-                    print(log)
+                    # print(log)
                     break
                 par_key_val.extend(flow_metadata)
     return par_key_val, log
@@ -591,19 +591,22 @@ def extract_docx_content(doc_content):
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
-def write_to_json(list, log, filename):
-    json.dump(list, open(filename + "json", 'w', encoding="utf-8"), ensure_ascii=False)
-    write_log(log)
+def write_to_json(list, log):
+    json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+    # write_log(log)
 
 
 def write_log(log):
-    with open(output_file_prefix + "log", 'w', encoding="utf-8") as f:
+    log = log.strip()
+    print("WRITING LOGS...")
+    print(log)
+    with open(output_file_prefix + ".log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 
-def write_to_xlsx(key_val, log, output_file):
+def write_to_xlsx(key_val, log):
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE"]
-    with xlsxwriter.Workbook(output_file + "xlsx") as workbook:
+    with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
         for row_no, data in enumerate(key_val):
@@ -611,7 +614,7 @@ def write_to_xlsx(key_val, log, output_file):
     write_log(log)
 
 
-# ----------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API ------------------------------------------------------
+# ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API ------------------------------------------
 # open docx document
 def get_docx_content(filename):
     f = open(filename, 'rb')
@@ -643,20 +646,33 @@ def extract_elab_exp_content(exp_no, endpoint, token):
     kv, log = parse_list(exp_lines)
     return kv, log
 
+# ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 
-# PARSING FROM DOCX DOCUMENT
-output_file_prefix = "output/cpc2-DM."  # ADJUST INPUT/OUTPUT FILE HERE
-input_file = 'input/cpc/cpc2-DM.docx'  # ADJUST INPUT/OUTPUT FILE HERE
-document = get_docx_content(input_file)
-kv, log = extract_docx_content(document)
 
-# PARSING FROM ELABFTW CONTENT
-# output_file_prefix = "output/cpc2-DM-elab."
-# token = "db45c9c6db52cdf73256913a57fb4c2cffec602006436a5271193c094cbc29721febfccaf556dae3a3c0"
-# endpoint = "https://localhost/api/v1/"
-# exp_no = 2
-# kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+# FROM DOCX
+output_file_prefix = "output/cpc01-JK"  # ADJUST INPUT/OUTPUT FILE HERE
+input_file = 'input/cpc/cpc01-JK.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 
-# Writing to JSON and XLSX
-write_to_json(kv, log, output_file_prefix)
-write_to_xlsx(kv, log, output_file_prefix)
+# FROM ELAB
+# output_file_prefix = "output/cpc2-DM-elab"
+
+
+def main():
+    # PARSING FROM DOCX DOCUMENT
+    document = get_docx_content(input_file)
+    kv, log = extract_docx_content(document)
+
+    # PARSING FROM ELABFTW CONTENT
+    # token = "db45c9c6db52cdf73256913a57fb4c2cffec602006436a5271193c094cbc29721febfccaf556dae3a3c0"
+    # endpoint = "https://localhost/api/v1/"
+    # exp_no = 2
+    # kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+
+    # Writing to JSON and XLSX
+    write_to_json(kv, log)
+    write_to_xlsx(kv, log)
+
+
+if __name__ == "__main__":
+    main()
+
