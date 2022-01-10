@@ -66,6 +66,8 @@ class Arg_num(Enum):
 
 
 def split_into_sentences(content):
+    # The code in this function is adapted from user:5133085's answer in SO: https://stackoverflow.com/a/31505798/548451
+    # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
     latin_alphabets = "([A-Za-z])"
     openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
     abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
