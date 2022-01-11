@@ -118,11 +118,14 @@ def is_valid_iteration_operator(operator):
 
 
 def is_num(s):
-    s = s.replace('.', '', 1)
-    s = s.replace(',', '', 1)
-    if s[0] in ('-', '+'):
-        return s[1:].isdigit()
-    return s.isdigit()
+    if isinstance(s, int) or isinstance(s, float):
+        return True
+    else:
+        s = s.replace(',', '', 1)
+        if s[0] in ('-', '+'):
+            return s[1:].isdigit()
+        else:
+            return s.isdigit()
 
 
 # -------------------------------- CONTROL-FLOW VALIDATOR FUNCTIONS --------------------------------
@@ -236,7 +239,6 @@ def validate_else(cf_split):
         cf_split) + "\n"
         is_error = True
     return log, is_error
-
 
 def validate_range(flow_range):
     is_error = False
