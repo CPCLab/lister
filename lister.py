@@ -307,6 +307,9 @@ def validate_section(cf_split):
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
+    print(par_no)
+    print(cf_split)
+    print("-----------------------------------")
     key_val = []
     log, is_error = validate_foreach(cf_split)
     if is_error:
@@ -319,6 +322,9 @@ def process_foreach(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
     flow_param = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    print(key_val)
+    print(log)
+    print(is_error)
     return key_val, log, is_error
 
 
