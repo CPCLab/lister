@@ -307,9 +307,6 @@ def validate_section(cf_split):
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
-    print(par_no)
-    print(cf_split)
-    print("-----------------------------------")
     key_val = []
     log, is_error = validate_foreach(cf_split)
     if is_error:
@@ -322,9 +319,6 @@ def process_foreach(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
     flow_param = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
-    print(key_val)
-    print(log)
-    print(is_error)
     return key_val, log, is_error
 
 
@@ -396,6 +390,7 @@ def process_elseif(par_no, cf_split):
 
 # no arguments is passed so no validation is needed.
 def process_else(par_no, cf_split):
+    print(cf_split)
     key_val = []
     log = ""
     is_error = False
@@ -541,7 +536,6 @@ def get_docx_par_list(doc_content):
         par_lines.append(para.text)
         par_no = par_no + 1
     par_lines = list(line for line in par_lines if line)
-    # print(par_no, par_lines)
     return par_lines
 
 
@@ -636,7 +630,7 @@ def get_docx_content(filename):
 def get_elab_exp_lines(exp_number, current_endpoint, current_token):
     line_no = 1
     clean_lines = []
-    # PLEASE CHANGE THE VERIFY FLAG TO TRUE UPON DEPLOYMENT
+    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
     soup = BeautifulSoup(exp["body"], features="lxml")
