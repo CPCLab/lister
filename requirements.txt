@@ -6,7 +6,7 @@ lxml==4.6.5
 pipreqs==0.4.10
 python-docx==0.8.11
 requests==2.26.0
-urllib3==1.26.7
+urllib3==1.23 # the latest urllib3 (1.26.x) yields to SSL error. see https://stackoverflow.com/questions/64960430/python-requests-with-proxy-results-in-sslerror-wrong-version-number
 yarg==0.1.9
 XlsxWriter==3.0.1
 elabapy~=0.8.2

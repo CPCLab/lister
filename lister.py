@@ -654,23 +654,23 @@ def extract_elab_exp_content(exp_no, endpoint, token):
 
 
 # FROM DOCX
-output_file_prefix = "output/cpc01-JK"  # ADJUST INPUT/OUTPUT FILE HERE
-input_file = 'input/cpc/cpc01-JK.docx'  # ADJUST INPUT/OUTPUT FILE HERE
+# output_file_prefix = "output/cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
+# input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 
 # FROM ELAB
-# output_file_prefix = "output/cpc2-DM-elab"
+output_file_prefix = "output/cpc3-CG-elab"
 
 
 def main():
     # PARSING FROM DOCX DOCUMENT
-    document = get_docx_content(input_file)
-    kv, log = extract_docx_content(document)
+    # document = get_docx_content(input_file)
+    # kv, log = extract_docx_content(document)
 
     # PARSING FROM ELABFTW CONTENT
-    # token = "db45c9c6db52cdf73256913a57fb4c2cffec602006436a5271193c094cbc29721febfccaf556dae3a3c0"
-    # endpoint = "https://localhost/api/v1/"
-    # exp_no = 2
-    # kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+    token = "" # REMOVE BEFORE PUSH
+    endpoint = ""
+    exp_no = 0 # REMOVE BEFORE PUSH
+    kv, log = extract_elab_exp_content(exp_no, endpoint, token)
 
     # Writing to JSON and XLSX
     write_to_json(kv, log)

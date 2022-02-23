@@ -1,5 +1,0 @@
-
-
-
-
-BRACKET ERROR: ERROR: Mismatch between '[' and ']'.  Check line  0: The variants were protonated with {PROPKA| protonation method} according to pH {7.4| pH}, neutralized by adding counterions, [<if|membrane simulation|e|true> embedded in a membrane consisting of {POPC | Lipid type}] and solvated in a [<if|membrane simulation|e|true> {rectangular|box type} <ELIF|membrane simulation|e|false> {octahedral|box type}] of {TIP3P| water type} water with a minimal shell of {12 Å|shell radius} around the solute].
