@@ -1,13 +1,20 @@
 import json
+import os
 import re
 from enum import Enum
 import xlsxwriter
 from docx import Document
 from bs4 import BeautifulSoup
 import elabapy
+import markdown
+import html
+import pypandoc
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
+from lxml.html.clean import unicode
+
+
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
     FLOW_TYPE = "flow type"
@@ -529,16 +536,6 @@ def extract_flow_type(par_no, flow_control_pair):
     return key_val, flow_log, is_error
 
 
-def get_docx_par_list(doc_content):
-    par_no = 0
-    par_lines = []
-    for para in doc_content.paragraphs:
-        par_lines.append(para.text)
-        par_no = par_no + 1
-    par_lines = list(line for line in par_lines if line)
-    return par_lines
-
-
 def parse_list(lines):
     par_no = 0
     par_key_val = []
@@ -589,9 +586,14 @@ def parse_list(lines):
 
 
 def extract_docx_content(doc_content):
-    par_lines = get_docx_par_list(doc_content)
-    par_key_val, log = parse_list(par_lines)
-    return par_key_val, log
+    par_no = 0
+    par_lines = []
+    for para in doc_content.paragraphs:
+        par_lines.append(para.text)
+        par_no = par_no + 1
+    par_lines = list(line for line in par_lines if line)
+    kv, log = parse_list(par_lines)
+    return kv, log
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
@@ -627,27 +629,58 @@ def get_docx_content(filename):
     return content
 
 
-def get_elab_exp_lines(exp_number, current_endpoint, current_token):
-    line_no = 1
-    clean_lines = []
-    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
-    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
-    exp = manager.get_experiment(exp_number)
-    soup = BeautifulSoup(exp["body"], features="lxml")
+def get_kv_log_from_html(html_content):
+    soup = BeautifulSoup(html_content, "html5lib")
     non_break_space = u'\xa0'
+    textmd = soup.text
     text = soup.get_text().splitlines()
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
+    line_no = 1
+    clean_lines = []
     for line in lines:
         line = line.replace(non_break_space, ' ')
         clean_lines.append(line)
         line_no = line_no + 1
-    return clean_lines
+    kv, log = parse_list(clean_lines)
+    return kv, log
 
 
-def extract_elab_exp_content(exp_no, endpoint, token):
-    exp_lines = get_elab_exp_lines(exp_no, endpoint, token)
-    kv, log = parse_list(exp_lines)
+# candidate for removal: does not work as expected
+def escape_lister_tags(text):
+    soup = BeautifulSoup(text, 'html5lib')
+    formatted_html = []
+    for tag in soup.findAll(True):
+        if tag.name in ('section'):
+            print(tag.name)
+            print(tag)
+
+
+# candidate for removal: does not work as expected
+def extract_md_exp_content_via_html(filename):
+    f = open(filename, 'r')
+    text = unicode(f.read())
+    # html_content = html.escape(markdown.markdown(text))
+    html_content = markdown.markdown(text)
+    escape_lister_tags(html_content)
+    kv, log = get_kv_log_from_html(html_content)
+    return kv, log
+
+
+def extract_md_exp_content_via_pandoc(filename):
+    output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
+    document = get_docx_content(filename+".docx")
+    os.remove(filename+".docx")
+    kv, log = extract_docx_content(document)
+    log = log + output
+    return kv, log
+
+
+def extract_elab_exp_content(exp_number, current_endpoint, current_token):
+    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    exp = manager.get_experiment(exp_number)
+    kv, log = get_kv_log_from_html(exp["body"])
     return kv, log
 
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
@@ -657,8 +690,12 @@ def extract_elab_exp_content(exp_no, endpoint, token):
 # output_file_prefix = "output/cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
 # input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 
+# FROM MD
+output_file_prefix = "output/cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
+input_file = 'input/cpc/cpc03-CG.md'  # ADJUST INPUT/OUTPUT FILE HERE
+
 # FROM ELAB
-output_file_prefix = "output/cpc3-CG-elab"
+# output_file_prefix = "output/cpc3-CG-elab"
 
 
 def main():
@@ -666,11 +703,14 @@ def main():
     # document = get_docx_content(input_file)
     # kv, log = extract_docx_content(document)
 
+    # PARSING FROM MARKDOWN
+    kv, log = extract_md_exp_content_via_pandoc(input_file)
+
     # PARSING FROM ELABFTW CONTENT
-    token = "" # REMOVE BEFORE PUSH
-    endpoint = ""
-    exp_no = 0 # REMOVE BEFORE PUSH
-    kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+    # token = "" # REMOVE BEFORE PUSH
+    # endpoint = ""
+    # exp_no =  # REMOVE BEFORE PUSH
+    # kv, log = extract_elab_exp_content(exp_no, endpoint, token)
 
     # Writing to JSON and XLSX
     write_to_json(kv, log)

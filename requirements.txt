@@ -11,3 +11,5 @@ yarg==0.1.9
 XlsxWriter==3.0.1
 elabapy~=0.8.2
 beautifulsoup4~=4.8.2
+html5lib
+pypandoc
