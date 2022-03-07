@@ -6,12 +6,12 @@ This repository contains a set of files to parse SOP from lab experiments.
 
 # Motivation
 
-As research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from an editable document (e.g., DOCX) would be handy. The metadata is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the experiment documentation should follow some annotation rules (described later below).
+As a research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from SOP-adapted experiment document (DOCX, eLabFTW entry or Markdown files) would be handy. The metadata extracted is helpful in documenting the research and hence improves the reproducibility of the conducted research. To enable the metadata extraction, the experiment documentation should follow some annotation rules (described later below).
 
 # Repository structure
 
 - The base directory contains the metadata extraction script.
-- *input* directory contains the docx experiment documentation examples for the extraction.
+- *input* directory contains the \*.DOCX/\*.MD experiment documentation examples for the extraction.
 - *output* directory contains extracted steps order – key – value in both JSON and XLSX format.
 
 # List of supported annotations
@@ -33,7 +33,7 @@ The parser extracts:
 | Control flow: `for`      | Extract multiple key value pairs related to `for`  iteration                                                                                                                                                                                | <`for`\|key\|[range]\|iteration operation\|magnitude\>                                       | \<`for`\|pH\|\[1-7]\|\+\|1\>                   | <ul> <li>\<order\>, step type, *iteration*</li> <li>\<order\>, flow type, *for*</li> <li>\<order\>, flow parameter, pH</li> <li>\<order\>, flow logical parameter, lte</li> <li>\<order\>, flow flow range, [1-7]</li> <li>\<order\>,start iteration value,1</li><li>\<order\>,end iteration value,7</li> <li>\<order\>, flow operation, +, </li> <li>\<order\>, flow magnitude, 1</li> </ul> |
 |                          |                                                                                                                                                                                                                                             |                                                                                              |                                                |                                                                                                                                                                                                                                                                                                                                                                                               |
 
-The overall example of the SOP document is available in the *input/sop2.docx* file. The color formatting in the *sop2.docx* does not play any role in the order/key/value extraction. 
+The overall example of the SOP document is available in the /*input* directory. 
 
 # Supported operators
 
@@ -82,7 +82,7 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 ## Constraints
 
-- Subprocess/substep is not currently supported to simplify data storage process (or let me know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
+- Subprocess/substep is not currently supported to simplify data storage process (or let me (Fathoni) know if this is really necessary, providing suggestion on how to store/serialize it would be great). Any subprocess will be stored simply as a next step from its parent process.
 
 - Comments are currently not yet extracted in the parser's output but it is already parsed in the background - it is mainly intended to provide more detail about a particular key/value for SOP adopters.
 
@@ -97,21 +97,32 @@ LISTER checks the following problems upon parsing, and report accordingly:
 
 Requirement: a *.docx file adhering to annotation rules.
 
-1. Create SOP according to the above annotation rules, save it into a *.docx file.
-2. Ensure that the code under  `PARSING FROM ELABFTW CONTENT` block is commented.
-3. Uncomment the code block under  `# PARSING FROM DOCX DOCUMENT`.
-4. Change the output directory/filename (last line).
+1. Create an experiment entry according to the above annotation rules, save it into a *.docx file.
+2. Ensure that the code blocks under  `PARSING FROM ELABFTW CONTENT` ,  `PARSING FROM MARKDOWN`, `FROM ELAB`  and `FROM MARKDOWN`block are commented.
+3. Uncomment the code blocks under  `PARSING FROM DOCX DOCUMENT` and `FROM MARKDOWN`.
+4. Change the output directory/filename.
 5. Change the input directory/file name in the python script .
 6. Run the script. 
 
 ## Using an eLabFTW experiment entry via API
 
-Requirement: an eLabFTW experiment entry adhering to annotation rules, the experiment number from that experiment and eLabFTW API Token from your user account. 
+Requirement: 1) an eLabFTW experiment entry adhering to annotation rules, 2) the experiment number from that experiment and 3) eLabFTW API Token from your user account. 
 
 1. Create SOP according to the above annotation rules, save it into an experiment.
-2. Ensure that the code under `# PARSING FROM DPCX DOCUMENT` block is commented.
-3. Uncomment the code block under `# PARSING FROM ELABFTW CONTENT`.
-4. Change the output directory/filename (last line).
+2. Ensure that the code blocks under `PARSING FROM DOCX DOCUMENT` , `PARSING FROM MARKDOWN`, `FROM DOCX` and `FROM MARKDOWN`block are commented.
+3. Uncomment the code blocks under `PARSING FROM ELAB DOCUMENT` and `ROM MARKDOWN`.
+4. Change the output directory/filename.
+5. Change the API token, API endpoint URL, and experiment ID in the python script.
+6. Run the script.
+
+## Using a Markdown file as an input
+
+Requirement: 1) an  experiment entry adhering to annotation rules in Markdown format.
+
+1. Create SOP according to the above annotation rules, save it into an experiment in \*.MD format.
+2. Ensure that the code blocks under `PARSING FROM DOCX DOCUMENT` , `PARSING FROM ELABFTW CONTENT`, `FROM ELAB` and `FROM DOCX`block str commented.
+3. Uncomment the code block under `PARSING FROM DOCX DOCUMENT` and `FROM MARKDOWN`.
+4. Change the output directory/filename.
 5. Change the input directory/file name in the python script.
 6. Run the script.
 
@@ -119,30 +130,14 @@ Requirement: an eLabFTW experiment entry adhering to annotation rules, the exper
 
 1. Comments serialization, as well as representing and structuring comments in the output file.
 
-2. **The necessity of supporting substeps parsing and serialization.**
+2. Maintaining information in the form of images, tables, figures etc.
 
-3. Support for markdown: 
-   
-   1. This will require redesign on how the text should be annotated, as the bracketing method will break  or at least  requires a lot of metacharacters.
-   2. On the plus side, MD is supported by eLabFTW, also the changes can be tracked on version control system.
+3. Integration with eLabFTW.
 
-4. Maintaining information in the form of images, tables, figures etc.
+4. Whether integration with SWATE and ARC is feasible.
 
-5. Integration with eLabFTW.
+5. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
 
-6. Whether integration with SWATE and ARC is feasible.
+6. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
-7. Creating ontology terms from collected SOPs, and linking the keys with the ontologies.
-
-8. How step number should be counted, e.g., should it be restarted from 1 after a new section.
-
-9. **How can we accommodate the paragraph with similar key having several values? (mainly for me).**
-
-10. How to map enumerated values of one key into corresponding values of a related key?
-
-# Further plans
-
-1. Implement TODOs in this readme, and bug fixes.
-2. Gather feedback from LISTER users.
-3. Consult CAi and Biochemistry1 for LISTER's implementability on other labs.
-4. Align the used keys with terms from an ontology, or if the term does not exist, create a new term by extending an ontology or creating a term within a new ontology.
+7. **How can we accommodate the paragraph with similar key having several values?.** -- currently allowed with warnings shown in the logs.
