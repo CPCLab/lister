@@ -9,7 +9,8 @@ import elabapy
 import markdown
 import html
 import pypandoc
-
+from markdown import Markdown
+from io import StringIO
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 from lxml.html.clean import unicode
@@ -675,6 +676,33 @@ def extract_md_exp_content_via_pandoc(filename):
     log = log + output
     return kv, log
 
+def unmark_element(element, stream=None):
+    if stream is None:
+        stream = StringIO()
+    if element.text:
+        stream.write(element.text)
+    for sub in element:
+        unmark_element(sub, stream)
+    if element.tail:
+        stream.write(element.tail)
+    return stream.getvalue()
+
+# patching Markdown
+Markdown.output_formats["plain"] = unmark_element
+__md = Markdown(output_format="plain")
+__md.stripTopLevelTags = False
+
+def unmark(text):
+    return __md.convert(text)
+
+
+def extract_md_via_text(filename):
+    f = open(filename, 'r', encoding='utf-8')
+    text = unmark(f.read())
+    lines = text.splitlines()
+    kv, log = parse_list(lines)
+    return kv, log
+
 
 def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
@@ -704,12 +732,15 @@ def main():
     # kv, log = extract_docx_content(document)
 
     # PARSING FROM MARKDOWN
-    kv, log = extract_md_exp_content_via_pandoc(input_file)
+    # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
+    # kv, log = extract_md_exp_content_via_pandoc(input_file)
+    # -- use below to transform md->text is needed prior to extraction (faster).
+    kv, log = extract_md_via_text(input_file)
 
     # PARSING FROM ELABFTW CONTENT
     # token = "" # REMOVE BEFORE PUSH
     # endpoint = ""
-    # exp_no =  # REMOVE BEFORE PUSH
+    # exp_no = '' # REMOVE BEFORE PUSH
     # kv, log = extract_elab_exp_content(exp_no, endpoint, token)
 
     # Writing to JSON and XLSX
