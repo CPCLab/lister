@@ -621,7 +621,7 @@ def write_to_xlsx(key_val, log):
     write_log(log)
 
 
-# ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API ------------------------------------------
+# ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API/MARKDOWN ------------------------------------------
 # open docx document
 def get_docx_content(filename):
     f = open(filename, 'rb')
@@ -646,28 +646,7 @@ def get_kv_log_from_html(html_content):
     kv, log = parse_list(clean_lines)
     return kv, log
 
-
-# candidate for removal: does not work as expected
-def escape_lister_tags(text):
-    soup = BeautifulSoup(text, 'html5lib')
-    formatted_html = []
-    for tag in soup.findAll(True):
-        if tag.name in ('section'):
-            print(tag.name)
-            print(tag)
-
-
-# candidate for removal: does not work as expected
-def extract_md_exp_content_via_html(filename):
-    f = open(filename, 'r')
-    text = unicode(f.read())
-    # html_content = html.escape(markdown.markdown(text))
-    html_content = markdown.markdown(text)
-    escape_lister_tags(html_content)
-    kv, log = get_kv_log_from_html(html_content)
-    return kv, log
-
-
+# extracting md via docx conversion using pandoc in case it is needed in the future
 def extract_md_exp_content_via_pandoc(filename):
     output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
     document = get_docx_content(filename+".docx")
@@ -675,6 +654,7 @@ def extract_md_exp_content_via_pandoc(filename):
     kv, log = extract_docx_content(document)
     log = log + output
     return kv, log
+
 
 def unmark_element(element, stream=None):
     if stream is None:
@@ -687,11 +667,11 @@ def unmark_element(element, stream=None):
         stream.write(element.tail)
     return stream.getvalue()
 
+
 # patching Markdown
 Markdown.output_formats["plain"] = unmark_element
 __md = Markdown(output_format="plain")
 __md.stripTopLevelTags = False
-
 def unmark(text):
     return __md.convert(text)
 
@@ -750,4 +730,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
