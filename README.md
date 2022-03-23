@@ -141,3 +141,31 @@ Requirement: 1) an  experiment entry adhering to annotation rules in Markdown fo
 6. How step number should be counted, e.g., should it be restarted from 1 after a new section.
 
 7. **How can we accommodate the paragraph with similar key having several values?.** -- currently allowed with warnings shown in the logs.
+
+# Miscellanous
+
+## Associated conditionals
+
+Writing conditionals can be exhausting when there are many else clauses involved. To simplify the writing of conditionals, the authors can choose to write it in a concise manner as an associated conditionals using the /{number} notations after the key-value pairs, and a comment notated by regular bracket after the intended value.  Here is an example:
+
+### Example
+
+_"The top five templates identified by TopDomain were {3N25_A (a), 4YJ5_A (b), 3GR4_A (c), 1A49_A (d), 6DU6_B (e)|template_pdbs}**/1** with sequence identities of {99% (a), 93% (b), 93% (c), 100% (d), 63% (e)|template_identities}**/1**, coverages of {95% (a), 97% (b), 97% (c), 97% (d), 96%(e)|template_coverages}**/1**, and predicted TM-Score of {0.96 (a), 0.96 (b), 0.96 (c), 0.96 (d), 0.93(e)| template_confidences}**/1**, respectively."_
+
+### Explanation
+
+From the SOP above, associated key-values are marked with the number after the "/" symbol, so keys with a similar number after the "'/" are grouped together. In the example above, _template_pdbs, template_identities, template_coverages,_ and _template_confidences_ belong to the same association. The values on each key are then associated according to the comment in the regular bracket. So, if template_pdbs = 3N25_A, then template_identities = 99%, template_coverages = 95%, and template_confidences = 0.96. On a table, the correlation is grouped as shown below.
+
+<style>
+</style>
+
+|                      |        |        |        |        |        |
+| -------------------- | ------ | ------ | ------ | ------ | ------ |
+| association<br> set  | 1      | 1      | 1      | 1      | 1      |
+| mapping              | a      | b      | c      | d      | e      |
+| template_pdbs        | 4YJ5_A | 3N25_A | 3GR4_A | 1A49_A | 6DU6_B |
+| template_identities  | 0.99   | 0.93   | 0.93   | 1      | 0.63   |
+| template_coverages   | 0.95   | 0.97   | 0.97   | 0.97   | 0.96   |
+| template_confidences | 0.96   | 0.96   | 0.96   | 0.96   | 0.93   |
+
+*Note: the SOP users need to adapt this themselves by removing irrelevant values and /{number} annotations when adapting for their experiment. SOP is not going to be parsed, only the experiments will.*
