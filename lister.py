@@ -1,5 +1,4 @@
 import json
-import os
 import re
 from enum import Enum
 import xlsxwriter
@@ -7,11 +6,14 @@ from docx import Document
 from bs4 import BeautifulSoup
 import elabapy
 import markdown
-import html
+# import html
 import pypandoc
 from markdown import Markdown
 from io import StringIO
-
+# import requests
+# from os.path import basename
+import os
+from PIL import Image
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 from lxml.html.clean import unicode
 
@@ -646,6 +648,7 @@ def get_kv_log_from_html(html_content):
     kv, log = parse_list(clean_lines)
     return kv, log
 
+
 # extracting md via docx conversion using pandoc in case it is needed in the future
 def extract_md_exp_content_via_pandoc(filename):
     output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
@@ -654,6 +657,24 @@ def extract_md_exp_content_via_pandoc(filename):
     kv, log = extract_docx_content(document)
     log = log + output
     return kv, log
+
+
+
+
+
+def extract_imgs_from_md(filename):
+    f = open(filename, 'r', encoding='utf-8')
+    md_text = f.read()
+    html_doc = markdown.markdown(md_text)
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    imgs = soup.findAll("img")
+    if not os.path.isdir(output_file_prefix+'/'):
+        os.mkdir(output_file_prefix + '/')
+    for img in imgs:
+        file_path = img.get('src')
+        loaded_img = Image.open(file_path)
+        path_tail = os.path.split(file_path)
+        loaded_img.save(output_file_prefix + '/' + path_tail[1])
 
 
 def unmark_element(element, stream=None):
@@ -668,6 +689,7 @@ def unmark_element(element, stream=None):
     return stream.getvalue()
 
 
+
 # patching Markdown
 Markdown.output_formats["plain"] = unmark_element
 __md = Markdown(output_format="plain")
@@ -676,10 +698,13 @@ def unmark(text):
     return __md.convert(text)
 
 
+
 def extract_md_via_text(filename):
+    extract_imgs_from_md(filename)
     f = open(filename, 'r', encoding='utf-8')
-    text = unmark(f.read())
-    lines = text.splitlines()
+    marked_txt = f.read()
+    unmarked_txt = unmark(marked_txt).replace("\\","")
+    lines = unmarked_txt.splitlines()
     kv, log = parse_list(lines)
     return kv, log
 
