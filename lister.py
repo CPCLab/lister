@@ -17,6 +17,7 @@ from PIL import Image
 from urllib.parse import urlparse
 from urllib.request import urlopen
 from io import BytesIO
+import zipfile
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 from lxml.html.clean import unicode
 
@@ -252,6 +253,7 @@ def validate_else(cf_split):
         cf_split) + "\n"
         is_error = True
     return log, is_error
+
 
 def validate_range(flow_range):
     is_error = False
@@ -604,6 +606,8 @@ def extract_docx_content(doc_content):
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 def write_to_json(list, log):
+    if not os.path.isdir(output_path_prefix):
+        os.mkdir(output_path_prefix)
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
     # write_log(log)
 
@@ -631,8 +635,16 @@ def write_to_xlsx(key_val, log):
 def get_docx_content(filename):
     f = open(filename, 'rb')
     content = Document(f)
+    extract_docx_media(filename)
     f.close()
     return content
+
+
+def extract_docx_media(filename):
+    archive = zipfile.ZipFile(filename)
+    for file in archive.filelist:
+        if file.filename.startswith('word/media/') and file.file_size > 10000:
+            archive.extract(file, output_path_prefix)
 
 
 def get_kv_log_from_html(html_content):
@@ -736,12 +748,12 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
 
 
 # FROM DOCX
-# output_file_name = "cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
-# input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
+output_file_name = "cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
+input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 
 # FROM MD
-output_file_name = "cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
-input_file = 'input/cpc/cpc03-CG.md'  # ADJUST INPUT/OUTPUT FILE HERE
+# output_file_name = "cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
+# input_file = 'input/cpc/cpc03-CG.md'  # ADJUST INPUT/OUTPUT FILE HERE
 
 # FROM ELAB
 # output_file_name = "KGR002-elab"
@@ -753,14 +765,14 @@ output_file_prefix = output_path_prefix + output_file_name
 
 def main():
     # PARSING FROM DOCX DOCUMENT
-    # document = get_docx_content(input_file)
-    # kv, log = extract_docx_content(document)
+    document = get_docx_content(input_file)
+    kv, log = extract_docx_content(document)
 
     # PARSING FROM MARKDOWN
     # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
     # kv, log = extract_md_exp_content_via_pandoc(input_file)
     # -- use below to transform md->text is needed prior to extraction (faster).
-    kv, log = extract_md_via_text(input_file)
+    # kv, log = extract_md_via_text(input_file)
 
     # PARSING FROM ELABFTW CONTENT
     # token = "" # REMOVE BEFORE PUSH
