@@ -673,7 +673,10 @@ def extract_md_exp_content_via_pandoc(filename):
     log = log + output
     return kv, log
 
-
+# note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
+# directly to the text file without providing file names. for the parser to work properly, users have to ensure that
+# copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
+# on eLabFTW and set the name of the image file there.
 def extract_imgs_from_md(filename):
     f = open(filename, 'r', encoding='utf-8')
     md_text = f.read()
