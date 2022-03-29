@@ -1,6 +1,8 @@
 personal-comments.txt
 venv/
 etcs/
+venv/
+output/
 .idea/
 desktop.ini
 .get-pip.py

@@ -1,7 +1,1 @@
-WARNING: A combination of similar paragraph number and key has been found, [2, 'ions']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [4, 'force field']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [5, 'parameters']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [6, 'dt']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [6, 'cut']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [6, 'dt']. Please make sure that this is intended.
-WARNING: A combination of similar paragraph number and key has been found, [6, 'cut']. Please make sure that this is intended.
+BRACKET ERROR: ERROR: Mismatch between '<' and '>'.  Check line  32: --> Sequencing successful! Correct sequence of pasmids

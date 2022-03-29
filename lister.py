@@ -14,6 +14,9 @@ from io import StringIO
 # from os.path import basename
 import os
 from PIL import Image
+from urllib.parse import urlparse
+from urllib.request import urlopen
+from io import BytesIO
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 from lxml.html.clean import unicode
 
@@ -659,22 +662,36 @@ def extract_md_exp_content_via_pandoc(filename):
     return kv, log
 
 
-
-
-
 def extract_imgs_from_md(filename):
     f = open(filename, 'r', encoding='utf-8')
     md_text = f.read()
     html_doc = markdown.markdown(md_text)
     soup = BeautifulSoup(html_doc, 'html.parser')
     imgs = soup.findAll("img")
-    if not os.path.isdir(output_file_prefix+'/'):
-        os.mkdir(output_file_prefix + '/')
+    if not os.path.isdir(output_path_prefix):
+        os.mkdir(output_path_prefix)
     for img in imgs:
         file_path = img.get('src')
         loaded_img = Image.open(file_path)
         path_tail = os.path.split(file_path)
-        loaded_img.save(output_file_prefix + '/' + path_tail[1])
+        loaded_img.save(output_path_prefix + path_tail[1])
+
+
+def extract_imgs_from_html(current_endpoint, html_doc):
+    soup = BeautifulSoup(html_doc, 'html.parser')
+    imgs = soup.findAll("img")
+    parsed_uri = urlparse(current_endpoint)
+    base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+    if not os.path.isdir(output_path_prefix):
+        os.mkdir(output_path_prefix)
+    for img in imgs:
+        src = img.get('src')
+        file_path = base_url + src
+        fd = urlopen(file_path)
+        read_img = BytesIO(fd.read())
+        loaded_img = Image.open(read_img)
+        path_tail = os.path.split(file_path)
+        loaded_img.save(output_path_prefix + path_tail[1])
 
 
 def unmark_element(element, stream=None):
@@ -689,14 +706,12 @@ def unmark_element(element, stream=None):
     return stream.getvalue()
 
 
-
 # patching Markdown
 Markdown.output_formats["plain"] = unmark_element
 __md = Markdown(output_format="plain")
 __md.stripTopLevelTags = False
 def unmark(text):
     return __md.convert(text)
-
 
 
 def extract_md_via_text(filename):
@@ -713,6 +728,7 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
+    extract_imgs_from_html(current_endpoint, exp["body"])
     kv, log = get_kv_log_from_html(exp["body"])
     return kv, log
 
@@ -720,15 +736,19 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
 
 
 # FROM DOCX
-# output_file_prefix = "output/cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
+# output_file_name = "cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
 # input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
 
 # FROM MD
-output_file_prefix = "output/cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
+output_file_name = "cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
 input_file = 'input/cpc/cpc03-CG.md'  # ADJUST INPUT/OUTPUT FILE HERE
 
 # FROM ELAB
-# output_file_prefix = "output/cpc3-CG-elab"
+# output_file_name = "KGR002-elab"
+
+
+output_path_prefix = "output/" + output_file_name + "/"
+output_file_prefix = output_path_prefix + output_file_name
 
 
 def main():
