@@ -6,12 +6,9 @@ from docx import Document
 from bs4 import BeautifulSoup
 import elabapy
 import markdown
-# import html
 import pypandoc
 from markdown import Markdown
 from io import StringIO
-# import requests
-# from os.path import basename
 import os
 from PIL import Image
 from urllib.parse import urlparse
@@ -19,7 +16,6 @@ from urllib.request import urlopen
 from io import BytesIO
 import zipfile
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
-from lxml.html.clean import unicode
 
 
 class Ctrl_metadata(Enum):

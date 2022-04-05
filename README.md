@@ -78,6 +78,10 @@ LISTER checks the following problems upon parsing, and report accordingly:
 - Mismatched argument numbers for conditionals and iterations. 
 - Invalid control flows.
 
+# Image extraction
+
+Images are extracted from the experiment documents, but as for now there is no metadata or naming scheme from the extracted images.
+
 # Constraints and recommendations
 
 ## Constraints
