@@ -15,6 +15,9 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from io import BytesIO
 import zipfile
+import argparse
+from gooey import Gooey, GooeyParser
+from message import display_message
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 
 
@@ -743,26 +746,84 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     kv, log = get_kv_log_from_html(exp["body"])
     return kv, log
 
+
+# ----------------------------------------------------- GUI ------------------------------------------------------------
+
+@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Sourcer Format:')
+def parse_args():
+    settings_msg = 'Choose your source: a DOCX file, a Markdown file, or an eLabFTW entry.'
+    parser = GooeyParser(description=settings_msg)
+    subs = parser.add_subparsers(help='commands', dest='command')
+
+    docx_arg_parser = subs.add_parser(
+        'DOCX', help='Parse metadata from DOCX files')
+    docx_arg_parser.add_argument('output_file_name',
+                                 help='[FILENAME] for your metadata and log outputs, without extension',
+                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                                 # [FILENAME].log files in the specified output folder
+                                 type=str, default='cpc03-CG')
+    docx_arg_parser.add_argument('input_file',
+                                 help='DOCX file to be parsed',
+                                 type=str, widget='FileChooser', default='input/cpc/cpc03-CG.docx')
+    docx_arg_parser.add_argument('base_output_dir',
+                                 help='Base output directory',
+                                 type=str, default='output', widget='DirChooser')
+
+    md_arg_parser = subs.add_parser(
+        'MD', help='Parse metadata from Markdown files')
+    md_arg_parser.add_argument('output_file_name',
+                               help='[FILENAME] for your metadata and log outputs, without extension',
+                               # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                               # [FILENAME].log files in the specified output folder
+                               default='cpc03-CG-md', type=str)
+    md_arg_parser.add_argument('input_file',
+                               help='MD file to be parsed',
+                               type=str, default='input/cpc/cpc03-CG.md', widget='FileChooser')
+    md_arg_parser.add_argument('base_output_dir',
+                               help='Base output directory',
+                               type=str, default='output', widget='DirChooser')
+
+    elab_arg_parser = subs.add_parser(
+        'eLabFTW', help='Parse metadata from an eLabFTW experiment entry')
+    elab_arg_parser.add_argument('output_file_name',
+                                 help='[FILENAME] for your metadata and log outputs, without extension',
+                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                                 # [FILENAME].log files in the specified output folder
+                                 type=str)
+    elab_arg_parser.add_argument('token',
+                                 help='eLabFTW API Token',
+                                 # Ask your eLabFTW admin to instance to generate one for you
+                                 type=str)
+    elab_arg_parser.add_argument('exp_no',
+                                 help='eLabFTW experiment ID',
+                                 type=int)
+    elab_arg_parser.add_argument('endpoint',
+                                 help='eLabFTW API endpoint',
+                                 type=str)
+    elab_arg_parser.add_argument('base_output_dir',
+                                 help='Base output directory',
+                                 type=str, default='output', widget='DirChooser')
+
+    args = parser.parse_args()
+    return args
+
+
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 
-
-# FROM DOCX
-output_file_name = "cpc03-CG"  # ADJUST INPUT/OUTPUT FILE HERE
-input_file = 'input/cpc/cpc03-CG.docx'  # ADJUST INPUT/OUTPUT FILE HERE
-
-# FROM MD
-# output_file_name = "cpc03-CG-md"  # ADJUST INPUT/OUTPUT FILE HERE
-# input_file = 'input/cpc/cpc03-CG.md'  # ADJUST INPUT/OUTPUT FILE HERE
-
-# FROM ELAB
-# output_file_name = "KGR002-elab"
-
-
-output_path_prefix = "output/" + output_file_name + "/"
-output_file_prefix = output_path_prefix + output_file_name
-
-
 def main():
+    global output_file_name, input_file
+    global output_path_prefix, output_file_prefix, base_output_dir
+    global token, exp_no, endpoint
+
+    args = parse_args()
+    input_file = args.input_file
+    output_file_name = args.output_file_name
+    base_output_dir = args.base_output_dir
+
+    print(input_file)
+    output_path_prefix = base_output_dir + "/" + output_file_name + "/"
+    output_file_prefix = output_path_prefix + output_file_name
+
     # PARSING FROM DOCX DOCUMENT
     document = get_docx_content(input_file)
     kv, log = extract_docx_content(document)
