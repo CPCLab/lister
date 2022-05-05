@@ -749,7 +749,7 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 
-@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Sourcer Format:')
+@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:')
 def parse_args():
     settings_msg = 'Choose your source: a DOCX file, a Markdown file, or an eLabFTW entry.'
     parser = GooeyParser(description=settings_msg)
