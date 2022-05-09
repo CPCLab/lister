@@ -748,13 +748,45 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
 
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
+def parse_cfg():
+    with open("etcs/lister-config.json") as json_data_file:
+        data = json.load(json_data_file)
+    token = data['elabftw']['token']
+    endpoint = data['elabftw']['endpoint']
+    exp_no = data['elabftw']['exp_no']
+    output_file_name = data['elabftw']['output_file_name']
+    return token, endpoint, output_file_name, exp_no
 
-@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:')
+@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:') # , image_dir='resources/')
 def parse_args():
-    settings_msg = 'Choose your source: a DOCX file, a Markdown file, or an eLabFTW entry.'
+    token, endpoint, output_file_name, exp_no = parse_cfg()
+    settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
 
+    # ELABFTW PARAMETERS
+    elab_arg_parser = subs.add_parser(
+        'eLabFTW', help='Parse metadata from an eLabFTW experiment entry')
+    elab_arg_parser.add_argument('output_file_name',
+                                 help='[FILENAME] for your metadata and log outputs, without extension',
+                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                                 # [FILENAME].log files in the specified output folder
+                                 default=output_file_name, type=str)
+    elab_arg_parser.add_argument('exp_no',
+                                 help='eLabFTW experiment ID', default=exp_no,
+                                 type=int)
+    elab_arg_parser.add_argument('endpoint',
+                                 help='eLabFTW API endpoint', default=endpoint,
+                                 type=str)
+    elab_arg_parser.add_argument('base_output_dir',
+                                 help='Base output directory',
+                                 type=str, default='output', widget='DirChooser')
+    elab_arg_parser.add_argument('token',
+                                 help='eLabFTW API Token', default=token,
+                                 # Ask your eLabFTW admin to instance to generate one for you
+                                 type=str)
+
+    # DOCX PARAMETERS
     docx_arg_parser = subs.add_parser(
         'DOCX', help='Parse metadata from DOCX files')
     docx_arg_parser.add_argument('output_file_name',
@@ -762,13 +794,14 @@ def parse_args():
                                  # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                  # [FILENAME].log files in the specified output folder
                                  type=str, default='cpc03-CG')
-    docx_arg_parser.add_argument('input_file',
-                                 help='DOCX file to be parsed',
-                                 type=str, widget='FileChooser', default='input/cpc/cpc03-CG.docx')
     docx_arg_parser.add_argument('base_output_dir',
                                  help='Base output directory',
                                  type=str, default='output', widget='DirChooser')
+    docx_arg_parser.add_argument('input_file',
+                                 help='DOCX file to be parsed',
+                                 type=str, widget='FileChooser', default='input/cpc/cpc03-CG.docx')
 
+    # MD PARAMETERS
     md_arg_parser = subs.add_parser(
         'MD', help='Parse metadata from Markdown files')
     md_arg_parser.add_argument('output_file_name',
@@ -776,69 +809,45 @@ def parse_args():
                                # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                # [FILENAME].log files in the specified output folder
                                default='cpc03-CG-md', type=str)
-    md_arg_parser.add_argument('input_file',
-                               help='MD file to be parsed',
-                               type=str, default='input/cpc/cpc03-CG.md', widget='FileChooser')
     md_arg_parser.add_argument('base_output_dir',
                                help='Base output directory',
                                type=str, default='output', widget='DirChooser')
-
-    elab_arg_parser = subs.add_parser(
-        'eLabFTW', help='Parse metadata from an eLabFTW experiment entry')
-    elab_arg_parser.add_argument('output_file_name',
-                                 help='[FILENAME] for your metadata and log outputs, without extension',
-                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                                 # [FILENAME].log files in the specified output folder
-                                 type=str)
-    elab_arg_parser.add_argument('token',
-                                 help='eLabFTW API Token',
-                                 # Ask your eLabFTW admin to instance to generate one for you
-                                 type=str)
-    elab_arg_parser.add_argument('exp_no',
-                                 help='eLabFTW experiment ID',
-                                 type=int)
-    elab_arg_parser.add_argument('endpoint',
-                                 help='eLabFTW API endpoint',
-                                 type=str)
-    elab_arg_parser.add_argument('base_output_dir',
-                                 help='Base output directory',
-                                 type=str, default='output', widget='DirChooser')
-
+    md_arg_parser.add_argument('input_file',
+                               help='MD file to be parsed',
+                               type=str, default='input/cpc/cpc03-CG.md', widget='FileChooser')
     args = parser.parse_args()
     return args
 
 
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
-
 def main():
     global output_file_name, input_file
     global output_path_prefix, output_file_prefix, base_output_dir
     global token, exp_no, endpoint
 
     args = parse_args()
-    input_file = args.input_file
+
+    # required for all input formats
     output_file_name = args.output_file_name
     base_output_dir = args.base_output_dir
-
-    print(input_file)
     output_path_prefix = base_output_dir + "/" + output_file_name + "/"
     output_file_prefix = output_path_prefix + output_file_name
 
-    # PARSING FROM DOCX DOCUMENT
-    document = get_docx_content(input_file)
-    kv, log = extract_docx_content(document)
-
-    # PARSING FROM MARKDOWN
-    # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
-    # kv, log = extract_md_exp_content_via_pandoc(input_file)
-    # -- use below to transform md->text is needed prior to extraction (faster).
-    # kv, log = extract_md_via_text(input_file)
-
-    # PARSING FROM ELABFTW CONTENT
-    # token = "" # REMOVE BEFORE PUSH
-    # endpoint = ""
-    # exp_no = '' # REMOVE BEFORE PUSH
-    # kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+    if args.command == 'eLabFTW':
+        token = args.token
+        exp_no = args.exp_no
+        endpoint = args.endpoint
+        kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+    elif args.command == 'DOCX':
+        input_file = args.input_file
+        document = get_docx_content(input_file)
+        kv, log = extract_docx_content(document)
+    elif args.command == 'MD':
+        input_file = args.input_file
+        # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
+        # kv, log = extract_md_exp_content_via_pandoc(input_file)
+        # -- use below to transform md->text is needed prior to extraction (faster).
+        kv, log = extract_md_via_text(input_file)
 
     # Writing to JSON and XLSX
     write_to_json(kv, log)
