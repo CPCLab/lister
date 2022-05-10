@@ -18,9 +18,9 @@ import zipfile
 import argparse
 from gooey import Gooey, GooeyParser
 from message import display_message
+
+
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
-
-
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
     FLOW_TYPE = "flow type"
@@ -799,6 +799,14 @@ def parse_args():
                                  type=str, default='output', widget='DirChooser')
     docx_arg_parser.add_argument('input_file',
                                  help='DOCX file to be parsed',
+                                 gooey_options={
+                                     'wildcard':
+                                         "Microsoft WOrd Document (*.docx)|*.docx|" 
+                                     "All files (*.*)|*.*",
+                                     'default_dir': 'input/cpc/',
+                                     'default_file': "cpc03-CG.md"
+                                     # 'message': "pick me"
+                                 },
                                  type=str, widget='FileChooser', default='input/cpc/cpc03-CG.docx')
 
     # MD PARAMETERS
@@ -813,6 +821,14 @@ def parse_args():
                                help='Base output directory',
                                type=str, default='output', widget='DirChooser')
     md_arg_parser.add_argument('input_file',
+                               gooey_options={
+                                   'wildcard':
+                                       "Markdown file (*.md)|*.md|"
+                                   "All files (*.*)|*.*",
+                                   'default_dir': 'input/cpc/',
+                                   'default_file': "cpc03-CG.md"
+                                   # 'message': "pick me"
+                               },
                                help='MD file to be parsed',
                                type=str, default='input/cpc/cpc03-CG.md', widget='FileChooser')
     args = parser.parse_args()
