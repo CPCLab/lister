@@ -746,6 +746,12 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     kv, log = get_kv_log_from_html(exp["body"])
     return kv, log
 
+def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    with open(file_with_path, 'r+b') as myfile:
+        params = {'file': myfile}
+        manager.upload_to_experiment(exp_number, params)
+
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 def parse_cfg():
@@ -868,6 +874,11 @@ def main():
     # Writing to JSON and XLSX
     write_to_json(kv, log)
     write_to_xlsx(kv, log)
+
+    # may not work yet on v 3.6.7
+    # if args.command == 'eLabFTW':
+    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
+    #    upload_to_elab_exp(exp_no, endpoint, token,  output_file_prefix + ".json")
 
 
 if __name__ == "__main__":
