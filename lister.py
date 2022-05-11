@@ -763,7 +763,8 @@ def parse_cfg():
     output_file_name = data['elabftw']['output_file_name']
     return token, endpoint, output_file_name, exp_no
 
-@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:') # , image_dir='resources/')
+@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:',
+           default_size=(800, 650)) # , image_dir='resources/')
 def parse_args():
     token, endpoint, output_file_name, exp_no = parse_cfg()
     settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
@@ -774,59 +775,88 @@ def parse_args():
     elab_arg_parser = subs.add_parser(
         'eLabFTW', help='Parse metadata from an eLabFTW experiment entry')
     elab_arg_parser.add_argument('output_file_name',
+                                 metavar='Output file name',
                                  help='[FILENAME] for your metadata and log outputs, without extension',
                                  # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                  # [FILENAME].log files in the specified output folder
-                                 default=output_file_name, type=str)
+                                 default=output_file_name,
+                                 type=str)
     elab_arg_parser.add_argument('exp_no',
-                                 help='eLabFTW experiment ID', default=exp_no,
+                                 metavar='eLabFTW experiment ID',
+                                 help='Integer indicated in the URL of the experiment',
+                                 default=exp_no,
                                  type=int)
     elab_arg_parser.add_argument('endpoint',
-                                 help='eLabFTW API endpoint', default=endpoint,
+                                 metavar = "eLabFTW API endpoint URL",
+                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
+                                 default=endpoint,
                                  type=str)
     elab_arg_parser.add_argument('base_output_dir',
-                                 help='Base output directory',
-                                 type=str, default='output', widget='DirChooser')
+                                 metavar = 'Base output directory',
+                                 help='Local directory generally used to save your outputs',
+                                 type=str,
+                                 default='output',
+                                 widget='DirChooser')
     elab_arg_parser.add_argument('token',
-                                 help='eLabFTW API Token', default=token,
+                                 metavar='eLabFTW API Token',
+                                 help='Ask your eLabFTW admin to generate an API token for you',
+                                 default=token,
                                  # Ask your eLabFTW admin to instance to generate one for you
                                  type=str)
+    elab_arg_parser.add_argument('-f', '--uploadToggle',
+                                    metavar='Upload',
+                                    action='store_true',
+                                    help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
+                                         '(for latest eLabFTW instance only)')
 
     # DOCX PARAMETERS
     docx_arg_parser = subs.add_parser(
         'DOCX', help='Parse metadata from DOCX files')
     docx_arg_parser.add_argument('output_file_name',
+                                 metavar = 'Output file name',
                                  help='[FILENAME] for your metadata and log outputs, without extension',
                                  # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                  # [FILENAME].log files in the specified output folder
-                                 type=str, default='cpc03-CG')
+                                 type=str,
+                                 default='cpc03-CG')
     docx_arg_parser.add_argument('base_output_dir',
-                                 help='Base output directory',
-                                 type=str, default='output', widget='DirChooser')
+                                 metavar='Base output directory',
+                                 help='Local directory generally used to save your outputs',
+                                 type=str,
+                                 default='output',
+                                 widget='DirChooser')
     docx_arg_parser.add_argument('input_file',
+                                 metavar='Input file',
                                  help='DOCX file to be parsed',
                                  gooey_options={
-                                     'wildcard':
-                                         "Microsoft WOrd Document (*.docx)|*.docx|" 
+                                     'wildcard': "Microsoft WOrd Document (*.docx)|*.docx|" 
                                      "All files (*.*)|*.*",
                                      'default_dir': 'input/cpc/',
                                      'default_file': "cpc03-CG.md"
                                      # 'message': "pick me"
                                  },
-                                 type=str, widget='FileChooser', default='input/cpc/cpc03-CG.docx')
+                                 type=str,
+                                 widget='FileChooser',
+                                 default='input/cpc/cpc03-CG.docx')
 
     # MD PARAMETERS
     md_arg_parser = subs.add_parser(
         'MD', help='Parse metadata from Markdown files')
     md_arg_parser.add_argument('output_file_name',
+                               metavar='Output file name',
                                help='[FILENAME] for your metadata and log outputs, without extension',
                                # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                # [FILENAME].log files in the specified output folder
-                               default='cpc03-CG-md', type=str)
+                               default='cpc03-CG-md',
+                               type=str)
     md_arg_parser.add_argument('base_output_dir',
-                               help='Base output directory',
-                               type=str, default='output', widget='DirChooser')
+                               metavar='Base output directory',
+                               help='Local directory generally used to save your outputs',
+                               type=str,
+                               default='output',
+                               widget='DirChooser')
     md_arg_parser.add_argument('input_file',
+                               metavar='Input file',
                                gooey_options={
                                    'wildcard':
                                        "Markdown file (*.md)|*.md|"
@@ -836,7 +866,9 @@ def parse_args():
                                    # 'message': "pick me"
                                },
                                help='MD file to be parsed',
-                               type=str, default='input/cpc/cpc03-CG.md', widget='FileChooser')
+                               type=str,
+                               default='input/cpc/cpc03-CG.md',
+                               widget='FileChooser')
     args = parser.parse_args()
     return args
 
@@ -876,9 +908,9 @@ def main():
     write_to_xlsx(kv, log)
 
     # may not work yet on v 3.6.7
-    # if args.command == 'eLabFTW':
-    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
-    #    upload_to_elab_exp(exp_no, endpoint, token,  output_file_prefix + ".json")
+    if args.command == 'eLabFTW' and args.uploadToggle == True:
+       upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
+       upload_to_elab_exp(exp_no, endpoint, token,  output_file_prefix + ".json")
 
 
 if __name__ == "__main__":
