@@ -545,27 +545,49 @@ def extract_flow_type(par_no, flow_control_pair):
 
 def strip_colon(key):
     stripped_key = re.sub('\:', '', key)
-    # print(stripped_key) #debug
     return stripped_key
 
 
 def is_hidden_key(key):
     hidden_key_pattern = r':.+?:'
     if re.match(hidden_key_pattern, key):
-       key = strip_colon(key)
        return True
     else:
         return False
+
+
+def strip_markup_and_hidden_keys(line):
+    stripped_from_markup = re.sub(r"([{}()<>])", '', line)
+    stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
+    stripped_from_hidden_keys = re.sub(r':.+?:', '', stripped_from_markup)
+    return stripped_from_hidden_keys
+
+
+def serialize_to_docx(narrative_lines):
+    document = Document()
+    for line in narrative_lines:
+        if re.match(r'Goal:*|Procedure:*|Result:*|Reference:*', line, re.IGNORECASE):
+            document.add_heading(line, level=1)
+        elif re.match(r'Section.+', line, re.IGNORECASE):
+            line = re.sub(r'Section', '', line)
+            document.add_heading(line.strip(), level=3)
+        else:
+            document.add_paragraph(line)
+    document.save(output_file_prefix + '.docx')
 
 
 def parse_list(lines):
     par_no = 0
     par_key_val = []
     par_key = []
+    narrative_lines = []
     comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
     for line in lines:
         # Check bracketing validity
+        narrative_line = strip_markup_and_hidden_keys(line)
+        narrative_lines.append(narrative_line)
+
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log # + "\n"
         if is_bracket_error:
@@ -606,6 +628,8 @@ def parse_list(lines):
                     # print(log)
                     break
                 par_key_val.extend(flow_metadata)
+    # print(narrative_lines)  # debug
+    serialize_to_docx(narrative_lines)
     return par_key_val, log
 
 
