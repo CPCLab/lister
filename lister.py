@@ -543,6 +543,21 @@ def extract_flow_type(par_no, flow_control_pair):
     return key_val, flow_log, is_error
 
 
+def strip_colon(key):
+    stripped_key = re.sub('\:', '', key)
+    # print(stripped_key) #debug
+    return stripped_key
+
+
+def is_hidden_key(key):
+    hidden_key_pattern = r':.+?:'
+    if re.match(hidden_key_pattern, key):
+       key = strip_colon(key)
+       return True
+    else:
+        return False
+
+
 def parse_list(lines):
     par_no = 0
     par_key_val = []
@@ -578,6 +593,8 @@ def parse_list(lines):
                     if (one_par_key in par_key):
                         log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (one_par_key) + "\n"
                         # print(log)
+                    if is_hidden_key(key):
+                        key = strip_colon(key)
                     one_par_key_val = [par_no, key, val]
                     par_key.append(one_par_key)
                     par_key_val.append(one_par_key_val)
@@ -744,6 +761,7 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     exp = manager.get_experiment(exp_number)
     extract_imgs_from_html(current_endpoint, exp["body"])
     kv, log = get_kv_log_from_html(exp["body"])
+    # print(kv) #debug
     return kv, log
 
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
@@ -907,7 +925,7 @@ def main():
     write_to_json(kv, log)
     write_to_xlsx(kv, log)
 
-    # may not work yet on v 3.6.7
+    # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
     if args.command == 'eLabFTW' and args.uploadToggle == True:
        upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
        upload_to_elab_exp(exp_no, endpoint, token,  output_file_prefix + ".json")
