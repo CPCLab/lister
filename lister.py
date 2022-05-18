@@ -560,7 +560,7 @@ def strip_markup_and_hidden_keys(line):
     stripped_from_markup = re.sub(r"([{}()<>])", '', line)
     stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
     stripped_from_hidden_keys = re.sub(r':.+?:', '', stripped_from_markup)
-    return stripped_from_hidden_keys
+    return stripped_from_hidden_keys.strip()
 
 
 def serialize_to_docx(narrative_lines):
@@ -572,6 +572,8 @@ def serialize_to_docx(narrative_lines):
             line = re.sub(r'Section', '', line)
             document.add_heading(line.strip(), level=3)
         else:
+            line = re.sub('\s{2,}', ' ', line)
+            line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
             document.add_paragraph(line)
     document.save(output_file_prefix + '.docx')
 
@@ -586,7 +588,7 @@ def parse_list(lines):
     for line in lines:
         # Check bracketing validity
         narrative_line = strip_markup_and_hidden_keys(line)
-        narrative_lines.append(narrative_line)
+        narrative_lines.append(narrative_line.strip())
 
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log # + "\n"
