@@ -548,19 +548,19 @@ def strip_colon(key):
     return stripped_key
 
 
-def is_hidden_key(key):
-    hidden_key_pattern = r':.+?:'
-    if re.match(hidden_key_pattern, key):
+def is_explicit_key(key):
+    explicit_key_pattern = r':.+?:'
+    if re.match(explicit_key_pattern, key):
        return True
     else:
         return False
 
-
-def strip_markup_and_hidden_keys(line):
-    stripped_from_markup = re.sub(r"([{}()<>])", '', line)
+def strip_markup_and_explicit_keys(line):
+    stripped_from_explicit_keys = re.sub(r"\|(\w\s*\.*)+\}", '', line)
+    stripped_from_markup = re.sub(r"([{}()<>:])", '', stripped_from_explicit_keys)
     stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
-    stripped_from_hidden_keys = re.sub(r':.+?:', '', stripped_from_markup)
-    return stripped_from_hidden_keys.strip()
+    print(stripped_from_markup)
+    return stripped_from_markup
 
 
 def serialize_to_docx(narrative_lines):
@@ -587,7 +587,7 @@ def parse_list(lines):
     log = ""
     for line in lines:
         # Check bracketing validity
-        narrative_line = strip_markup_and_hidden_keys(line)
+        narrative_line = strip_markup_and_explicit_keys(line)
         narrative_lines.append(narrative_line.strip())
 
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
@@ -617,7 +617,7 @@ def parse_list(lines):
                     if (one_par_key in par_key):
                         log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (one_par_key) + "\n"
                         # print(log)
-                    if is_hidden_key(key):
+                    if is_explicit_key(key):
                         key = strip_colon(key)
                     one_par_key_val = [par_no, key, val]
                     par_key.append(one_par_key)
