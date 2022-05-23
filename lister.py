@@ -559,7 +559,7 @@ def strip_markup_and_explicit_keys(line):
     stripped_from_explicit_keys = re.sub(r"\|(\w\s*\.*)+\}", '', line)
     stripped_from_markup = re.sub(r"([{}()<>:])", '', stripped_from_explicit_keys)
     stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
-    print(stripped_from_markup)
+    # print(stripped_from_markup)
     return stripped_from_markup
 
 
@@ -586,10 +586,10 @@ def parse_list(lines):
     comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
     for line in lines:
-        # Check bracketing validity
+        # get overall narrative lines for a clean docx document
         narrative_line = strip_markup_and_explicit_keys(line)
         narrative_lines.append(narrative_line.strip())
-
+        # Check bracketing validity
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log # + "\n"
         if is_bracket_error:
