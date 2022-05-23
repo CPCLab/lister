@@ -501,14 +501,24 @@ def process_section(cf_split):
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
-def extract_kv(kv):
-    kv = kv[1:-1]
-    kv_split = re.split("\|", kv)
-    key = kv_split[1]
+def extract_kvmu(kvmu):
+    kvmu = kvmu[1:-1]
+    kv_split = re.split("\|", kvmu)
+    if len(kv_split) == 4:
+        measure = kv_split[0]
+        unit = kv_split[1]
+        key = kv_split[3]
+        val = kv_split[2]
+    else:
+        key = kv_split[1]
+        val = kv_split[0]
+        measure = ""
+        unit = ""
     key = key.strip()
-    val = kv_split[0]
     val = val.strip()
-    return key, val
+    measure = measure.strip()
+    unit = unit.strip()
+    return key, val, measure, unit
 
 
 def extract_flow_type(par_no, flow_control_pair):
@@ -580,13 +590,13 @@ def serialize_to_docx(narrative_lines):
 
 def parse_list(lines):
     par_no = 0
-    par_key_val = []
-    par_key = []
+    multi_nkvmu_pair = []
+    multi_nk_pair = []
     narrative_lines = []
     comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
     for line in lines:
-        # get overall narrative lines for a clean docx document
+        # get overall narrative lines for a clean docx document - completely separated from line parsing
         narrative_line = strip_markup_and_explicit_keys(line)
         narrative_lines.append(narrative_line.strip())
         # Check bracketing validity
@@ -594,7 +604,6 @@ def parse_list(lines):
         log = log + bracketing_log # + "\n"
         if is_bracket_error:
             write_log(log)
-            # print(log)
             break
         # Extract KV and flow metadata
         kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
@@ -607,21 +616,34 @@ def parse_list(lines):
             # only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(kv_pattern, kv_and_flow_pair):
-                key, val = extract_kv(kv_and_flow_pair)
-                if key != "" and val != "":
-                    if re.search(comment_regex, key):
-                        key, comment = process_comment(key)
-                    if re.search(comment_regex, val):
-                        val, comment = process_comment(val)
-                    one_par_key = [par_no, key]
-                    if (one_par_key in par_key):
-                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (one_par_key) + "\n"
+                kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with at least key, value,
+                # and optionally measure and unit
+                if kvmu_set[0] != "" and kvmu_set[1] != "":
+                    if re.search(comment_regex, kvmu_set[0]):
+                        key, comment = process_comment(kvmu_set[0])
+                    else:
+                        key = kvmu_set[0]
+                    if re.search(comment_regex, kvmu_set[1]):
+                        val, comment = process_comment(kvmu_set[1])
+                    else:
+                        val = kvmu_set[1]
+                    if re.search(comment_regex, kvmu_set[2]):
+                        measure, comment = process_comment(kvmu_set[2])
+                    else:
+                        measure = kvmu_set[2]
+                    if re.search(comment_regex, kvmu_set[3]):
+                        unit, comment = process_comment(kvmu_set[3])
+                    else:
+                        unit = kvmu_set[3]
+                    single_nk_pair = [par_no, key]
+                    if (single_nk_pair in multi_nk_pair):
+                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (single_nk_pair) + "\n"
                         # print(log)
                     if is_explicit_key(key):
                         key = strip_colon(key)
-                    one_par_key_val = [par_no, key, val]
-                    par_key.append(one_par_key)
-                    par_key_val.append(one_par_key_val)
+                    single_nkvmu_pair = [par_no, key, val, measure, unit]
+                    multi_nk_pair.append(single_nk_pair)
+                    multi_nkvmu_pair.append(single_nkvmu_pair)
             if re.match(flow_pattern, kv_and_flow_pair):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log # + "\n"
@@ -629,10 +651,9 @@ def parse_list(lines):
                     write_log(log)
                     # print(log)
                     break
-                par_key_val.extend(flow_metadata)
-    # print(narrative_lines)  # debug
+                multi_nkvmu_pair.extend(flow_metadata)
     serialize_to_docx(narrative_lines)
-    return par_key_val, log
+    return multi_nkvmu_pair, log
 
 
 def extract_docx_content(doc_content):
@@ -642,8 +663,8 @@ def extract_docx_content(doc_content):
         par_lines.append(para.text)
         par_no = par_no + 1
     par_lines = list(line for line in par_lines if line)
-    kv, log = parse_list(par_lines)
-    return kv, log
+    multi_nkvmu_pair, log = parse_list(par_lines)
+    return multi_nkvmu_pair, log
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
@@ -662,12 +683,13 @@ def write_log(log):
         f.write(log)
 
 
-def write_to_xlsx(key_val, log):
-    header = ["PARAGRAPH NUMBER", "KEY", "VALUE"]
+def write_to_xlsx(nkvmu, log):
+    header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header)
-        for row_no, data in enumerate(key_val):
+        for row_no, data in enumerate(nkvmu):
+            # print(data)
             worksheet.write_row(row_no + 1, 0, data)
     write_log(log)
 
@@ -702,8 +724,8 @@ def get_kv_log_from_html(html_content):
         line = line.replace(non_break_space, ' ')
         clean_lines.append(line)
         line_no = line_no + 1
-    kv, log = parse_list(clean_lines)
-    return kv, log
+    multi_nkvmu_pair, log = parse_list(clean_lines)
+    return multi_nkvmu_pair, log
 
 
 # extracting md via docx conversion using pandoc in case it is needed in the future
@@ -777,8 +799,8 @@ def extract_md_via_text(filename):
     marked_txt = f.read()
     unmarked_txt = unmark(marked_txt).replace("\\","")
     lines = unmarked_txt.splitlines()
-    kv, log = parse_list(lines)
-    return kv, log
+    multi_nkvmu_pair, log = parse_list(lines)
+    return multi_nkvmu_pair, log
 
 
 def extract_elab_exp_content(exp_number, current_endpoint, current_token):
@@ -935,21 +957,21 @@ def main():
         token = args.token
         exp_no = args.exp_no
         endpoint = args.endpoint
-        kv, log = extract_elab_exp_content(exp_no, endpoint, token)
+        nkvmu, log = extract_elab_exp_content(exp_no, endpoint, token)
     elif args.command == 'DOCX':
         input_file = args.input_file
         document = get_docx_content(input_file)
-        kv, log = extract_docx_content(document)
+        nkvmu, log = extract_docx_content(document)
     elif args.command == 'MD':
         input_file = args.input_file
         # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
         # kv, log = extract_md_exp_content_via_pandoc(input_file)
         # -- use below to transform md->text is needed prior to extraction (faster).
-        kv, log = extract_md_via_text(input_file)
+        nkvmu, log = extract_md_via_text(input_file)
 
     # Writing to JSON and XLSX
-    write_to_json(kv, log)
-    write_to_xlsx(kv, log)
+    write_to_json(nkvmu, log)
+    write_to_xlsx(nkvmu, log)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
     if args.command == 'eLabFTW' and args.uploadToggle == True:
