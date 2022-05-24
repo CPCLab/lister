@@ -17,6 +17,7 @@ from io import BytesIO
 import zipfile
 import argparse
 from gooey import Gooey, GooeyParser
+import sys
 from message import display_message
 
 
@@ -60,6 +61,8 @@ class Misc_error_and_warning_msg(Enum):
                      "Check the following part: %s"
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, %s. Please " \
                             "make sure that this is intended."
+    INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
+                                "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
 
 
 class Arg_num(Enum):
@@ -502,23 +505,28 @@ def process_section(cf_split):
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
 def extract_kvmu(kvmu):
+    log = ""
+    source_kvmu = kvmu
     kvmu = kvmu[1:-1]
     kv_split = re.split("\|", kvmu)
-    if len(kv_split) == 4:
+    if len(kv_split) == 2:
+        key = kv_split[1]
+        val = kv_split[0]
+        measure = ""
+        unit = ""
+    elif len(kv_split) == 4:
         measure = kv_split[0]
         unit = kv_split[1]
         key = kv_split[3]
         val = kv_split[2]
     else:
-        key = kv_split[1]
-        val = kv_split[0]
-        measure = ""
-        unit = ""
+        log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value % (len(kv_split), str(source_kvmu))
+        raise SystemExit(log)
     key = key.strip()
     val = val.strip()
     measure = measure.strip()
     unit = unit.strip()
-    return key, val, measure, unit
+    return key, val, measure, unit, log
 
 
 def extract_flow_type(par_no, flow_control_pair):
@@ -616,8 +624,8 @@ def parse_list(lines):
             # only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(kv_pattern, kv_and_flow_pair):
-                kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with at least key, value,
-                # and optionally measure and unit
+                kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with key, value, measure, unit, log
+                # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(comment_regex, kvmu_set[0]):
                         key, comment = process_comment(kvmu_set[0])
