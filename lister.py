@@ -694,10 +694,17 @@ def write_log(log):
 def write_to_xlsx(nkvmu, log):
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
+        # formatting header
+        header_format = workbook.add_format({'bold': True})
+        header_format.set_bg_color('9bbb59')
+        header_format.set_font_color('ffffff')
+        # creating and formatting worksheet
         worksheet = workbook.add_worksheet()
-        worksheet.write_row(0, 0, header)
+        worksheet.write_row(0, 0, header, header_format)
+        worksheet.set_column('A:A', 20)
+        worksheet.set_column('B:C', 30)
+        worksheet.set_column('D:E', 20)
         for row_no, data in enumerate(nkvmu):
-            # print(data)
             worksheet.write_row(row_no + 1, 0, data)
     write_log(log)
 
