@@ -498,7 +498,7 @@ def process_section(cf_split):
         is_error = True
         log = log + sect_log + "\n"
     else:
-        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value, cf_split[1]])
+        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value, cf_split[1], "", ""])
     return key_val, log, is_error
 
 
@@ -694,18 +694,22 @@ def write_log(log):
 def write_to_xlsx(nkvmu, log):
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
-        # formatting header
-        header_format = workbook.add_format({'bold': True})
-        header_format.set_bg_color('9bbb59')
-        header_format.set_font_color('ffffff')
+        # formatting cells
+        header_format = workbook.add_format({'bold': True, 'bg_color':'9bbb59', 'font_color':'ffffff'})
+        default_format = workbook.add_format({'border':1, 'border_color': '9bbb59'})
+        section_format = workbook.add_format({'border':1, 'border_color': '9bbb59', 'bg_color':'ebf1de'})
         # creating and formatting worksheet
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header, header_format)
-        worksheet.set_column('A:A', 20)
-        worksheet.set_column('B:C', 30)
-        worksheet.set_column('D:E', 20)
+        worksheet.set_column('A:A', 19)
+        worksheet.set_column('B:B', 18)
+        worksheet.set_column('C:C', 30)
+        worksheet.set_column('D:E', 15)
         for row_no, data in enumerate(nkvmu):
-            worksheet.write_row(row_no + 1, 0, data)
+            if data[1].casefold() != "Section".casefold():
+                worksheet.write_row(row_no + 1, 0, data, default_format)
+            else:
+                worksheet.write_row(row_no + 1, 0, data, section_format)
     write_log(log)
 
 
