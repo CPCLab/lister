@@ -1,4 +1,5 @@
 personal-comments.txt
+__pycache__/
 venv/
 etcs/
 venv/

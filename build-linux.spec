@@ -6,7 +6,7 @@ gooey_root = os.path.dirname(gooey.__file__)
 block_cipher = None
 
 a = Analysis(['lister.py'],  # replace me with your path
-             pathex=['C:\\Users\\fatho\\Dropbox\\Code\\Python\\lister\\'],
+             pathex=['/home/fath/Dropbox/Code/Python/lister'],
              binaries=[],
              datas=[],
              hiddenimports=[],
