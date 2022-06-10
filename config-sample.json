@@ -1,0 +1,8 @@
+{
+    "elabftw": {
+        "token":"",
+        "endpoint":"",
+        "exp_no":12345,
+        "output_file_name":""
+    }
+}

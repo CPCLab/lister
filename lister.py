@@ -14,11 +14,13 @@ from PIL import Image
 from urllib.parse import urlparse
 from urllib.request import urlopen
 from io import BytesIO
+import PyInstaller
 import zipfile
 import argparse
 from gooey import Gooey, GooeyParser
 import sys
 from message import display_message
+
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -840,7 +842,7 @@ def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_pa
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 def parse_cfg():
-    with open("etcs/lister-config.json") as json_data_file:
+    with open("config.json") as json_data_file:
         data = json.load(json_data_file)
     token = data['elabftw']['token']
     endpoint = data['elabftw']['endpoint']

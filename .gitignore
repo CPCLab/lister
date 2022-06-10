@@ -3,6 +3,9 @@ venv/
 etcs/
 venv/
 output/
+dist/
+build/
+config.json
 .idea/
 desktop.ini
 .get-pip.py
