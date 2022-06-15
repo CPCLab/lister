@@ -516,6 +516,11 @@ def extract_kvmu(kvmu):
         val = kv_split[0]
         measure = ""
         unit = ""
+    elif len(kv_split) == 3:
+        val = kv_split[0]
+        unit = kv_split[1]
+        key = kv_split[2]
+        measure = ""
     elif len(kv_split) == 4:
         measure = kv_split[0]
         unit = kv_split[1]
