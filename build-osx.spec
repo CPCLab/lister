@@ -22,7 +22,7 @@ from PyInstaller.building.osx import BUNDLE
 block_cipher = None
 
 a = Analysis(['lister.py'],  # replace me with your path
-             pathex=['C:\\Users\\fatho\\Dropbox\\Code\\Python\\lister\\'],
+             pathex=['/Users/fathoni/Code/lister/'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None,
@@ -40,12 +40,13 @@ exe = EXE(pyz,
           options,
           gooey_languages,
           gooey_images,
-          name='APPNAME',
+          name='lister',
           debug=False,
           strip=None,
           upx=True,
           console=False,
           icon=os.path.join(gooey_root, 'images', 'program_icon.ico'))
+
 
 info_plist = {'addition_prop': 'additional_value'}
 app = BUNDLE(exe,
@@ -53,6 +54,7 @@ app = BUNDLE(exe,
              bundle_identifier=None,
              info_plist=info_plist
             )
+
 
 import shutil
 shutil.copyfile('config.json', '{0}/config.json'.format(DISTPATH))

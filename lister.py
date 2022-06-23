@@ -581,18 +581,19 @@ def is_explicit_key(key):
         return False
 
 def strip_markup_and_explicit_keys(line):
-    stripped_from_explicit_keys = re.sub(r"\|(\w\s*\.*)+\}", '', line)
+    stripped_from_explicit_keys = re.sub(r"\|(\s*\w\s*\.*)+\}", '', line)
     stripped_from_markup = re.sub(r"([{}()<>:])", '', stripped_from_explicit_keys)
     stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
-    # print(stripped_from_markup)
     return stripped_from_markup
 
 
 def serialize_to_docx(narrative_lines):
     document = Document()
     for line in narrative_lines:
+        # check if the line is either goal, procedure, result, or reference
         if re.match(r'Goal:*|Procedure:*|Result:*|Reference:*', line, re.IGNORECASE):
             document.add_heading(line, level=1)
+        # check if the line is a section
         elif re.match(r'Section.+', line, re.IGNORECASE):
             line = re.sub(r'Section', '', line)
             document.add_heading(line.strip(), level=3)
