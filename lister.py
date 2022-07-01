@@ -834,10 +834,20 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     ssl._create_default_https_context = ssl._create_unverified_context
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
-    extract_imgs_from_html(current_endpoint, exp["body"])
+    # EXTRACT KEY VALUES
+    # extract_imgs_from_html(current_endpoint, exp["body"])
     kv, log = get_kv_log_from_html(exp["body"])
-    # print(kv) #debug
+    # FETCH ATTACHMENT
+    uploads = exp["uploads"]
+    for upload in uploads:
+        print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
+        with open(output_path_prefix + upload["real_name"], 'wb') as attachment:
+            try:
+                attachment.write(manager.get_upload(upload["id"]))
+            except Exception as e:
+                log = log + e
     return kv, log
+
 
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
