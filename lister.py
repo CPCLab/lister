@@ -20,8 +20,7 @@ import argparse
 from gooey import Gooey, GooeyParser
 import sys
 from message import display_message
-
-
+import ssl
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
@@ -782,7 +781,7 @@ def extract_imgs_from_md(filename):
         path_tail = os.path.split(file_path)
         loaded_img.save(output_path_prefix + path_tail[1])
 
-
+# DEPRECATED: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
 def extract_imgs_from_html(current_endpoint, html_doc):
     soup = BeautifulSoup(html_doc, 'html.parser')
     imgs = soup.findAll("img")
@@ -832,6 +831,7 @@ def extract_md_via_text(filename):
 
 def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+    ssl._create_default_https_context = ssl._create_unverified_context
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
     extract_imgs_from_html(current_endpoint, exp["body"])
@@ -848,6 +848,12 @@ def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_pa
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 def parse_cfg():
+    # Manual debugging as Gooey does not support debugging directly
+    # directory = os.getcwd()
+    # print("______________________________CURRENT DIRECTORY ________________________________ :")
+    # print(directory)
+    # print("_______________________________Python version__________________________________")
+    # print(sys.version)
     with open("config.json") as json_data_file:
         data = json.load(json_data_file)
     token = data['elabftw']['token']

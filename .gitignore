@@ -16,3 +16,4 @@ desktop.ini
 validator/__pycache__/*
 .DS_Store
 .idea/misc.xml
+lister.spec

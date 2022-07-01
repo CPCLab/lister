@@ -37,3 +37,4 @@ exe = EXE(pyz,
 
 import shutil
 shutil.copyfile('config.json', '{0}/config.json'.format(DISTPATH))
+
