@@ -684,8 +684,6 @@ def extract_docx_content(doc_content):
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 def write_to_json(list, log):
-    if not os.path.isdir(output_path_prefix):
-        os.mkdir(output_path_prefix)
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
     # write_log(log)
 
@@ -773,8 +771,6 @@ def extract_imgs_from_md(filename):
     html_doc = markdown.markdown(md_text)
     soup = BeautifulSoup(html_doc, 'html.parser')
     imgs = soup.findAll("img")
-    if not os.path.isdir(output_path_prefix):
-        os.mkdir(output_path_prefix)
     for img in imgs:
         file_path = img.get('src')
         loaded_img = Image.open(file_path)
@@ -787,8 +783,6 @@ def extract_imgs_from_html(current_endpoint, html_doc):
     imgs = soup.findAll("img")
     parsed_uri = urlparse(current_endpoint)
     base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-    if not os.path.isdir(output_path_prefix):
-        os.mkdir(output_path_prefix)
     for img in imgs:
         src = img.get('src')
         file_path = base_url + src
@@ -995,6 +989,8 @@ def main():
     base_output_dir = args.base_output_dir
     output_path_prefix = base_output_dir + "/" + output_file_name + "/"
     output_file_prefix = output_path_prefix + output_file_name
+    if not os.path.isdir(output_path_prefix):
+        os.mkdir(output_path_prefix)
 
     if args.command == 'eLabFTW':
         token = args.token
