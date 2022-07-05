@@ -62,6 +62,9 @@ class Misc_error_and_warning_msg(Enum):
                      "Check the following part: %s"
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, %s. Please " \
                             "make sure that this is intended."
+    INACCESSIBLE_ATTACHMENT = "WARNING: File with name %s and ID %s is not accessible, with the exception: " \
+                              "\n %s. \n Try contacting eLabFTW administrator reporting the exception mentioned."  \
+                     "Check the following part: %s"
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
                                 "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
 
@@ -736,7 +739,8 @@ def extract_docx_media(filename):
 
 
 def get_kv_log_from_html(html_content):
-    soup = BeautifulSoup(html_content, "html5lib")
+    # soup = BeautifulSoup(html_content, "html5lib")
+    soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
     textmd = soup.text
     text = soup.get_text().splitlines()
@@ -834,12 +838,13 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
     # FETCH ATTACHMENT
     uploads = exp["uploads"]
     for upload in uploads:
-        print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
         with open(output_path_prefix + upload["real_name"], 'wb') as attachment:
+            print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
             try:
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
-                log = log + e
+                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (upload["real_name"], upload["id"], str(e))
+                pass
     return kv, log
 
 
