@@ -39,8 +39,8 @@ a = Analysis(['lister.py'],  # replace me with your path
              )
 pyz = PYZ(a.pure)
 
-options = [('u', None, 'OPTION'), ('v', None, 'OPTION'), ('w', None, 'OPTION')]
-
+# options = [('u', None, 'OPTION'), ('v', None, 'OPTION'), ('w', None, 'OPTION')]
+options= [('u', None, 'OPTION')]
 
 exe = EXE(pyz,
           a.scripts,

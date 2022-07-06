@@ -21,6 +21,8 @@ from gooey import Gooey, GooeyParser
 import sys
 from message import display_message
 import ssl
+import platform
+from pathlib import Path
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
@@ -855,15 +857,32 @@ def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_pa
         manager.upload_to_experiment(exp_number, params)
 
 
+def manage_output_path(dir_name, file_name):
+    if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
+        home = str(Path.home())
+        output_path = home + "/Apps/lister/" + dir_name + "/" + file_name + "/"
+        print("OUTPUT PATH: %s" % (output_path))
+    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
+        output_path = dir_name + "/" + file_name + "/"
+    return output_path
+
+def manage_input_path():
+    input_path = ""
+    if platform.system()=="Darwin": # enforce input path to be specific to ~/Apps/lister/
+        home = str(Path.home())
+        input_path = home + "/Apps/lister/"
+    return input_path
+
+
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 def parse_cfg():
     # Manual debugging as Gooey does not support debugging directly
-    # directory = os.getcwd()
-    # print("______________________________CURRENT DIRECTORY ________________________________ :")
-    # print(directory)
-    # print("_______________________________Python version__________________________________")
-    # print(sys.version)
-    with open("config.json") as json_data_file:
+    # dirname, filename = os.path.split(os.path.abspath(__file__))
+    # print("CURRENT CONFIG DIRECTORY: %s" % (str(dirname))) # this shows from where the executable was actually run
+
+    input_file = manage_input_path() + "config.json"
+    print("CONFIG FILE: %s" % (input_file))
+    with open(input_file) as json_data_file:
         data = json.load(json_data_file)
     token = data['elabftw']['token']
     endpoint = data['elabftw']['endpoint']
@@ -872,7 +891,7 @@ def parse_cfg():
     return token, endpoint, output_file_name, exp_no
 
 @Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:',
-           default_size=(800, 650)) # , image_dir='resources/')
+           default_size=(900, 650)) # , image_dir='resources/')
 def parse_args():
     token, endpoint, output_file_name, exp_no = parse_cfg()
     settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
@@ -941,7 +960,6 @@ def parse_args():
                                      "All files (*.*)|*.*",
                                      'default_dir': 'input/cpc/',
                                      'default_file': "cpc03-CG.md"
-                                     # 'message': "pick me"
                                  },
                                  type=str,
                                  widget='FileChooser',
@@ -988,12 +1006,8 @@ def main():
     global token, exp_no, endpoint
 
     args = parse_args()
-
-    # required for all input formats
-    output_file_name = args.output_file_name
-    base_output_dir = args.base_output_dir
-    output_path_prefix = base_output_dir + "/" + output_file_name + "/"
-    output_file_prefix = output_path_prefix + output_file_name
+    output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
+    output_file_prefix = output_path_prefix + args.output_file_name
     if not os.path.isdir(output_path_prefix):
         os.mkdir(output_path_prefix)
 
