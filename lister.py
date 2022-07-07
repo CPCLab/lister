@@ -1009,7 +1009,8 @@ def main():
     output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
     output_file_prefix = output_path_prefix + args.output_file_name
     if not os.path.isdir(output_path_prefix):
-        os.mkdir(output_path_prefix)
+        print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
+        os.makedirs(output_path_prefix)
 
     if args.command == 'eLabFTW':
         token = args.token
