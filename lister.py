@@ -485,13 +485,14 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
-
+# only process the comment that is within (key value measure unit) pairs and remove its content
+# (unless if it is begun with "!")
 def process_comment(str_with_brackets):
     comment_regex = "\(.+?\)"
     comment = re.search(comment_regex, str_with_brackets)
     comment = comment.group(0)
     remains = str_with_brackets.replace(comment, '')
-    comment = comment[1:-1]
+    # comment = comment[1:-1]
     return remains.strip(), comment.strip()
 
 
@@ -608,6 +609,14 @@ def serialize_to_docx(narrative_lines):
     document.save(output_file_prefix + '.docx')
 
 
+def print_comments(overall_comments, internal_comments, external_comments):
+    if len(overall_comments) > 0:
+        print("OVERALL COMMENTS TYPE: %s. CONTENT: %s" % (str(type(overall_comments)), str(overall_comments)))
+    if len(internal_comments) > 0:
+        print("INTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(internal_comments)), str(internal_comments)))
+    if len(external_comments) > 0:
+        print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
+
 def parse_list(lines):
     par_no = 0
     multi_nkvmu_pair = []
@@ -631,6 +640,7 @@ def parse_list(lines):
         flow_pattern = r'<.+?>'  # Find any occurrences of control flows
         kv_and_flow_pairs = re.findall(kv_and_flow_pattern, line)
         para_len = len(split_into_sentences(line))
+
         if para_len > 0:
             par_no = par_no + 1  # count paragraph index, starting from 1
             # only if it consists at least a sentence
@@ -641,18 +651,22 @@ def parse_list(lines):
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(comment_regex, kvmu_set[0]):
                         key, comment = process_comment(kvmu_set[0])
+                        internal_comments.append(comment)
                     else:
                         key = kvmu_set[0]
                     if re.search(comment_regex, kvmu_set[1]):
                         val, comment = process_comment(kvmu_set[1])
+                        internal_comments.append(comment)
                     else:
                         val = kvmu_set[1]
                     if re.search(comment_regex, kvmu_set[2]):
                         measure, comment = process_comment(kvmu_set[2])
+                        internal_comments.append(comment)
                     else:
                         measure = kvmu_set[2]
                     if re.search(comment_regex, kvmu_set[3]):
                         unit, comment = process_comment(kvmu_set[3])
+                        internal_comments.append(comment)
                     else:
                         unit = kvmu_set[3]
                     single_nk_pair = [par_no, key]
@@ -669,9 +683,10 @@ def parse_list(lines):
                 log = log + flow_log # + "\n"
                 if is_flow_error:
                     write_log(log)
-                    # print(log)
                     break
                 multi_nkvmu_pair.extend(flow_metadata)
+        external_comments = list(set(overall_comments) - set(internal_comments))
+        print_comments(overall_comments, internal_comments, external_comments)
     serialize_to_docx(narrative_lines)
     return multi_nkvmu_pair, log
 
