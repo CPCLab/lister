@@ -487,7 +487,7 @@ def process_iterate(par_no, cf_split):
 
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
-def process_comment(str_with_brackets):
+def process_internal_comment(str_with_brackets):
     comment_regex = "\(.+?\)"
     comment = re.search(comment_regex, str_with_brackets)
     comment = comment.group(0)
@@ -617,6 +617,8 @@ def print_comments(overall_comments, internal_comments, external_comments):
     if len(external_comments) > 0:
         print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
 
+
+
 def parse_list(lines):
     par_no = 0
     multi_nkvmu_pair = []
@@ -624,16 +626,24 @@ def parse_list(lines):
     narrative_lines = []
     comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
+
     for line in lines:
+        # Extract overall comments, including those within KV pairs
+        overall_comments = re.findall(comment_regex, line)
+
+        internal_comments = []
+
         # get overall narrative lines for a clean docx document - completely separated from line parsing
         narrative_line = strip_markup_and_explicit_keys(line)
         narrative_lines.append(narrative_line.strip())
+
         # Check bracketing validity
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log # + "\n"
         if is_bracket_error:
             write_log(log)
             break
+
         # Extract KV and flow metadata
         kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
         kv_pattern = r'\{.+?\}'  # Find any occurrences of KV
@@ -642,30 +652,29 @@ def parse_list(lines):
         para_len = len(split_into_sentences(line))
 
         if para_len > 0:
-            par_no = par_no + 1  # count paragraph index, starting from 1
-            # only if it consists at least a sentence
+            par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(kv_pattern, kv_and_flow_pair):
                 kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(comment_regex, kvmu_set[0]):
-                        key, comment = process_comment(kvmu_set[0])
+                        key, comment = process_internal_comment(kvmu_set[0])
                         internal_comments.append(comment)
                     else:
                         key = kvmu_set[0]
                     if re.search(comment_regex, kvmu_set[1]):
-                        val, comment = process_comment(kvmu_set[1])
+                        val, comment = process_internal_comment(kvmu_set[1])
                         internal_comments.append(comment)
                     else:
                         val = kvmu_set[1]
                     if re.search(comment_regex, kvmu_set[2]):
-                        measure, comment = process_comment(kvmu_set[2])
+                        measure, comment = process_internal_comment(kvmu_set[2])
                         internal_comments.append(comment)
                     else:
                         measure = kvmu_set[2]
                     if re.search(comment_regex, kvmu_set[3]):
-                        unit, comment = process_comment(kvmu_set[3])
+                        unit, comment = process_internal_comment(kvmu_set[3])
                         internal_comments.append(comment)
                     else:
                         unit = kvmu_set[3]
