@@ -485,6 +485,18 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
+
+def get_comment_properties(str_with_brackets):
+    comment = str_with_brackets[1:-1]
+    doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
+    isVisible = is_explicit_key(comment)
+    isReference = bool(re.search(doi_regex, comment))
+    print(re.match(doi_regex, comment))
+    print("VISIBILITY?: %s" % str(isVisible))
+    print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
+    return isVisible, isReference
+
+
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
 def process_internal_comment(str_with_brackets):
@@ -696,6 +708,9 @@ def parse_list(lines):
                 multi_nkvmu_pair.extend(flow_metadata)
         external_comments = list(set(overall_comments) - set(internal_comments))
         print_comments(overall_comments, internal_comments, external_comments)
+        for external_comment in external_comments:
+            isVisible, isReference = get_comment_properties(external_comment)
+
     serialize_to_docx(narrative_lines)
     return multi_nkvmu_pair, log
 
