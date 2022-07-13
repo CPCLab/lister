@@ -487,14 +487,17 @@ def process_iterate(par_no, cf_split):
 
 
 def get_comment_properties(str_with_brackets):
+    reference = ""
     comment = str_with_brackets[1:-1]
     doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
     isVisible = is_explicit_key(comment)
     isReference = bool(re.search(doi_regex, comment))
-    print(re.match(doi_regex, comment))
+    if isReference:
+        reference = re.match(doi_regex, comment).group(0)
+        print("REFERENCE: ", reference)
     print("VISIBILITY?: %s" % str(isVisible))
     print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
-    return isVisible, isReference
+    return isVisible, isReference, reference
 
 
 # only process the comment that is within (key value measure unit) pairs and remove its content
@@ -597,6 +600,7 @@ def is_explicit_key(key):
     else:
         return False
 
+
 def strip_markup_and_explicit_keys(line):
     stripped_from_explicit_keys = re.sub(r"\|(\s*\w\s*\.*)+\}", '', line)
     stripped_from_markup = re.sub(r"([{}()<>:])", '', stripped_from_explicit_keys)
@@ -604,21 +608,47 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_markup
 
 
-def serialize_to_docx(narrative_lines):
+def get_references():
+    pass
+
+
+def serialize_to_docx(narrative_lines, references):
     document = Document()
+    reference_switch = False
+    intext_reference_list = []
     for line in narrative_lines:
         # check if the line is either goal, procedure, result, or reference
-        if re.match(r'Goal:*|Procedure:*|Result:*|Reference:*', line, re.IGNORECASE):
+        if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
             document.add_heading(line, level=1)
+            reference_switch = False
         # check if the line is a section
         elif re.match(r'Section.+', line, re.IGNORECASE):
             line = re.sub(r'Section', '', line)
             document.add_heading(line.strip(), level=3)
+            reference_switch = False
+        # check if the line is a reference
+        elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
+            # document.add_heading(line, level=1)
+            reference_switch = True
         else:
             line = re.sub('\s{2,}', ' ', line)
             line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-            document.add_paragraph(line)
+            if reference_switch == False:
+                document.add_paragraph(line)
+            else:
+                intext_reference_list.append(line)
+    # add reference list
+    if reference_switch == True:
+        document.add_heading("Reference", level=1)
+        for intext_reference in intext_reference_list:
+            document.add_paragraph(intext_reference, style="List Number")
+    if len(references)>0:
+        if reference_switch == False:
+            document.add_heading("Reference", level=1)
+        for reference in references:
+            document.add_paragraph(reference, style='List Number')
     document.save(output_file_prefix + '.docx')
+
 
 
 def print_comments(overall_comments, internal_comments, external_comments):
@@ -638,7 +668,7 @@ def parse_list(lines):
     narrative_lines = []
     comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
-
+    references = []
     for line in lines:
         # Extract overall comments, including those within KV pairs
         overall_comments = re.findall(comment_regex, line)
@@ -662,7 +692,6 @@ def parse_list(lines):
         flow_pattern = r'<.+?>'  # Find any occurrences of control flows
         kv_and_flow_pairs = re.findall(kv_and_flow_pattern, line)
         para_len = len(split_into_sentences(line))
-
         if para_len > 0:
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
@@ -709,9 +738,10 @@ def parse_list(lines):
         external_comments = list(set(overall_comments) - set(internal_comments))
         print_comments(overall_comments, internal_comments, external_comments)
         for external_comment in external_comments:
-            isVisible, isReference = get_comment_properties(external_comment)
-
-    serialize_to_docx(narrative_lines)
+            isVisible, isReference, reference = get_comment_properties(external_comment)
+            if reference != "":
+                references.append(reference)
+    serialize_to_docx(narrative_lines, references)
     return multi_nkvmu_pair, log
 
 
