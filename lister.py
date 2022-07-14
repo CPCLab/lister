@@ -23,6 +23,7 @@ from message import display_message
 import ssl
 import platform
 from pathlib import Path
+import pathlib
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
@@ -494,9 +495,9 @@ def get_comment_properties(str_with_brackets):
     isReference = bool(re.search(doi_regex, comment))
     if isReference:
         reference = re.match(doi_regex, comment).group(0)
-        print("REFERENCE: ", reference)
-    print("VISIBILITY?: %s" % str(isVisible))
-    print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
+        # print("REFERENCE: ", reference)
+    # print("VISIBILITY?: %s" % str(isVisible))
+    # print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
     return isVisible, isReference, reference
 
 
@@ -650,7 +651,6 @@ def serialize_to_docx(narrative_lines, references):
     document.save(output_file_prefix + '.docx')
 
 
-
 def print_comments(overall_comments, internal_comments, external_comments):
     if len(overall_comments) > 0:
         print("OVERALL COMMENTS TYPE: %s. CONTENT: %s" % (str(type(overall_comments)), str(overall_comments)))
@@ -670,10 +670,9 @@ def parse_list(lines):
     log = ""
     references = []
     for line in lines:
+        internal_comments = []
         # Extract overall comments, including those within KV pairs
         overall_comments = re.findall(comment_regex, line)
-
-        internal_comments = []
 
         # get overall narrative lines for a clean docx document - completely separated from line parsing
         narrative_line = strip_markup_and_explicit_keys(line)
@@ -736,7 +735,7 @@ def parse_list(lines):
                     break
                 multi_nkvmu_pair.extend(flow_metadata)
         external_comments = list(set(overall_comments) - set(internal_comments))
-        print_comments(overall_comments, internal_comments, external_comments)
+        # print_comments(overall_comments, internal_comments, external_comments)
         for external_comment in external_comments:
             isVisible, isReference, reference = get_comment_properties(external_comment)
             if reference != "":
@@ -928,12 +927,11 @@ def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_pa
 
 def manage_output_path(dir_name, file_name):
     if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
-        home = str(Path.home())
-        output_path = home + "/Apps/lister/" + dir_name + "/" + file_name + "/"
-        print("OUTPUT PATH: %s" % (output_path))
+        output_path = dir_name
     else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         output_path = dir_name + "/" + file_name + "/"
     return output_path
+
 
 def manage_input_path():
     input_path = ""
@@ -948,7 +946,6 @@ def parse_cfg():
     # Manual debugging as Gooey does not support debugging directly
     # dirname, filename = os.path.split(os.path.abspath(__file__))
     # print("CURRENT CONFIG DIRECTORY: %s" % (str(dirname))) # this shows from where the executable was actually run
-
     input_file = manage_input_path() + "config.json"
     print("CONFIG FILE: %s" % (input_file))
     with open(input_file) as json_data_file:
@@ -959,6 +956,18 @@ def parse_cfg():
     output_file_name = data['elabftw']['output_file_name']
     return token, endpoint, output_file_name, exp_no
 
+
+def get_default_output_path(file_name):
+    if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
+        home = str(Path.home())
+        output_path = home + "/Apps/lister/output/" + file_name + "/"
+        print("OUTPUT PATH: %s" % (output_path))
+    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
+        current_path = pathlib.Path().resolve()
+        output_path = current_path + "/" + file_name + "/"
+    return output_path
+
+
 @Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:',
            default_size=(900, 650)) # , image_dir='resources/')
 def parse_args():
@@ -966,6 +975,8 @@ def parse_args():
     settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
+
+    base_output_path = get_default_output_path(output_file_name)
 
     # ELABFTW PARAMETERS
     elab_arg_parser = subs.add_parser(
@@ -991,7 +1002,7 @@ def parse_args():
                                  metavar = 'Base output directory',
                                  help='Local directory generally used to save your outputs',
                                  type=str,
-                                 default='output',
+                                 default=base_output_path,
                                  widget='DirChooser')
     elab_arg_parser.add_argument('token',
                                  metavar='eLabFTW API Token',
@@ -1019,7 +1030,7 @@ def parse_args():
                                  metavar='Base output directory',
                                  help='Local directory generally used to save your outputs',
                                  type=str,
-                                 default='output',
+                                 default=base_output_path,
                                  widget='DirChooser')
     docx_arg_parser.add_argument('input_file',
                                  metavar='Input file',
@@ -1048,7 +1059,7 @@ def parse_args():
                                metavar='Base output directory',
                                help='Local directory generally used to save your outputs',
                                type=str,
-                               default='output',
+                               default=base_output_path,
                                widget='DirChooser')
     md_arg_parser.add_argument('input_file',
                                metavar='Input file',
@@ -1077,6 +1088,7 @@ def main():
     args = parse_args()
     output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
     output_file_prefix = output_path_prefix + args.output_file_name
+
     if not os.path.isdir(output_path_prefix):
         print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
         os.makedirs(output_path_prefix)
