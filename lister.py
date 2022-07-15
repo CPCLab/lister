@@ -72,6 +72,16 @@ class Misc_error_and_warning_msg(Enum):
                                 "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
 
 
+class Regex_patterns(Enum):
+    EXPLICIT_KEY = r':.+?:' # explicit_key_pattern
+    KV_OR_FLOW = r'\{.+?\}|<.+?>'  # kv_and_flow_pattern, Find any occurrences of either KV or control flow
+    KV = r'\{.+?\}'  # kv_pattern, Find any occurrences of KV
+    FLOW = r'<.+?>'  # flow_pattern, Find any occurrences of control flows
+    DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # doi_regex
+    # comment_regex = "\(.+?\)"
+    COMMENT = "\(.+?\)" , # comment_regex define regex for parsing comment
+
+
 class Arg_num(Enum):
     ARG_NUM_FOREACH = 2
     ARG_NUM_IF = 4
