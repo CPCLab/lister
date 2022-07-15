@@ -25,6 +25,7 @@ import platform
 from pathlib import Path
 import pathlib
 
+
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
@@ -78,8 +79,10 @@ class Regex_patterns(Enum):
     KV = r'\{.+?\}'  # kv_pattern, Find any occurrences of KV
     FLOW = r'<.+?>'  # flow_pattern, Find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # doi_regex
-    # comment_regex = "\(.+?\)"
-    COMMENT = "\(.+?\)" , # comment_regex define regex for parsing comment
+    COMMENT = "\(.+?\)"  # comment_regex define regex for parsing comment
+    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # stripped_from_explicit_keys
+    BRACKET_MARKUPS = r"([{}()<>:])" # stripped_from_markup
+    SEPARATOR_MARKUP = r"([|])" # stripped_from_markup
 
 
 class Arg_num(Enum):
@@ -500,11 +503,11 @@ def process_iterate(par_no, cf_split):
 def get_comment_properties(str_with_brackets):
     reference = ""
     comment = str_with_brackets[1:-1]
-    doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
+    # doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
     isVisible = is_explicit_key(comment)
-    isReference = bool(re.search(doi_regex, comment))
+    isReference = bool(re.search(Regex_patterns.DOI.value, comment))
     if isReference:
-        reference = re.match(doi_regex, comment).group(0)
+        reference = re.match(Regex_patterns.DOI.value, comment).group(0)
         # print("REFERENCE: ", reference)
     # print("VISIBILITY?: %s" % str(isVisible))
     # print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
@@ -514,8 +517,8 @@ def get_comment_properties(str_with_brackets):
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
 def process_internal_comment(str_with_brackets):
-    comment_regex = "\(.+?\)"
-    comment = re.search(comment_regex, str_with_brackets)
+    # comment_regex = "\(.+?\)"
+    comment = re.search(Regex_patterns.COMMENT.value, str_with_brackets)
     comment = comment.group(0)
     remains = str_with_brackets.replace(comment, '')
     # comment = comment[1:-1]
@@ -605,17 +608,18 @@ def strip_colon(key):
 
 
 def is_explicit_key(key):
-    explicit_key_pattern = r':.+?:'
-    if re.match(explicit_key_pattern, key):
+    # explicit_key_pattern = r':.+?:'
+    # explicit_key_pattern = r':.+?:'
+    if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
        return True
     else:
         return False
 
 
 def strip_markup_and_explicit_keys(line):
-    stripped_from_explicit_keys = re.sub(r"\|(\s*\w\s*\.*)+\}", '', line)
-    stripped_from_markup = re.sub(r"([{}()<>:])", '', stripped_from_explicit_keys)
-    stripped_from_markup = re.sub(r"([|])", ' ', stripped_from_markup)
+    stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
+    stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
+    stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_MARKUP.value, ' ', stripped_from_markup)
     return stripped_from_markup
 
 
@@ -676,13 +680,13 @@ def parse_list(lines):
     multi_nkvmu_pair = []
     multi_nk_pair = []
     narrative_lines = []
-    comment_regex = "\(.+?\)"  # define regex for parsing comment
+    # comment_regex = "\(.+?\)"  # define regex for parsing comment
     log = ""
     references = []
     for line in lines:
         internal_comments = []
         # Extract overall comments, including those within KV pairs
-        overall_comments = re.findall(comment_regex, line)
+        overall_comments = re.findall(Regex_patterns.COMMENT.value, line)
 
         # get overall narrative lines for a clean docx document - completely separated from line parsing
         narrative_line = strip_markup_and_explicit_keys(line)
@@ -696,34 +700,34 @@ def parse_list(lines):
             break
 
         # Extract KV and flow metadata
-        kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
-        kv_pattern = r'\{.+?\}'  # Find any occurrences of KV
-        flow_pattern = r'<.+?>'  # Find any occurrences of control flows
-        kv_and_flow_pairs = re.findall(kv_and_flow_pattern, line)
+        # kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
+        # kv_pattern = r'\{.+?\}'  # Find any occurrences of KV
+        # flow_pattern = r'<.+?>'  # Find any occurrences of control flows
+        kv_and_flow_pairs = re.findall(Regex_patterns.KV_OR_FLOW.value, line)
         para_len = len(split_into_sentences(line))
         if para_len > 0:
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
-            if re.match(kv_pattern, kv_and_flow_pair):
+            if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
                 kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
-                    if re.search(comment_regex, kvmu_set[0]):
+                    if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
                         key, comment = process_internal_comment(kvmu_set[0])
                         internal_comments.append(comment)
                     else:
                         key = kvmu_set[0]
-                    if re.search(comment_regex, kvmu_set[1]):
+                    if re.search(Regex_patterns.COMMENT.value, kvmu_set[1]):
                         val, comment = process_internal_comment(kvmu_set[1])
                         internal_comments.append(comment)
                     else:
                         val = kvmu_set[1]
-                    if re.search(comment_regex, kvmu_set[2]):
+                    if re.search(Regex_patterns.COMMENT.value, kvmu_set[2]):
                         measure, comment = process_internal_comment(kvmu_set[2])
                         internal_comments.append(comment)
                     else:
                         measure = kvmu_set[2]
-                    if re.search(comment_regex, kvmu_set[3]):
+                    if re.search(Regex_patterns.COMMENT.value, kvmu_set[3]):
                         unit, comment = process_internal_comment(kvmu_set[3])
                         internal_comments.append(comment)
                     else:
@@ -737,7 +741,7 @@ def parse_list(lines):
                     single_nkvmu_pair = [par_no, key, val, measure, unit]
                     multi_nk_pair.append(single_nk_pair)
                     multi_nkvmu_pair.append(single_nkvmu_pair)
-            if re.match(flow_pattern, kv_and_flow_pair):
+            if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log # + "\n"
                 if is_flow_error:
