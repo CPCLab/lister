@@ -74,15 +74,15 @@ class Misc_error_and_warning_msg(Enum):
 
 
 class Regex_patterns(Enum):
-    EXPLICIT_KEY = r':.+?:' # explicit_key_pattern
-    KV_OR_FLOW = r'\{.+?\}|<.+?>'  # kv_and_flow_pattern, Find any occurrences of either KV or control flow
-    KV = r'\{.+?\}'  # kv_pattern, Find any occurrences of KV
-    FLOW = r'<.+?>'  # flow_pattern, Find any occurrences of control flows
-    DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # doi_regex
-    COMMENT = "\(.+?\)"  # comment_regex define regex for parsing comment
-    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # stripped_from_explicit_keys
-    BRACKET_MARKUPS = r"([{}()<>:])" # stripped_from_markup
-    SEPARATOR_MARKUP = r"([|])" # stripped_from_markup
+    EXPLICIT_KEY = r':.+?:' # catch explicit key which indicated within ":" sign
+    KV_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KV or control flow
+    KV = r'\{.+?\}'  # find any occurrences of KV
+    FLOW = r'<.+?>'  # find any occurrences of control flows
+    DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
+    COMMENT = "\(.+?\)"  # define regex for parsing comment
+    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # catch the end part of KV pairs (the key, tolerating trailing spaces)
+    BRACKET_MARKUPS = r"([{}()<>:])" # catch any type of lister bracket annotations, including ":"
+    SEPARATOR_MARKUP = r"([|])" # catch separator annotatuobn
 
 
 class Arg_num(Enum):
@@ -608,8 +608,6 @@ def strip_colon(key):
 
 
 def is_explicit_key(key):
-    # explicit_key_pattern = r':.+?:'
-    # explicit_key_pattern = r':.+?:'
     if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
        return True
     else:
@@ -700,9 +698,6 @@ def parse_list(lines):
             break
 
         # Extract KV and flow metadata
-        # kv_and_flow_pattern = r'\{.+?\}|<.+?>'  # Find any occurrences of either KV or control flow
-        # kv_pattern = r'\{.+?\}'  # Find any occurrences of KV
-        # flow_pattern = r'<.+?>'  # Find any occurrences of control flows
         kv_and_flow_pairs = re.findall(Regex_patterns.KV_OR_FLOW.value, line)
         para_len = len(split_into_sentences(line))
         if para_len > 0:
@@ -735,7 +730,6 @@ def parse_list(lines):
                     single_nk_pair = [par_no, key]
                     if (single_nk_pair in multi_nk_pair):
                         log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (single_nk_pair) + "\n"
-                        # print(log)
                     if is_explicit_key(key):
                         key = strip_colon(key)
                     single_nkvmu_pair = [par_no, key, val, measure, unit]
