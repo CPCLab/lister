@@ -672,9 +672,16 @@ def serialize_to_docx(narrative_lines, references):
             document.add_heading(line, level=1)
             reference_switch = False
         # check if the line is a section
-        elif re.match(r'Section.+', line, re.IGNORECASE):
-            line = re.sub(r'Section', '', line)
-            document.add_heading(line.strip(), level=3)
+        # elif re.match(r'Section.+', line, re.IGNORECASE):
+        elif re.match(r'(sub)*section.+', line, re.IGNORECASE):
+            subsection_level = line.count("sub")
+            line = re.sub(r'(sub)*section.+', '', line)
+            if subsection_level == 0:
+                document.add_heading(line.strip(), level=2)
+            elif subsection_level == 1:
+                document.add_heading(line.strip(), level=3)
+            else:
+                document.add_heading(line.strip(), level=4)
             reference_switch = False
         # check if the line is a reference
         elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
@@ -774,6 +781,7 @@ def parse_list(lines):
                     multi_nk_pair.append(single_nk_pair)
                     multi_nkvmu_pair.append(single_nkvmu_pair)
             if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
+                # TODO: FOCUS HERE
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log # + "\n"
                 if is_flow_error:
