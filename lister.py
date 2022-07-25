@@ -620,6 +620,7 @@ def is_explicit_key(key):
 
 
 def process_reg_bracket(line):
+    global ref_counter
     # split based on the existence of brackets - including the captured bracket block in the result
     line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
     processed_elements = []
@@ -635,7 +636,8 @@ def process_reg_bracket(line):
                 processed_element = element[2:-2]
             # comment that refer to DOI - strip all for now
             elif re.search(Regex_patterns.DOI.value, element[1:-1]):
-                processed_element = ""
+                ref_counter = ref_counter + 1
+                processed_element = " [" + str(ref_counter) + "]"
             # otherwise, keep as is.
             else:
                 processed_element = element
@@ -1124,10 +1126,12 @@ def parse_args():
 
 
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
+ref_counter = 0
 def main():
     global output_file_name, input_file
     global output_path_prefix, output_file_prefix, base_output_dir
     global token, exp_no, endpoint
+
 
     args = parse_args()
     output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
