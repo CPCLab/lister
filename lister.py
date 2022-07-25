@@ -80,9 +80,14 @@ class Regex_patterns(Enum):
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
+    COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
+    COMMENT_VISIBLE = "\(:.+?:\)"
+    COMMENT_INVISIBLE = "\(_.+?_\)"
     SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # catch the end part of KV pairs (the key, tolerating trailing spaces)
-    BRACKET_MARKUPS = r"([{}()<>:])" # catch any type of lister bracket annotations, including ":"
-    SEPARATOR_MARKUP = r"([|])" # catch separator annotatuobn
+    BRACKET_MARKUPS = r"([{}<>])" # catch KV/section bracket annotations
+    SEPARATOR_COLON_MARKUP = r"([|:])" # catch separator annotation
+    PRE_PERIOD_SPACES = '\s+\.'
+    PRE_COMMA_SPACES = '\s+,'
 
 
 class Arg_num(Enum):
@@ -614,15 +619,45 @@ def is_explicit_key(key):
         return False
 
 
+def process_reg_bracket(line):
+    # split based on the existence of brackets - including the captured bracket block in the result
+    line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
+    processed_elements = []
+    processed_line = ""
+    for element in line_elements:
+        # print(element)
+        if re.search(Regex_patterns.COMMENT.value, element):
+            # _invisible_ comment - strip all content (brackets, underscores, content
+            if re.search(Regex_patterns.COMMENT_INVISIBLE.value, element):
+                processed_element = ""
+            # visible comment - strip brackets and colons, keep the content
+            elif re.search(Regex_patterns.COMMENT_VISIBLE.value, element):
+                processed_element = element[2:-2]
+            # comment that refer to DOI - strip all for now
+            elif re.search(Regex_patterns.DOI.value, element[1:-1]):
+                processed_element = ""
+            # otherwise, keep as is.
+            else:
+                processed_element = element
+        else:
+            processed_element = element
+        processed_line = processed_line + processed_element
+    return processed_line
+
 def strip_markup_and_explicit_keys(line):
+    # strip keys that are not marked visible (keys that are not enclosed with colon)
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
+    # strip curly and angle brackets
     stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
-    stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_MARKUP.value, ' ', stripped_from_markup)
-    return stripped_from_markup
-
-
-def get_references():
-    pass
+    # process based on the types within regular comment
+    comments_based_strip = process_reg_bracket(stripped_from_markup)
+    # strip separator (pipe symbol)
+    stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
+    # strip unnecessary whitespaces
+    stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
+    stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',', stripped_from_trailing_spaces)
+    stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split()) # strip from trailing whitespaces
+    return stripped_from_trailing_spaces
 
 
 def serialize_to_docx(narrative_lines, references):
@@ -644,12 +679,13 @@ def serialize_to_docx(narrative_lines, references):
             # document.add_heading(line, level=1)
             reference_switch = True
         else:
-            line = re.sub('\s{2,}', ' ', line)
+            line = re.sub('\s{2,}', ' ', line) # replace superfluous whitespaces in preceding text with a single space
             line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
             if reference_switch == False:
                 document.add_paragraph(line)
             else:
                 intext_reference_list.append(line)
+
     # add reference list
     if reference_switch == True:
         document.add_heading("Reference", level=1)
