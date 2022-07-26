@@ -89,6 +89,7 @@ class Regex_patterns(Enum):
     PRE_PERIOD_SPACES = '\s+\.'
     PRE_COMMA_SPACES = '\s+,'
     SUBSECTION = '(sub)*section'
+    SUBSECTION_W_EXTRAS = r'(sub)*section.+'
 
 
 class Arg_num(Enum):
@@ -431,7 +432,7 @@ def process_elseif(par_no, cf_split):
     return key_val, log, is_error
 
 
-# no arguments is passed so no validation is needed.
+# no arguments are passed so no validation is needed.
 def process_else(par_no, cf_split):
     print(cf_split)
     key_val = []
@@ -677,9 +678,9 @@ def serialize_to_docx(narrative_lines, references):
             reference_switch = False
         # check if the line is a section
         # elif re.match(r'Section.+', line, re.IGNORECASE):
-        elif re.match(r'(sub)*section.+', line, re.IGNORECASE):
+        elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
             subsection_level = line.count("sub")
-            line = re.sub(r'(sub)*section.+', '', line)
+            line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
             if subsection_level == 0:
                 document.add_heading(line.strip(), level=2)
             elif subsection_level == 1:
