@@ -88,6 +88,7 @@ class Regex_patterns(Enum):
     SEPARATOR_COLON_MARKUP = r"([|:])" # catch separator annotation
     PRE_PERIOD_SPACES = '\s+\.'
     PRE_COMMA_SPACES = '\s+,'
+    SUBSECTION = '(sub)*section'
 
 
 class Arg_num(Enum):
@@ -539,7 +540,9 @@ def process_section(cf_split):
         is_error = True
         log = log + sect_log + "\n"
     else:
-        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value, cf_split[1], "", ""])
+        section_keyword = cf_split[0].lower()
+        section_level = section_keyword.count("sub")
+        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], "", ""])
     return key_val, log, is_error
 
 
@@ -596,7 +599,8 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val, flow_log, is_error = process_else(par_no, cf_split)
     elif flow_type == "for":
         key_val, flow_log, is_error = process_for(par_no, cf_split)
-    elif flow_type.casefold() == "section".casefold():
+    # elif flow_type.casefold() == "section".casefold():
+    elif re.match(Regex_patterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
         key_val, flow_log, is_error = process_section(cf_split)
     elif flow_type == "iterate":
         key_val, flow_log, is_error = process_iterate(par_no, cf_split)
@@ -781,7 +785,6 @@ def parse_list(lines):
                     multi_nk_pair.append(single_nk_pair)
                     multi_nkvmu_pair.append(single_nkvmu_pair)
             if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
-                # TODO: FOCUS HERE
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log # + "\n"
                 if is_flow_error:
@@ -838,10 +841,14 @@ def write_to_xlsx(nkvmu, log):
         worksheet.set_column('C:C', 30)
         worksheet.set_column('D:E', 15)
         for row_no, data in enumerate(nkvmu):
-            if data[1].casefold() != "Section".casefold():
-                worksheet.write_row(row_no + 1, 0, data, default_format)
-            else:
+            key = data[1]
+            # do not use regex here or it will be very slow
+            # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
+            if len(key)>=7 and key[0:7].casefold() == "section".casefold():
                 worksheet.write_row(row_no + 1, 0, data, section_format)
+            else:
+                worksheet.write_row(row_no + 1, 0, data, default_format)
+
     write_log(log)
 
 
@@ -866,7 +873,6 @@ def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
-    textmd = soup.text
     text = soup.get_text().splitlines()
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
