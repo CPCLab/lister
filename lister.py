@@ -814,9 +814,29 @@ def extract_docx_content(doc_content):
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
-def write_to_json(list, log):
+def write_to_json(list):
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
-    # write_log(log)
+
+
+def format_to_linear(list):
+    linear_lines = []
+    for line in list:
+        if line[0] != "-":
+            linear_key = str(line[0]) + "_" + str(line[1])
+        else:
+            linear_key = str(line[1])
+        if not line[4]:
+            linear_value = str(line[2])
+        else:
+            linear_value = str(line[2]) + "_" + str(line[3]) + "_" + str(line[4])
+        linear_line = [linear_key,linear_value]
+        linear_lines.append(linear_line)
+    return(linear_lines)
+
+
+def write_to_linear_json(list):
+    kv = format_to_linear(list)
+    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 def write_log(log):
@@ -1173,7 +1193,8 @@ def main():
         nkvmu, log = extract_md_via_text(input_file)
 
     # Writing to JSON and XLSX
-    write_to_json(nkvmu, log)
+    write_to_json(nkvmu)
+    write_to_linear_json(nkvmu)
     write_to_xlsx(nkvmu, log)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
