@@ -667,6 +667,9 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces
 
 
+# serialization to docx passes the whole unprpcessed lines with sectioning/kv(kvmu pair set intact.
+# all of the existing annotation marks should be pruned here, and especially different type of comments "()"
+# that are not yet processed
 def serialize_to_docx(narrative_lines, references):
     document = Document()
     reference_switch = False
@@ -916,6 +919,7 @@ def extract_md_exp_content_via_pandoc(filename):
     log = log + output
     return kv, log
 
+
 # note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
 # directly to the text file without providing file names. for the parser to work properly, users have to ensure that
 # copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
@@ -931,6 +935,7 @@ def extract_imgs_from_md(filename):
         loaded_img = Image.open(file_path)
         path_tail = os.path.split(file_path)
         loaded_img.save(output_path_prefix + path_tail[1])
+
 
 # DEPRECATED: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
 def extract_imgs_from_html(current_endpoint, html_doc):
