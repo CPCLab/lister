@@ -80,9 +80,16 @@ class Regex_patterns(Enum):
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
+    COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
+    COMMENT_VISIBLE = "\(:.+?:\)"
+    COMMENT_INVISIBLE = "\(_.+?_\)"
     SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # catch the end part of KV pairs (the key, tolerating trailing spaces)
-    BRACKET_MARKUPS = r"([{}()<>:])" # catch any type of lister bracket annotations, including ":"
-    SEPARATOR_MARKUP = r"([|])" # catch separator annotatuobn
+    BRACKET_MARKUPS = r"([{}<>])" # catch KV/section bracket annotations
+    SEPARATOR_COLON_MARKUP = r"([|:])" # catch separator annotation
+    PRE_PERIOD_SPACES = '\s+\.'
+    PRE_COMMA_SPACES = '\s+,'
+    SUBSECTION = '(sub)*section'
+    SUBSECTION_W_EXTRAS = r'(sub)*section.+'
 
 
 class Arg_num(Enum):
@@ -425,7 +432,7 @@ def process_elseif(par_no, cf_split):
     return key_val, log, is_error
 
 
-# no arguments is passed so no validation is needed.
+# no arguments are passed so no validation is needed.
 def process_else(par_no, cf_split):
     print(cf_split)
     key_val = []
@@ -534,7 +541,9 @@ def process_section(cf_split):
         is_error = True
         log = log + sect_log + "\n"
     else:
-        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value, cf_split[1], "", ""])
+        section_keyword = cf_split[0].lower()
+        section_level = section_keyword.count("sub")
+        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], "", ""])
     return key_val, log, is_error
 
 
@@ -591,7 +600,8 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val, flow_log, is_error = process_else(par_no, cf_split)
     elif flow_type == "for":
         key_val, flow_log, is_error = process_for(par_no, cf_split)
-    elif flow_type.casefold() == "section".casefold():
+    # elif flow_type.casefold() == "section".casefold():
+    elif re.match(Regex_patterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
         key_val, flow_log, is_error = process_section(cf_split)
     elif flow_type == "iterate":
         key_val, flow_log, is_error = process_iterate(par_no, cf_split)
@@ -614,15 +624,47 @@ def is_explicit_key(key):
         return False
 
 
+def process_reg_bracket(line):
+    global ref_counter
+    # split based on the existence of brackets - including the captured bracket block in the result
+    line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
+    processed_elements = []
+    processed_line = ""
+    for element in line_elements:
+        # print(element)
+        if re.search(Regex_patterns.COMMENT.value, element):
+            # _invisible_ comment - strip all content (brackets, underscores, content
+            if re.search(Regex_patterns.COMMENT_INVISIBLE.value, element):
+                processed_element = ""
+            # visible comment - strip brackets and colons, keep the content
+            elif re.search(Regex_patterns.COMMENT_VISIBLE.value, element):
+                processed_element = element[2:-2]
+            # comment that refer to DOI - strip all for now
+            elif re.search(Regex_patterns.DOI.value, element[1:-1]):
+                ref_counter = ref_counter + 1
+                processed_element = " [" + str(ref_counter) + "]"
+            # otherwise, keep as is.
+            else:
+                processed_element = element
+        else:
+            processed_element = element
+        processed_line = processed_line + processed_element
+    return processed_line
+
 def strip_markup_and_explicit_keys(line):
+    # strip keys that are not marked visible (keys that are not enclosed with colon)
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
+    # strip curly and angle brackets
     stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
-    stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_MARKUP.value, ' ', stripped_from_markup)
-    return stripped_from_markup
-
-
-def get_references():
-    pass
+    # process based on the types within regular comment
+    comments_based_strip = process_reg_bracket(stripped_from_markup)
+    # strip separator (pipe symbol)
+    stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
+    # strip unnecessary whitespaces
+    stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
+    stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',', stripped_from_trailing_spaces)
+    stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split()) # strip from trailing whitespaces
+    return stripped_from_trailing_spaces
 
 
 def serialize_to_docx(narrative_lines, references):
@@ -635,21 +677,29 @@ def serialize_to_docx(narrative_lines, references):
             document.add_heading(line, level=1)
             reference_switch = False
         # check if the line is a section
-        elif re.match(r'Section.+', line, re.IGNORECASE):
-            line = re.sub(r'Section', '', line)
-            document.add_heading(line.strip(), level=3)
+        # elif re.match(r'Section.+', line, re.IGNORECASE):
+        elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
+            subsection_level = line.count("sub")
+            line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
+            if subsection_level == 0:
+                document.add_heading(line.strip(), level=2)
+            elif subsection_level == 1:
+                document.add_heading(line.strip(), level=3)
+            else:
+                document.add_heading(line.strip(), level=4)
             reference_switch = False
         # check if the line is a reference
         elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
             # document.add_heading(line, level=1)
             reference_switch = True
         else:
-            line = re.sub('\s{2,}', ' ', line)
+            line = re.sub('\s{2,}', ' ', line) # replace superfluous whitespaces in preceding text with a single space
             line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
             if reference_switch == False:
                 document.add_paragraph(line)
             else:
                 intext_reference_list.append(line)
+
     # add reference list
     if reference_switch == True:
         document.add_heading("Reference", level=1)
@@ -764,9 +814,29 @@ def extract_docx_content(doc_content):
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
-def write_to_json(list, log):
+def write_to_json(list):
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
-    # write_log(log)
+
+
+def format_to_linear(list):
+    linear_lines = []
+    for line in list:
+        if line[0] != "-":
+            linear_key = str(line[0]) + "_" + str(line[1])
+        else:
+            linear_key = str(line[1])
+        if not line[4]:
+            linear_value = str(line[2])
+        else:
+            linear_value = str(line[2]) + "_" + str(line[3]) + "_" + str(line[4])
+        linear_line = [linear_key,linear_value]
+        linear_lines.append(linear_line)
+    return(linear_lines)
+
+
+def write_to_linear_json(list):
+    kv = format_to_linear(list)
+    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 def write_log(log):
@@ -792,10 +862,14 @@ def write_to_xlsx(nkvmu, log):
         worksheet.set_column('C:C', 30)
         worksheet.set_column('D:E', 15)
         for row_no, data in enumerate(nkvmu):
-            if data[1].casefold() != "Section".casefold():
-                worksheet.write_row(row_no + 1, 0, data, default_format)
-            else:
+            key = data[1]
+            # do not use regex here or it will be very slow
+            # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
+            if len(key)>=7 and key[0:7].casefold() == "section".casefold():
                 worksheet.write_row(row_no + 1, 0, data, section_format)
+            else:
+                worksheet.write_row(row_no + 1, 0, data, default_format)
+
     write_log(log)
 
 
@@ -820,7 +894,6 @@ def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
-    textmd = soup.text
     text = soup.get_text().splitlines()
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
@@ -1088,10 +1161,12 @@ def parse_args():
 
 
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
+ref_counter = 0
 def main():
     global output_file_name, input_file
     global output_path_prefix, output_file_prefix, base_output_dir
     global token, exp_no, endpoint
+
 
     args = parse_args()
     output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
@@ -1118,7 +1193,8 @@ def main():
         nkvmu, log = extract_md_via_text(input_file)
 
     # Writing to JSON and XLSX
-    write_to_json(nkvmu, log)
+    write_to_json(nkvmu)
+    write_to_linear_json(nkvmu)
     write_to_xlsx(nkvmu, log)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
