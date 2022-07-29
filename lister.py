@@ -651,6 +651,7 @@ def process_reg_bracket(line):
         processed_line = processed_line + processed_element
     return processed_line
 
+
 def strip_markup_and_explicit_keys(line):
     # strip keys that are not marked visible (keys that are not enclosed with colon)
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
@@ -890,11 +891,20 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
+def html_to_docx(text):
+    print(text)
+    pass
+
 def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
+
+    #TODO: FOCUS HERE!
+    html_to_docx(soup)
+
+    # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
     line_no = 1
