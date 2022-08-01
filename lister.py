@@ -672,6 +672,12 @@ def strip_markup_and_explicit_keys(line):
 # all of the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
 def serialize_to_docx(narrative_lines, references):
+    # print(type(narrative_lines))
+    # here line has been stripped out of its tags, e.g.,:
+    # ['Goal', 'Cooking a simple spaghetti con le acciughe that can be reproduced by beginner level cooks who wish to
+    # cook pescatarian. This recipe uses spaghetti as the main ingredient.', 'Procedure', 'Section Initial Process',
+    # '500 grams of spaghetti is cooked by boiling, using salted water as the boiling medium.', 'Section Sauce',
+    # 'Subsection Sauce', 'Heating with a high heat level is done on 0.33 cups of extra virgin olive oil.', ...
     document = Document()
     reference_switch = False
     intext_reference_list = []
@@ -894,8 +900,19 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
-def html_to_docx(text):
-    print(text)
+# it is assumed that tinymce within elabftw always wrap text with html p tags.
+def html_to_docx(soup):
+
+    # strip tags with empty content (e.g., empty paragraph)
+    for x in soup.find_all():
+        if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
+            x.extract()
+    print(soup)
+
+    # iterate over tags,
+    #   if it is p, process it line by line.
+    #   it is a table, hold on, process it as a table
+    # then serialize to docx
     pass
 
 def get_kv_log_from_html(html_content):
