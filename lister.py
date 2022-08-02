@@ -651,6 +651,7 @@ def process_reg_bracket(line):
         processed_line = processed_line + processed_element
     return processed_line
 
+
 def strip_markup_and_explicit_keys(line):
     # strip keys that are not marked visible (keys that are not enclosed with colon)
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
@@ -671,6 +672,12 @@ def strip_markup_and_explicit_keys(line):
 # all of the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
 def serialize_to_docx(narrative_lines, references):
+    # print(type(narrative_lines))
+    # here line has been stripped out of its tags, e.g.,:
+    # ['Goal', 'Cooking a simple spaghetti con le acciughe that can be reproduced by beginner level cooks who wish to
+    # cook pescatarian. This recipe uses spaghetti as the main ingredient.', 'Procedure', 'Section Initial Process',
+    # '500 grams of spaghetti is cooked by boiling, using salted water as the boiling medium.', 'Section Sauce',
+    # 'Subsection Sauce', 'Heating with a high heat level is done on 0.33 cups of extra virgin olive oil.', ...
     document = Document()
     reference_switch = False
     intext_reference_list = []
@@ -893,11 +900,31 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
+# it is assumed that tinymce within elabftw always wrap text with html p tags.
+def html_to_docx(soup):
+
+    # strip tags with empty content (e.g., empty paragraph)
+    for x in soup.find_all():
+        if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
+            x.extract()
+    print(soup)
+
+    # iterate over tags,
+    #   if it is p, process it line by line.
+    #   it is a table, hold on, process it as a table
+    # then serialize to docx
+    pass
+
 def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
+
+    #TODO: FOCUS HERE!
+    html_to_docx(soup)
+
+    # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
     line_no = 1
