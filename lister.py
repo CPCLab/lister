@@ -3,7 +3,7 @@ import re
 from enum import Enum
 import xlsxwriter
 from docx import Document
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 import elabapy
 import markdown
 import pypandoc
@@ -668,6 +668,37 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces
 
 
+def remove_empty_tags(soup):
+    for x in soup.find_all():
+        # remove empty tags except if it is 'img' tag
+        if len(x.get_text(strip=True)) == 0 and x.name not in ['img']:
+            x.extract()
+        return soup
+
+
+def get_nonempty_body_tags(exp):
+    html_body = exp["body"]
+    soup = BeautifulSoup(html_body, "html.parser")
+    non_empty_soup = remove_empty_tags(soup)
+    tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
+    return tagged_contents
+
+
+# focus here
+def serialize_to_docx_detailed(exp):
+    tagged_contents = get_nonempty_body_tags(exp)
+    for content in tagged_contents: # iterate over list of tags
+        if isinstance(content, Tag):
+            if content.name == "p":
+                line = strip_markup_and_explicit_keys(str(content.string))
+                # detect the type of lines/heading
+                # write a line in docx file based on those.
+            if content.name == "table":
+                # create a table accordingly in the docx document
+                pass
+            # to be condtinued.
+
+
 # serialization to docx passes the whole unprocessed lines with sectioning/kv/kvmu pair set intact.
 # all the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
@@ -1230,6 +1261,7 @@ def main():
         nkvmu, narrative_lines, references, log = extract_kv_from_elab_exp(manager, exp)
         # FOCUS HERE
         serialize_to_docx(narrative_lines, references)
+        serialize_to_docx_detailed(exp)
     elif args.command == 'DOCX':
         input_file = args.input_file
         document = get_docx_content(input_file)

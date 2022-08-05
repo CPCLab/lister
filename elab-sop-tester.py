@@ -209,7 +209,7 @@ for content in body_tag_contents:
             document.add_heading("Reference", level=1)
         for reference in references:
             document.add_paragraph(reference, style='List Number')
-    document.save('output.docx')
+    document.save(output_file_prefix + '.docx')
         #print(type(content))
         #print(content)
         #print(n)
