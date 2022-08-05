@@ -672,7 +672,6 @@ def strip_markup_and_explicit_keys(line):
 # all the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
 def serialize_to_docx(narrative_lines, references):
-    # print(type(narrative_lines))
     # here line has been stripped out of its tags, e.g.,:
     # ['Goal', 'Cooking a simple spaghetti con le acciughe that can be reproduced by beginner level cooks who wish to
     # cook pescatarian. This recipe uses spaghetti as the main ingredient.', 'Procedure', 'Section Initial Process',
@@ -732,23 +731,32 @@ def print_comments(overall_comments, internal_comments, external_comments):
         print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
 
 
-
-def parse_list(lines):
-    par_no = 0
-    multi_nkvmu_pair = []
-    multi_nk_pair = []
-    narrative_lines = []
-    # comment_regex = "\(.+?\)"  # define regex for parsing comment
-    log = ""
+def parse_lines_for_docx(lines, internal_comments):
     references = []
+    narrative_lines = []
     for line in lines:
-        internal_comments = []
         # Extract overall comments, including those within KV pairs
         overall_comments = re.findall(Regex_patterns.COMMENT.value, line)
-
         # get overall narrative lines for a clean docx document - completely separated from line parsing
         narrative_line = strip_markup_and_explicit_keys(line)
         narrative_lines.append(narrative_line.strip())
+    external_comments = list(set(overall_comments) - set(internal_comments))
+    # print_comments(overall_comments, internal_comments, external_comments)
+    for external_comment in external_comments:
+        isVisible, isReference, reference = get_comment_properties(external_comment)
+        if reference != "":
+            references.append(reference)
+    return narrative_lines, references
+
+
+def parse_list_for_metadata(lines):
+    par_no = 0
+    multi_nkvmu_pair = []
+    multi_nk_pair = []
+    log = ""
+
+    for line in lines:
+        internal_comments = []
 
         # Check bracketing validity
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
@@ -802,14 +810,7 @@ def parse_list(lines):
                     write_log(log)
                     break
                 multi_nkvmu_pair.extend(flow_metadata)
-        external_comments = list(set(overall_comments) - set(internal_comments))
-        # print_comments(overall_comments, internal_comments, external_comments)
-        for external_comment in external_comments:
-            isVisible, isReference, reference = get_comment_properties(external_comment)
-            if reference != "":
-                references.append(reference)
-    serialize_to_docx(narrative_lines, references)
-    return multi_nkvmu_pair, log
+    return multi_nkvmu_pair, internal_comments, log
 
 
 def extract_docx_content(doc_content):
@@ -819,7 +820,7 @@ def extract_docx_content(doc_content):
         par_lines.append(para.text)
         par_no = par_no + 1
     par_lines = list(line for line in par_lines if line)
-    multi_nkvmu_pair, log = parse_list(par_lines)
+    multi_nkvmu_pair, log = parse_list_for_metadata(par_lines)
     return multi_nkvmu_pair, log
 
 
@@ -936,7 +937,9 @@ def get_kv_log_from_html(html_content):
         line = line.replace(non_break_space, ' ')
         clean_lines.append(line)
         line_no = line_no + 1
-    multi_nkvmu_pair, log = parse_list(clean_lines)
+    multi_nkvmu_pair, internal_comments, log = parse_list_for_metadata(clean_lines)
+    narrative_lines, references = parse_lines_for_docx(clean_lines, internal_comments)
+    serialize_to_docx(narrative_lines, references)
     return multi_nkvmu_pair, log
 
 
@@ -1009,7 +1012,7 @@ def extract_md_via_text(filename):
     marked_txt = f.read()
     unmarked_txt = unmark(marked_txt).replace("\\","")
     lines = unmarked_txt.splitlines()
-    multi_nkvmu_pair, log = parse_list(lines)
+    multi_nkvmu_pair, log = parse_list_for_metadata(lines)
     return multi_nkvmu_pair, log
 
 
