@@ -669,7 +669,7 @@ def strip_markup_and_explicit_keys(line):
 
 
 # serialization to docx passes the whole unprpcessed lines with sectioning/kv(kvmu pair set intact.
-# all of the existing annotation marks should be pruned here, and especially different type of comments "()"
+# all the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
 def serialize_to_docx(narrative_lines, references):
     # print(type(narrative_lines))
@@ -903,11 +903,14 @@ def extract_docx_media(filename):
 # it is assumed that tinymce within elabftw always wrap text with html p tags.
 def html_to_docx(soup):
 
-    # strip tags with empty content (e.g., empty paragraph)
+    # strip tags with empty content (e.g., empty paragraph), except if it is img or br tag
     for x in soup.find_all():
         if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
             x.extract()
+
     print(soup)
+
+    # NEXT FOCUS: DEBUGGING THE CONTENT OF THE SOUP CLASS
 
     # iterate over tags,
     #   if it is p, process it line by line.
