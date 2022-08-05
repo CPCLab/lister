@@ -668,7 +668,7 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces
 
 
-# serialization to docx passes the whole unprpcessed lines with sectioning/kv(kvmu pair set intact.
+# serialization to docx passes the whole unprocessed lines with sectioning/kv/kvmu pair set intact.
 # all the existing annotation marks should be pruned here, and especially different type of comments "()"
 # that are not yet processed
 def serialize_to_docx(narrative_lines, references):
@@ -1027,11 +1027,15 @@ def fetch_uploads(manager, uploads):
                 pass
 
 
-def extract_elab_exp_content(exp_number, current_endpoint, current_token):
+def get_elab_experiment(exp_number, current_endpoint, current_token):
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
     ssl._create_default_https_context = ssl._create_unverified_context
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
+    return(manager, exp)
+
+
+def extract_kv_from_elab_exp(manager, exp):
     # EXTRACT KEY VALUES
     # extract_imgs_from_html(current_endpoint, exp["body"])
     kv, narrative_lines, references, log = get_kv_log_from_html(exp["body"])
@@ -1222,7 +1226,9 @@ def main():
         token = args.token
         exp_no = args.exp_no
         endpoint = args.endpoint
-        nkvmu, narrative_lines, references, log = extract_elab_exp_content(exp_no, endpoint, token)
+        manager, exp = get_elab_experiment(exp_no, endpoint, token)
+        nkvmu, narrative_lines, references, log = extract_kv_from_elab_exp(manager, exp)
+        # FOCUS HERE
         serialize_to_docx(narrative_lines, references)
     elif args.command == 'DOCX':
         input_file = args.input_file
