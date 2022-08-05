@@ -909,7 +909,7 @@ def html_to_docx(soup):
         if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
             x.extract()
 
-    print(soup)
+    # print(soup)
 
     # NEXT FOCUS: DEBUGGING THE CONTENT OF THE SOUP CLASS
 
@@ -940,7 +940,7 @@ def get_kv_log_from_html(html_content):
     multi_nkvmu_pair, internal_comments, log = parse_list_for_metadata(clean_lines)
     narrative_lines, references = parse_lines_for_docx(clean_lines, internal_comments)
     serialize_to_docx(narrative_lines, references)
-    return multi_nkvmu_pair, log
+    return multi_nkvmu_pair, narrative_lines, references, log
 
 
 # extracting md via docx conversion using pandoc in case it is needed in the future
@@ -1016,16 +1016,7 @@ def extract_md_via_text(filename):
     return multi_nkvmu_pair, log
 
 
-def extract_elab_exp_content(exp_number, current_endpoint, current_token):
-    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
-    ssl._create_default_https_context = ssl._create_unverified_context
-    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
-    exp = manager.get_experiment(exp_number)
-    # EXTRACT KEY VALUES
-    # extract_imgs_from_html(current_endpoint, exp["body"])
-    kv, log = get_kv_log_from_html(exp["body"])
-    # FETCH ATTACHMENT
-    uploads = exp["uploads"]
+def fetch_uploads(manager, uploads):
     for upload in uploads:
         with open(output_path_prefix + upload["real_name"], 'wb') as attachment:
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
@@ -1034,7 +1025,20 @@ def extract_elab_exp_content(exp_number, current_endpoint, current_token):
             except Exception as e:
                 log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (upload["real_name"], upload["id"], str(e))
                 pass
-    return kv, log
+
+
+def extract_elab_exp_content(exp_number, current_endpoint, current_token):
+    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+    ssl._create_default_https_context = ssl._create_unverified_context
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    exp = manager.get_experiment(exp_number)
+    # EXTRACT KEY VALUES
+    # extract_imgs_from_html(current_endpoint, exp["body"])
+    kv, narrative_lines, references, log = get_kv_log_from_html(exp["body"])
+    # FETCH ATTACHMENT
+    uploads = exp["uploads"]
+    fetch_uploads(manager, uploads)
+    return kv, narrative_lines, references, log
 
 
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
@@ -1218,7 +1222,8 @@ def main():
         token = args.token
         exp_no = args.exp_no
         endpoint = args.endpoint
-        nkvmu, log = extract_elab_exp_content(exp_no, endpoint, token)
+        nkvmu, narrative_lines, references, log = extract_elab_exp_content(exp_no, endpoint, token)
+        serialize_to_docx(narrative_lines, references)
     elif args.command == 'DOCX':
         input_file = args.input_file
         document = get_docx_content(input_file)
