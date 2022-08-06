@@ -686,6 +686,10 @@ def get_nonempty_body_tags(exp):
 
 # focus here
 def serialize_to_docx_detailed(exp):
+    document = Document()
+    reference_switch = False
+    intext_reference_list = []
+    references = []
     tagged_contents = get_nonempty_body_tags(exp)
     for content in tagged_contents: # iterate over list of tags
         if isinstance(content, Tag):
@@ -693,10 +697,52 @@ def serialize_to_docx_detailed(exp):
                 line = strip_markup_and_explicit_keys(str(content.string))
                 # detect the type of lines/heading
                 # write a line in docx file based on those.
+                # check if the line is either goal, procedure, result, or reference
+                if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
+                    document.add_heading(line, level=1)
+                    reference_switch = False
+                # check if the line is a section
+                # elif re.match(r'Section.+', line, re.IGNORECASE):
+                elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
+                    subsection_level = line.count("sub")
+                    line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
+                    if subsection_level == 0:
+                        document.add_heading(line.strip(), level=2)
+                    elif subsection_level == 1:
+                        document.add_heading(line.strip(), level=3)
+                    else:
+                        document.add_heading(line.strip(), level=4)
+                    reference_switch = False
+                # check if the line is a reference
+                elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
+                    # document.add_heading(line, level=1)
+                    reference_switch = True
+                else:
+                    line = re.sub('\s{2,}', ' ',
+                                  line)  # replace superfluous whitespaces in preceding text with a single space
+                    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
+                    if reference_switch == False:
+                        document.add_paragraph(line)
+                    else:
+                        intext_reference_list.append(line)
+
             if content.name == "table":
                 # create a table accordingly in the docx document
                 pass
-            # to be condtinued.
+            #TODO:  to be continued.
+
+            # add reference list
+    if reference_switch == True:
+        document.add_heading("Reference", level=1)
+        for intext_reference in intext_reference_list:
+            document.add_paragraph(intext_reference, style="List Number")
+    if len(references) > 0:
+        if reference_switch == False:
+            document.add_heading("Reference", level=1)
+        for reference in references:
+            document.add_paragraph(reference, style='List Number')
+    document.save(output_file_prefix + '.docx')
+
 
 
 # serialization to docx passes the whole unprocessed lines with sectioning/kv/kvmu pair set intact.
@@ -932,18 +978,14 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
-# it is assumed that tinymce within elabftw always wrap text with html p tags.
+# it is assumed that tinymce within elabftw always wrap text with html p tags. deprecated
 def html_to_docx(soup):
-
     # strip tags with empty content (e.g., empty paragraph), except if it is img or br tag
     for x in soup.find_all():
         if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
             x.extract()
-
     # print(soup)
-
     # NEXT FOCUS: DEBUGGING THE CONTENT OF THE SOUP CLASS
-
     # iterate over tags,
     #   if it is p, process it line by line.
     #   it is a table, hold on, process it as a table
