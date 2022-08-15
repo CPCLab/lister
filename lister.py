@@ -718,8 +718,6 @@ def add_img_to_doc(manager, document, upl_id, real_name):
 # focus here
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
-    reference_switch = False
-    intext_reference_list = []
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
     for content in tagged_contents: # iterate over list of tags
@@ -740,7 +738,6 @@ def serialize_to_docx_detailed(manager, exp):
                 # check if the line is either goal, procedure, result, or reference
                 if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
                     document.add_heading(line, level=1)
-                    reference_switch = False
 
                 # check if the line is a section
                 # elif re.match(r'Section.+', line, re.IGNORECASE):
@@ -753,21 +750,14 @@ def serialize_to_docx_detailed(manager, exp):
                         document.add_heading(line.strip(), level=3)
                     else:
                         document.add_heading(line.strip(), level=4)
-                    reference_switch = False
-
-                # check if the line is a reference - need revision!
-                # elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
-                    # document.add_heading(line, level=1)
-                    # reference_switch = True
 
                 else:
                     line = re.sub('\s{2,}', ' ',
                                   line)  # replace superfluous whitespaces in preceding text with a single space
                     line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-                    if reference_switch == False:
-                        document.add_paragraph(line)
-                    else:
-                        intext_reference_list.append(line)
+
+                    document.add_paragraph(line)
+
 
             if content.name == "table":
                 # create a table accordingly in the docx document
@@ -779,73 +769,9 @@ def serialize_to_docx_detailed(manager, exp):
                 upl_id, real_name = get_upl_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
 
-
-            # add reference list
-    # print(intext_reference_list)
-    # if reference_switch == True:
-    #    document.add_heading("Reference", level=1)
-    #    for intext_reference in intext_reference_list:
-    #        document.add_paragraph(intext_reference, style="List Number")
     if len(all_references) > 0:
-        # if reference_switch == False:
-        #    document.add_heading("Reference", level=1)
         document.add_heading("Reference", level=1)
         for reference in all_references:
-            document.add_paragraph(reference, style='List Number')
-    document.save(output_file_prefix + '.docx')
-
-
-
-# serialization to docx passes the whole unprocessed lines with sectioning/kv/kvmu pair set intact.
-# all the existing annotation marks should be pruned here, and especially different type of comments "()"
-# that are not yet processed
-def serialize_to_docx(narrative_lines, references):
-    # here line has been stripped out of its tags, e.g.,:
-    # ['Goal', 'Cooking a simple spaghetti con le acciughe that can be reproduced by beginner level cooks who wish to
-    # cook pescatarian. This recipe uses spaghetti as the main ingredient.', 'Procedure', 'Section Initial Process',
-    # '500 grams of spaghetti is cooked by boiling, using salted water as the boiling medium.', 'Section Sauce',
-    # 'Subsection Sauce', 'Heating with a high heat level is done on 0.33 cups of extra virgin olive oil.', ...
-    document = Document()
-    reference_switch = False
-    intext_reference_list = []
-    for line in narrative_lines:
-        # check if the line is either goal, procedure, result, or reference
-        if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
-            document.add_heading(line, level=1)
-            reference_switch = False
-        # check if the line is a section
-        # elif re.match(r'Section.+', line, re.IGNORECASE):
-        elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
-            subsection_level = line.count("sub")
-            line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
-            if subsection_level == 0:
-                document.add_heading(line.strip(), level=2)
-            elif subsection_level == 1:
-                document.add_heading(line.strip(), level=3)
-            else:
-                document.add_heading(line.strip(), level=4)
-            reference_switch = False
-        # check if the line is a reference
-        elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
-            # document.add_heading(line, level=1)
-            reference_switch = True
-        else:
-            line = re.sub('\s{2,}', ' ', line) # replace superfluous whitespaces in preceding text with a single space
-            line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-            if reference_switch == False:
-                document.add_paragraph(line)
-            else:
-                intext_reference_list.append(line)
-
-    # add reference list
-    if reference_switch == True:
-        document.add_heading("Reference", level=1)
-        for intext_reference in intext_reference_list:
-            document.add_paragraph(intext_reference, style="List Number")
-    if len(references)>0:
-        if reference_switch == False:
-            document.add_heading("Reference", level=1)
-        for reference in references:
             document.add_paragraph(reference, style='List Number')
     document.save(output_file_prefix + '.docx')
 
@@ -1062,10 +988,7 @@ def get_kv_log_from_html(html_content):
         clean_lines.append(line)
         line_no = line_no + 1
     multi_nkvmu_pair, internal_comments, log = parse_list_for_metadata(clean_lines)
-    # narrative_lines, references = parse_lines_for_docx(clean_lines, internal_comments)
-    # serialize_to_docx(narrative_lines, references)
     return multi_nkvmu_pair, log
-    # return multi_nkvmu_pair, narrative_lines, references, log
 
 
 # extracting md via docx conversion using pandoc in case it is needed in the future
@@ -1353,8 +1276,6 @@ def main():
         endpoint = args.endpoint
         manager, exp = get_elab_experiment(exp_no, endpoint, token)
         nkvmu, log = extract_kv_from_elab_exp(manager, exp)
-        # FOCUS HERE
-        # serialize_to_docx(narrative_lines, references)
         serialize_to_docx_detailed(manager, exp)
     elif args.command == 'DOCX':
         input_file = args.input_file
