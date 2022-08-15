@@ -672,7 +672,7 @@ def strip_markup_and_explicit_keys(line):
 def remove_empty_tags(soup):
     for x in soup.find_all():
        # if the text within a tag is empty, and tag name is not img/br and it is not img within p tag:
-       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br'] and len(x.select("p img")) == 0 :
+       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table'] and len(x.select("p img")) == 0 :
            x.extract()
     return soup
 
@@ -715,11 +715,35 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                 real_name, upl_id, str(e))
             pass
 
+
+def add_table_to_doc(manager, document, content):
+    #print(content)
+    #print(type(content))
+    max_col_no = 0
+    rows = content.find_all('tr')
+    row_no = len(rows)
+    for row in rows:
+        col_no = len(row.find_all('td'))
+        print(col_no)
+        if col_no > max_col_no:
+            max_col_no = col_no
+    print(rows)
+    # print(len(rows))
+
+    # for row in rows:
+    #    table.add_row(row)
+    # print("MAX")
+    # print(max_col_no)
+    table = document.add_table(rows=row_no, cols=max_col_no)
+
+
+
 # focus here
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
+    # print(tagged_contents)
     for content in tagged_contents: # iterate over list of tags
         if isinstance(content, Tag):
             if len(content.select("p img")) > 0:
@@ -731,9 +755,6 @@ def serialize_to_docx_detailed(manager, exp):
                 line, references = strip_markup_and_explicit_keys(str(content.string))
                 if len(references) > 0:
                     all_references.append(references)
-
-                # detect the type of lines/heading
-                # write a line in docx file based on those.
 
                 # check if the line is either goal, procedure, result, or reference
                 if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
@@ -758,11 +779,11 @@ def serialize_to_docx_detailed(manager, exp):
 
                     document.add_paragraph(line)
 
-
             if content.name == "table":
                 # create a table accordingly in the docx document
                 print("A table is found, writing to docx...")
                 # print(content)
+                add_table_to_doc(manager, document, content)
                 pass
             if content.name == "img":
                 print("An image is found, serializing to docx...")
@@ -955,28 +976,11 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
-# it is assumed that tinymce within elabftw always wrap text with html p tags. deprecated
-def html_to_docx(soup):
-    # strip tags with empty content (e.g., empty paragraph), except if it is img or br tag
-    for x in soup.find_all():
-        if len(x.get_text(strip=True)) == 0 and x.name not in ['br', 'img']:
-            x.extract()
-    # print(soup)
-    # NEXT FOCUS: DEBUGGING THE CONTENT OF THE SOUP CLASS
-    # iterate over tags,
-    #   if it is p, process it line by line.
-    #   it is a table, hold on, process it as a table
-    # then serialize to docx
-    pass
-
 def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
-
-    #TODO: FOCUS HERE!
-    html_to_docx(soup)
 
     # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
