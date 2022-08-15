@@ -626,12 +626,11 @@ def is_explicit_key(key):
 
 def process_reg_bracket(line):
     global ref_counter
+    references = []
     # split based on the existence of brackets - including the captured bracket block in the result
     line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
-    processed_elements = []
     processed_line = ""
     for element in line_elements:
-        # print(element)
         if re.search(Regex_patterns.COMMENT.value, element):
             # _invisible_ comment - strip all content (brackets, underscores, content
             if re.search(Regex_patterns.COMMENT_INVISIBLE.value, element):
@@ -643,13 +642,14 @@ def process_reg_bracket(line):
             elif re.search(Regex_patterns.DOI.value, element[1:-1]):
                 ref_counter = ref_counter + 1
                 processed_element = " [" + str(ref_counter) + "]"
+                references.append(element[1:-1])
             # otherwise, keep as is.
             else:
                 processed_element = element
         else:
             processed_element = element
         processed_line = processed_line + processed_element
-    return processed_line
+    return processed_line, references
 
 
 def strip_markup_and_explicit_keys(line):
@@ -658,22 +658,23 @@ def strip_markup_and_explicit_keys(line):
     # strip curly and angle brackets
     stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
     # process based on the types within regular comment
-    comments_based_strip = process_reg_bracket(stripped_from_markup)
+    comments_based_strip, references = process_reg_bracket(stripped_from_markup)
+
     # strip separator (pipe symbol)
     stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
     # strip unnecessary whitespaces
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',', stripped_from_trailing_spaces)
     stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split()) # strip from trailing whitespaces
-    return stripped_from_trailing_spaces
+    return stripped_from_trailing_spaces, references
 
 
 def remove_empty_tags(soup):
     for x in soup.find_all():
-        # remove empty tags except if it is 'img' tag
-        if len(x.get_text(strip=True)) == 0 and x.name not in ['img']:
-            x.extract()
-        return soup
+       # if the text within a tag is empty, and tag name is not img/br and it is not img within p tag:
+       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br'] and len(x.select("p img")) == 0 :
+           x.extract()
+    return soup
 
 
 def get_nonempty_body_tags(exp):
@@ -684,23 +685,63 @@ def get_nonempty_body_tags(exp):
     return tagged_contents
 
 
+def generate_uploads_dict(exp):
+    # print(exp['uploads'])
+    for upload in exp['uploads']:
+        print(upload)
+
+
+def get_upl_long_name(img_path):
+    return(img_path[19:]) # strip first 19 chars to get the long_name field in the upload dictionary
+
+
+def get_upl_id(exp, content):
+    img_path = content.img['src']
+    upl_long_name = get_upl_long_name(img_path)
+    uploads = exp['uploads']
+    matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
+    upl_id = matched_upl['id']
+    real_name = matched_upl['real_name']
+    return upl_id, real_name
+
+
+def add_img_to_doc(manager, document, upl_id, real_name):
+    with open(output_path_prefix + real_name, 'wb') as img_file:
+        try:
+            img_file.write(manager.get_upload(upl_id))
+            document.add_picture(output_path_prefix + real_name)
+        except Exception as e:
+            log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
+                real_name, upl_id, str(e))
+            pass
+
 # focus here
-def serialize_to_docx_detailed(exp):
+def serialize_to_docx_detailed(manager, exp):
     document = Document()
     reference_switch = False
     intext_reference_list = []
-    references = []
+    all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
     for content in tagged_contents: # iterate over list of tags
         if isinstance(content, Tag):
-            if content.name == "p":
-                line = strip_markup_and_explicit_keys(str(content.string))
+            if len(content.select("p img")) > 0:
+                print("An image is found, serializing to docx...")
+                # get upload id for that particular image
+                upl_id, real_name = get_upl_id(exp, content)
+                add_img_to_doc(manager, document, upl_id, real_name)
+            elif content.name == "p":
+                line, references = strip_markup_and_explicit_keys(str(content.string))
+                if len(references) > 0:
+                    all_references.append(references)
+
                 # detect the type of lines/heading
                 # write a line in docx file based on those.
+
                 # check if the line is either goal, procedure, result, or reference
                 if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
                     document.add_heading(line, level=1)
                     reference_switch = False
+
                 # check if the line is a section
                 # elif re.match(r'Section.+', line, re.IGNORECASE):
                 elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
@@ -713,10 +754,12 @@ def serialize_to_docx_detailed(exp):
                     else:
                         document.add_heading(line.strip(), level=4)
                     reference_switch = False
-                # check if the line is a reference
-                elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
+
+                # check if the line is a reference - need revision!
+                # elif re.match(r'References:*|Reference:*', line, re.IGNORECASE):
                     # document.add_heading(line, level=1)
-                    reference_switch = True
+                    # reference_switch = True
+
                 else:
                     line = re.sub('\s{2,}', ' ',
                                   line)  # replace superfluous whitespaces in preceding text with a single space
@@ -728,18 +771,26 @@ def serialize_to_docx_detailed(exp):
 
             if content.name == "table":
                 # create a table accordingly in the docx document
+                print("A table is found, writing to docx...")
+                # print(content)
                 pass
-            #TODO:  to be continued.
+            if content.name == "img":
+                print("An image is found, serializing to docx...")
+                upl_id, real_name = get_upl_id(exp, content)
+                add_img_to_doc(manager, document, upl_id, real_name)
+
 
             # add reference list
-    if reference_switch == True:
+    # print(intext_reference_list)
+    # if reference_switch == True:
+    #    document.add_heading("Reference", level=1)
+    #    for intext_reference in intext_reference_list:
+    #        document.add_paragraph(intext_reference, style="List Number")
+    if len(all_references) > 0:
+        # if reference_switch == False:
+        #    document.add_heading("Reference", level=1)
         document.add_heading("Reference", level=1)
-        for intext_reference in intext_reference_list:
-            document.add_paragraph(intext_reference, style="List Number")
-    if len(references) > 0:
-        if reference_switch == False:
-            document.add_heading("Reference", level=1)
-        for reference in references:
+        for reference in all_references:
             document.add_paragraph(reference, style='List Number')
     document.save(output_file_prefix + '.docx')
 
@@ -1011,9 +1062,10 @@ def get_kv_log_from_html(html_content):
         clean_lines.append(line)
         line_no = line_no + 1
     multi_nkvmu_pair, internal_comments, log = parse_list_for_metadata(clean_lines)
-    narrative_lines, references = parse_lines_for_docx(clean_lines, internal_comments)
-    serialize_to_docx(narrative_lines, references)
-    return multi_nkvmu_pair, narrative_lines, references, log
+    # narrative_lines, references = parse_lines_for_docx(clean_lines, internal_comments)
+    # serialize_to_docx(narrative_lines, references)
+    return multi_nkvmu_pair, log
+    # return multi_nkvmu_pair, narrative_lines, references, log
 
 
 # extracting md via docx conversion using pandoc in case it is needed in the future
@@ -1111,11 +1163,11 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
 def extract_kv_from_elab_exp(manager, exp):
     # EXTRACT KEY VALUES
     # extract_imgs_from_html(current_endpoint, exp["body"])
-    kv, narrative_lines, references, log = get_kv_log_from_html(exp["body"])
+    kv, log = get_kv_log_from_html(exp["body"])
     # FETCH ATTACHMENT
     uploads = exp["uploads"]
     fetch_uploads(manager, uploads)
-    return kv, narrative_lines, references, log
+    return kv, log
 
 
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
@@ -1300,10 +1352,10 @@ def main():
         exp_no = args.exp_no
         endpoint = args.endpoint
         manager, exp = get_elab_experiment(exp_no, endpoint, token)
-        nkvmu, narrative_lines, references, log = extract_kv_from_elab_exp(manager, exp)
+        nkvmu, log = extract_kv_from_elab_exp(manager, exp)
         # FOCUS HERE
-        serialize_to_docx(narrative_lines, references)
-        serialize_to_docx_detailed(exp)
+        # serialize_to_docx(narrative_lines, references)
+        serialize_to_docx_detailed(manager, exp)
     elif args.command == 'DOCX':
         input_file = args.input_file
         document = get_docx_content(input_file)
