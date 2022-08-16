@@ -727,18 +727,12 @@ def add_table_to_doc(doc, content):
     dfs = pd.read_html("<table>" + html_str_table + "</table>")
     df = dfs[0]
     # print_whole_df(df)
-    t = doc.add_table(df.shape[0] + 1, df.shape[1])
+    t = doc.add_table(df.shape[0], df.shape[1], style="Light Grid Accent 3")
 
-    # add the header rows.
-    # for j in range(df.shape[-1]):
-    #    t.cell(0, j).text = str(df.columns[j])
-
-    # add the rest of the data frame
     for i in range(df.shape[0]):
         for j in range(df.shape[-1]):
             if not pd.isna(df.values[i, j]):
-                t.cell(i + 1, j).text = str(df.values[i, j])
-
+                t.cell(i, j).text = str(df.values[i, j])
 
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
