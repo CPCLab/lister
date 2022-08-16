@@ -729,7 +729,17 @@ def add_table_to_doc(doc, content):
     # print_whole_df(df)
     t = doc.add_table(df.shape[0], df.shape[1], style="Light Grid Accent 3")
 
-    for i in range(df.shape[0]):
+    # process table header, merge if it has similar value with the next cell and skip adding NaN value to the cell
+    for h in range(df.shape[-1]):
+        if not pd.isna(df.values[0, h]):
+            t.cell(0, h).text = str(df.values[0, h])
+        if h < (df.shape[-1]-1):
+            if df.values[0, h] == df.values[0, h + 1]:
+                t.cell(0, h).merge(t.cell(0, h+1))
+                h = h+1
+
+    # process remaining table entries
+    for i in range(1, df.shape[0]):
         for j in range(df.shape[-1]):
             if not pd.isna(df.values[i, j]):
                 t.cell(i, j).text = str(df.values[i, j])
