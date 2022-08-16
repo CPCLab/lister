@@ -24,6 +24,7 @@ import ssl
 import platform
 from pathlib import Path
 import pathlib
+import pandas as pd
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -716,29 +717,29 @@ def add_img_to_doc(manager, document, upl_id, real_name):
             pass
 
 
-def add_table_to_doc(manager, document, content):
-    #print(content)
-    #print(type(content))
-    max_col_no = 0
-    rows = content.find_all('tr')
-    row_no = len(rows)
-    for row in rows:
-        col_no = len(row.find_all('td'))
-        print(col_no)
-        if col_no > max_col_no:
-            max_col_no = col_no
-    print(rows)
-    # print(len(rows))
-
-    # for row in rows:
-    #    table.add_row(row)
-    # print("MAX")
-    # print(max_col_no)
-    table = document.add_table(rows=row_no, cols=max_col_no)
+def print_whole_df(df):
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        print(df)
 
 
+def add_table_to_doc(doc, content):
+    html_str_table = str(content.contents)[1:-1]
+    dfs = pd.read_html("<table>" + html_str_table + "</table>")
+    df = dfs[0]
+    # print_whole_df(df)
+    t = doc.add_table(df.shape[0] + 1, df.shape[1])
 
-# focus here
+    # add the header rows.
+    # for j in range(df.shape[-1]):
+    #    t.cell(0, j).text = str(df.columns[j])
+
+    # add the rest of the data frame
+    for i in range(df.shape[0]):
+        for j in range(df.shape[-1]):
+            if not pd.isna(df.values[i, j]):
+                t.cell(i + 1, j).text = str(df.values[i, j])
+
+
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
@@ -783,7 +784,7 @@ def serialize_to_docx_detailed(manager, exp):
                 # create a table accordingly in the docx document
                 print("A table is found, writing to docx...")
                 # print(content)
-                add_table_to_doc(manager, document, content)
+                add_table_to_doc(document, content)
                 pass
             if content.name == "img":
                 print("An image is found, serializing to docx...")
