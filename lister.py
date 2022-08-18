@@ -692,24 +692,48 @@ def generate_uploads_dict(exp):
         print(upload)
 
 
+def split(text, separators):
+    default_sep = separators[0]
+    for sep in separators[1:]:
+        text = text.replace(sep, default_sep)
+    return [i.strip() for i in text.split(default_sep)]
+
+
 def get_upl_long_name(img_path):
-    return(img_path[19:]) # strip first 19 chars to get the long_name field in the upload dictionary
+    splitted_path = split(img_path, ('&','='))
+    return(splitted_path[1]) # strip first 19 chars to get the long_name field in the upload dictionary
 
 
 def get_upl_id(exp, content):
     img_path = content.img['src']
     upl_long_name = get_upl_long_name(img_path)
     uploads = exp['uploads']
-    matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
-    upl_id = matched_upl['id']
-    real_name = matched_upl['real_name']
+    if len(uploads)>0:
+        # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be used in the image url
+        # e.g. long_name: '21/21e1e300442a68bcbc5dc743f7b3f129b6ab4224859be14c9c7e365ceac7b835a4f00064764b16fe195
+        # problem: experiment that imports image from database entry does not have upload id (?) - hence need to discuss with dev
+        matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
+        upl_id = matched_upl['id']
+        real_name = matched_upl['real_name']
+    else:
+        upl_id = ""
+        real_name = ""
     return upl_id, real_name
 
 
 def add_img_to_doc(manager, document, upl_id, real_name):
+    print("REAL NAME:" + real_name)
+    # if real_name == "":
+        # if img name is empty, create a random img name using 7 digits of random uppercase alphanum chars
+        # real_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
     with open(output_path_prefix + real_name, 'wb') as img_file:
         try:
-            img_file.write(manager.get_upload(upl_id))
+            if real_name == "":
+                # ‚img_file.write(manager.get_upload(upl_id))
+                print("IMAGE INACCESSIBLE") # need to discuss wuth elabftw dev
+                pass
+            else:
+                img_file.write(manager.get_upload(upl_id))
             document.add_picture(output_path_prefix + real_name)
         except Exception as e:
             log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
@@ -743,6 +767,7 @@ def add_table_to_doc(doc, content):
         for j in range(df.shape[-1]):
             if not pd.isna(df.values[i, j]):
                 t.cell(i, j).text = str(df.values[i, j])
+
 
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
