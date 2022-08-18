@@ -722,7 +722,7 @@ def get_upl_id(exp, content):
 
 
 def add_img_to_doc(manager, document, upl_id, real_name):
-    print("REAL NAME:" + real_name)
+    log = ""
     # if real_name == "":
         # if img name is empty, create a random img name using 7 digits of random uppercase alphanum chars
         # real_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
@@ -769,10 +769,19 @@ def add_table_to_doc(doc, content):
                 t.cell(i, j).text = str(df.values[i, j])
 
 
+def get_section_title(line):
+    words = line.split()
+    if len(words)>1:
+        return ' '.join(words[1:])
+    else:
+        return ""
+
+
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
+    watched_tags = ['p','h1','h2','h3','h4','h5','h6']
     # print(tagged_contents)
     for content in tagged_contents: # iterate over list of tags
         if isinstance(content, Tag):
@@ -781,7 +790,8 @@ def serialize_to_docx_detailed(manager, exp):
                 # get upload id for that particular image
                 upl_id, real_name = get_upl_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
-            elif content.name == "p":
+            elif any(x in content.name for x in watched_tags):
+            # elif content.name == "p" or content.name == "h1" content.name == "" :
                 line, references = strip_markup_and_explicit_keys(str(content.string))
                 if len(references) > 0:
                     all_references.append(references)
@@ -793,14 +803,15 @@ def serialize_to_docx_detailed(manager, exp):
                 # check if the line is a section
                 # elif re.match(r'Section.+', line, re.IGNORECASE):
                 elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
+                    section_title = get_section_title(line)
                     subsection_level = line.count("sub")
                     line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
                     if subsection_level == 0:
-                        document.add_heading(line.strip(), level=2)
+                        document.add_heading(section_title, level=2)
                     elif subsection_level == 1:
-                        document.add_heading(line.strip(), level=3)
+                        document.add_heading(section_title, level=3)
                     else:
-                        document.add_heading(line.strip(), level=4)
+                        document.add_heading(section_title, level=4)
 
                 else:
                     line = re.sub('\s{2,}', ' ',
