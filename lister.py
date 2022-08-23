@@ -726,19 +726,23 @@ def add_img_to_doc(manager, document, upl_id, real_name):
     # if real_name == "":
         # if img name is empty, create a random img name using 7 digits of random uppercase alphanum chars
         # real_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
-    with open(output_path_prefix + real_name, 'wb') as img_file:
-        try:
-            if real_name == "":
-                # ‚img_file.write(manager.get_upload(upl_id))
-                print("IMAGE INACCESSIBLE") # need to discuss wuth elabftw dev
+    if real_name:
+        with open(output_path_prefix + real_name, 'wb') as img_file:
+            try:
+                if real_name == "":
+                    # ‚img_file.write(manager.get_upload(upl_id))
+                    print("IMAGE INACCESSIBLE") # need to discuss wuth elabftw dev
+                    pass
+                else:
+                    img_file.write(manager.get_upload(upl_id))
+                document.add_picture(output_path_prefix + real_name)
+            except Exception as e:
+                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
+                    real_name, upl_id, str(e))
                 pass
-            else:
-                img_file.write(manager.get_upload(upl_id))
-            document.add_picture(output_path_prefix + real_name)
-        except Exception as e:
-            log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
-                real_name, upl_id, str(e))
-            pass
+    else:
+        print("Image found in the experiment, but not attached. Parsing this image is disabled for security reason."
+                  "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
 
 
 def print_whole_df(df):
@@ -789,6 +793,7 @@ def serialize_to_docx_detailed(manager, exp):
                 print("An image is found, serializing to docx...")
                 # get upload id for that particular image
                 upl_id, real_name = get_upl_id(exp, content)
+                # print(exp)
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
             # elif content.name == "p" or content.name == "h1" content.name == "" :
