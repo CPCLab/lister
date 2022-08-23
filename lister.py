@@ -875,7 +875,6 @@ def parse_list_for_metadata(lines):
     multi_nkvmu_pair = []
     multi_nk_pair = []
     log = ""
-
     for line in lines:
         internal_comments = []
 
@@ -1022,11 +1021,20 @@ def extract_docx_media(filename):
             archive.extract(file, output_path_prefix)
 
 
+def remove_table_tag(soup):
+    for table in soup("table"):
+        table.decompose()
+    return soup
+
+
 def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
+    soup = remove_table_tag(soup)
+    print(soup)
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
+
 
     # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
