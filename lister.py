@@ -808,8 +808,8 @@ def serialize_to_docx_detailed(manager, exp):
                 if len(references) > 0:
                     all_references.append(references)
 
-                # check if the line is either goal, procedure, result, or reference
-                if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE):
+                # check if the line is either goal, procedure, or result - but only limit that to one word
+                if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
                     document.add_heading(line, level=1)
 
                 # check if the line is a section
