@@ -76,6 +76,7 @@ class Misc_error_and_warning_msg(Enum):
 
 class Regex_patterns(Enum):
     EXPLICIT_KEY = r':.+?:' # catch explicit key which indicated within ":" sign
+    SORROUNDED_W_COLONS = r'^:.+?:$' # catch explicit key which indicated within ":" sign
     KV_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KV or control flow
     KV = r'\{.+?\}'  # find any occurrences of KV
     FLOW = r'<.+?>'  # find any occurrences of control flows
@@ -522,14 +523,20 @@ def get_comment_properties(str_with_brackets):
     return isVisible, isReference, reference
 
 
+def strip_unwanted_mvu_colons(word):
+    if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
+        print("Sorrounding colons in the value/measure/unit {} is removed".format(word))
+        word = word[1:-1] # if there are colons surrounding the word remains, remove it
+    return word
+
+
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
 def process_internal_comment(str_with_brackets):
-    # comment_regex = "\(.+?\)"
     comment = re.search(Regex_patterns.COMMENT.value, str_with_brackets)
     comment = comment.group(0)
     remains = str_with_brackets.replace(comment, '')
-    # comment = comment[1:-1]
+    remains = strip_unwanted_mvu_colons(remains)
     return remains.strip(), comment.strip()
 
 
@@ -557,19 +564,19 @@ def extract_kvmu(kvmu):
     kv_split = re.split("\|", kvmu)
     if len(kv_split) == 2:
         key = kv_split[1]
-        val = kv_split[0]
+        val = strip_unwanted_mvu_colons(kv_split[0])
         measure = ""
         unit = ""
     elif len(kv_split) == 3:
-        val = kv_split[0]
-        unit = kv_split[1]
+        val = strip_unwanted_mvu_colons(kv_split[0])
+        unit = strip_unwanted_mvu_colons(kv_split[1])
         key = kv_split[2]
         measure = ""
     elif len(kv_split) == 4:
-        measure = kv_split[0]
-        unit = kv_split[1]
+        measure = strip_unwanted_mvu_colons(kv_split[0])
+        unit = strip_unwanted_mvu_colons(kv_split[1])
         key = kv_split[3]
-        val = kv_split[2]
+        val = strip_unwanted_mvu_colons(kv_split[2])
     else:
         log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value % (len(kv_split), str(source_kvmu))
         raise SystemExit(log)
@@ -1031,10 +1038,8 @@ def get_kv_log_from_html(html_content):
     # soup = BeautifulSoup(html_content, "html5lib")
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
-    print(soup)
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
-
 
     # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
