@@ -660,9 +660,12 @@ def process_reg_bracket(line):
     return processed_line, references
 
 
+# FOCUS HERE: HOW TO RETAIN THE FIG NAMES AND TABLE?
 def strip_markup_and_explicit_keys(line):
     # strip keys that are not marked visible (keys that are not enclosed with colon)
+    # print(line)
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
+    # print(stripped_from_explicit_keys)
     # strip curly and angle brackets
     stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
     # process based on the types within regular comment
@@ -792,10 +795,17 @@ def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
-    watched_tags = ['p','h1','h2','h3','h4','h5','h6']
+    # print(tagged_contents)
+    # print(exp)
+    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong']
     # print(tagged_contents)
     for content in tagged_contents: # iterate over list of tags
+
         if isinstance(content, Tag):
+            # print("CONTENT NAME {}".format(content.name))
+            # print(content)
+            # print("TAG Name‚ {}".format(Tag.name))
+            # print(str(content.string))
             if len(content.select("p img")) > 0:
                 print("An image is found, serializing to docx...")
                 # get upload id for that particular image
@@ -804,7 +814,13 @@ def serialize_to_docx_detailed(manager, exp):
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
             # elif content.name == "p" or content.name == "h1" content.name == "" :
-                line, references = strip_markup_and_explicit_keys(str(content.string))
+                temp_str = ""
+                content_list = list(content.strings)
+                temp_str = temp_str + ', '.join(content_list)
+
+                # line, references = strip_markup_and_explicit_keys(str(content.string))
+                line, references = strip_markup_and_explicit_keys(temp_str)
+
                 if len(references) > 0:
                     all_references.append(references)
 
@@ -829,13 +845,11 @@ def serialize_to_docx_detailed(manager, exp):
                     line = re.sub('\s{2,}', ' ',
                                   line)  # replace superfluous whitespaces in preceding text with a single space
                     line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-
                     document.add_paragraph(line)
 
             if content.name == "table":
                 # create a table accordingly in the docx document
                 print("A table is found, writing to docx...")
-                # print(content)
                 add_table_to_doc(document, content)
                 pass
             if content.name == "img":
