@@ -25,6 +25,7 @@ import platform
 from pathlib import Path
 import pathlib
 import pandas as pd
+from docx.shared import Mm
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -683,7 +684,8 @@ def strip_markup_and_explicit_keys(line):
 def remove_empty_tags(soup):
     for x in soup.find_all():
        # if the text within a tag is empty, and tag name is not img/br and it is not img within p tag:
-       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table'] and len(x.select("p img")) == 0 :
+       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table', 'h1', 'h2', 'h3', 'h5', 'h6'] \
+               and len(x.select("p img")) == 0 :
            x.extract()
     return soup
 
@@ -731,11 +733,17 @@ def get_upl_id(exp, content):
     return upl_id, real_name
 
 
+
+def get_text_width(document):
+    """
+    Returns the text width in mm.
+    """
+    section = document.sections[0]
+    return (section.page_width - section.left_margin - section.right_margin) / 36000
+
+
 def add_img_to_doc(manager, document, upl_id, real_name):
     log = ""
-    # if real_name == "":
-        # if img name is empty, create a random img name using 7 digits of random uppercase alphanum chars
-        # real_name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(7))
     if real_name:
         with open(output_path_prefix + real_name, 'wb') as img_file:
             try:
@@ -745,7 +753,7 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                     pass
                 else:
                     img_file.write(manager.get_upload(upl_id))
-                document.add_picture(output_path_prefix + real_name)
+                document.add_picture(output_path_prefix + real_name, width=Mm(get_text_width(document)))
             except Exception as e:
                 log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
                     real_name, upl_id, str(e))
@@ -806,7 +814,7 @@ def serialize_to_docx_detailed(manager, exp):
             # print(content)
             # print("TAG Name‚ {}".format(Tag.name))
             # print(str(content.string))
-            if len(content.select("p img")) > 0:
+            if len(content.select("img")) > 0:
                 print("An image is found, serializing to docx...")
                 # get upload id for that particular image
                 upl_id, real_name = get_upl_id(exp, content)
