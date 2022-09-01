@@ -93,6 +93,7 @@ class Regex_patterns(Enum):
     PRE_COMMA_SPACES = '\s+,'
     SUBSECTION = '(sub)*section'
     SUBSECTION_W_EXTRAS = r'(sub)*section.+'
+    SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?);"
 
 
 class Arg_num(Enum):
@@ -771,6 +772,8 @@ def print_whole_df(df):
 def add_table_to_doc(doc, content):
     html_str_table = str(content.contents)[1:-1]
     dfs = pd.read_html("<table>" + html_str_table + "</table>")
+    # read_html unfortunately does not retain styles/formatting, hence write your own html table parser if formatting
+    # needs to be retained.
     df = dfs[0]
     # print_whole_df(df)
     t = doc.add_table(df.shape[0], df.shape[1], style="Light Grid Accent 3")
@@ -799,13 +802,48 @@ def get_section_title(line):
         return ""
 
 
+def get_span_attr_val(c):
+    found = re.findall(Regex_patterns.SPAN_ATTR_VAL.value, c.get("style"))
+    attr, val = found[0]
+    print((found[0]))
+    print(attr)
+    print(val)
+    return attr, val
+
+
+def html_taglist_to_doc(document, content):
+    # print(tag_list)
+    print("-"*77)
+    print(type(content))
+    print(content.name)
+    if isinstance(content,Tag):
+        print(type(content.contents[0]))
+        print(content.contents[0])
+        c =content.contents[0]
+        if c.name == "sub":
+            print("Sub!")
+        elif c.name == "span":
+            print("Span!")
+            attr, val = get_span_attr_val(c)
+        elif c.name == "strong":
+            print("Strong!")
+        elif c.name == "sup":
+            print("Sup!")
+    else:
+        print("-" * 77)
+        print("Hello NavigableString!")
+    # all_tags = content.findAll()
+    # print(all_tags)
+    pass
+
+
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
     # print(tagged_contents)
     # print(exp)
-    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong']
+    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong', 'sub']
     # print(tagged_contents)
     for content in tagged_contents: # iterate over list of tags
 
@@ -823,8 +861,14 @@ def serialize_to_docx_detailed(manager, exp):
             elif any(x in content.name for x in watched_tags):
             # elif content.name == "p" or content.name == "h1" content.name == "" :
                 temp_str = ""
+                # THIS IS WHERE SUB TAG SHOULD BE CAPTURED AND THEN PROCESSED
+                # FOCUS HERE: CREATE AN ALTERNATIVE FUNCTION: ACCEPTS LIST OF TAGS + DOCUMENT INSTANCE
+                # RETURN REFERENCE AND MODIFIED DOC
+                html_taglist_to_doc(document, content)
                 content_list = list(content.strings)
+                #print(content_list)
                 temp_str = temp_str + ', '.join(content_list)
+
 
                 # line, references = strip_markup_and_explicit_keys(str(content.string))
                 line, references = strip_markup_and_explicit_keys(temp_str)

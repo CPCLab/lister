@@ -18,3 +18,11 @@ validator/__pycache__/*
 .idea/misc.xml
 lister.spec
 output.docx
+MML2OMML.XSL
+omml2mml-versal.xsl
+mml2omml-tei.xsl
+demo2.docx
+latex-docx.py
+demo.docx
+htmlsplit.py
+test_html_split.py
