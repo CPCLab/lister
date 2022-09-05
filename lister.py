@@ -25,7 +25,7 @@ import platform
 from pathlib import Path
 import pathlib
 import pandas as pd
-from docx.shared import Mm
+from docx.shared import Mm, RGBColor
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -672,7 +672,6 @@ def strip_markup_and_explicit_keys(line):
     stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
     # process based on the types within regular comment
     comments_based_strip, references = process_reg_bracket(stripped_from_markup)
-
     # strip separator (pipe symbol)
     stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
     # strip unnecessary whitespaces
@@ -805,105 +804,82 @@ def get_section_title(line):
 def get_span_attr_val(c):
     found = re.findall(Regex_patterns.SPAN_ATTR_VAL.value, c.get("style"))
     attr, val = found[0]
-    print((found[0]))
-    print(attr)
-    print(val)
     return attr, val
 
 
 def html_taglist_to_doc(document, content):
-    # print(tag_list)
-    print("-"*77)
-    print(type(content))
-    print(content.name)
+    all_references = []
+    p = document.add_paragraph()
     if isinstance(content,Tag):
-        print(type(content.contents[0]))
-        print(content.contents[0])
-        c =content.contents[0]
-        if c.name == "sub":
-            print("Sub!")
-        elif c.name == "span":
-            print("Span!")
-            attr, val = get_span_attr_val(c)
-        elif c.name == "strong":
-            print("Strong!")
-        elif c.name == "sup":
-            print("Sup!")
+        for subcontent in content.contents:
+            # strip_markup_and_explicit_keys()
+            line, references = strip_markup_and_explicit_keys(subcontent.string)
+            if len(references) > 0:
+                all_references.extend(references)
+            # check if the line is either goal, procedure, or result - but only limit that to one word
+            if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
+                document.add_heading(line, level=1)
+            # check if the line is a section
+            elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
+                section_title = get_section_title(line)
+                subsection_level = line.count("sub")
+                if subsection_level == 0:
+                    document.add_heading(section_title, level=2)
+                elif subsection_level == 1:
+                    document.add_heading(section_title, level=3)
+                else:
+                    document.add_heading(section_title, level=4)
+            # else:
+            #    line = re.sub('\s{2,}', ' ',
+            #                  line)  # replace superfluous whitespaces in preceding text with a single space
+            #    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
+            #    document.add_paragraph(line)
+            elif subcontent.name == "sub":
+                sub_text = p.add_run(line)
+                sub_text.font.subscript = True
+            elif subcontent.name == "span":
+                attr, val = get_span_attr_val(subcontent)
+                if attr=="color":
+                    color_text = p.add_run(line)
+                    color_text.font.color.rgb = RGBColor.from_string(val[1:])
+                elif attr=="font-style" and attr=="italic":
+                    styled_text = p.add_run(line)
+                    styled_text.italic = True
+                else:
+                    p.add_run(line)
+            elif subcontent.name == "strong":
+                bold_text = p.add_run(line)
+                bold_text.bold = True
+            elif subcontent.name == "sup":
+                super_text = p.add_run(line)
+                super_text.font.superscript = True
+            else:
+                p.add_run(line)
     else:
-        print("-" * 77)
-        print("Hello NavigableString!")
-    # all_tags = content.findAll()
-    # print(all_tags)
-    pass
+        line, references = strip_markup_and_explicit_keys(content.string)
+        if len(references) > 0:
+            all_references.extend(references)
+        p.add_run(line)
+    return p, all_references
 
 
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
-    # print(tagged_contents)
-    # print(exp)
     watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong', 'sub']
-    # print(tagged_contents)
     for content in tagged_contents: # iterate over list of tags
-
         if isinstance(content, Tag):
-            # print("CONTENT NAME {}".format(content.name))
-            # print(content)
-            # print("TAG Name‚ {}".format(Tag.name))
-            # print(str(content.string))
             if len(content.select("img")) > 0:
-                print("An image is found, serializing to docx...")
-                # get upload id for that particular image
                 upl_id, real_name = get_upl_id(exp, content)
-                # print(exp)
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
-            # elif content.name == "p" or content.name == "h1" content.name == "" :
-                temp_str = ""
-                # THIS IS WHERE SUB TAG SHOULD BE CAPTURED AND THEN PROCESSED
-                # FOCUS HERE: CREATE AN ALTERNATIVE FUNCTION: ACCEPTS LIST OF TAGS + DOCUMENT INSTANCE
-                # RETURN REFERENCE AND MODIFIED DOC
-                html_taglist_to_doc(document, content)
-                content_list = list(content.strings)
-                #print(content_list)
-                temp_str = temp_str + ', '.join(content_list)
-
-
-                # line, references = strip_markup_and_explicit_keys(str(content.string))
-                line, references = strip_markup_and_explicit_keys(temp_str)
-
+                par, references = html_taglist_to_doc(document, content)
                 if len(references) > 0:
-                    all_references.append(references)
-
-                # check if the line is either goal, procedure, or result - but only limit that to one word
-                if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
-                    document.add_heading(line, level=1)
-
-                # check if the line is a section
-                # elif re.match(r'Section.+', line, re.IGNORECASE):
-                elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
-                    section_title = get_section_title(line)
-                    subsection_level = line.count("sub")
-                    line = re.sub(Regex_patterns.SUBSECTION_W_EXTRAS.value, '', line)
-                    if subsection_level == 0:
-                        document.add_heading(section_title, level=2)
-                    elif subsection_level == 1:
-                        document.add_heading(section_title, level=3)
-                    else:
-                        document.add_heading(section_title, level=4)
-
-                else:
-                    line = re.sub('\s{2,}', ' ',
-                                  line)  # replace superfluous whitespaces in preceding text with a single space
-                    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-                    document.add_paragraph(line)
-
+                   all_references.extend(references)
             if content.name == "table":
-                # create a table accordingly in the docx document
                 print("A table is found, writing to docx...")
                 add_table_to_doc(document, content)
-                pass
             if content.name == "img":
                 print("An image is found, serializing to docx...")
                 upl_id, real_name = get_upl_id(exp, content)
@@ -1067,7 +1043,7 @@ def write_to_xlsx(nkvmu, log):
         worksheet.set_column('D:E', 15)
         for row_no, data in enumerate(nkvmu):
             key = data[1]
-            # do not use regex here or it will be very slow
+            # do not use regex here, or it will be very slow
             # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
             if len(key)>=7 and key[0:7].casefold() == "section".casefold():
                 worksheet.write_row(row_no + 1, 0, data, section_format)
