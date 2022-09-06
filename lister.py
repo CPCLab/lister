@@ -83,7 +83,8 @@ class Regex_patterns(Enum):
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
-    COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
+    # COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
+    COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
     COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = "\(_.+?_\)"
     SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # catch the end part of KV pairs (the key, tolerating trailing spaces)
@@ -510,7 +511,7 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
-
+# obsolete
 def get_comment_properties(str_with_brackets):
     reference = ""
     comment = str_with_brackets[1:-1]
@@ -641,6 +642,8 @@ def process_reg_bracket(line):
     line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
     processed_line = ""
     for element in line_elements:
+        found_dois = re.findall(Regex_patterns.DOI.value, element)
+        found_doi_length = len(found_dois)
         if re.search(Regex_patterns.COMMENT.value, element):
             # _invisible_ comment - strip all content (brackets, underscores, content
             if re.search(Regex_patterns.COMMENT_INVISIBLE.value, element):
@@ -649,10 +652,12 @@ def process_reg_bracket(line):
             elif re.search(Regex_patterns.COMMENT_VISIBLE.value, element):
                 processed_element = element[2:-2]
             # comment that refer to DOI - strip all for now
-            elif re.search(Regex_patterns.DOI.value, element[1:-1]):
-                ref_counter = ref_counter + 1
-                processed_element = " [" + str(ref_counter) + "]"
-                references.append(element[1:-1])
+            elif found_doi_length > 0:
+                processed_element = ""
+                for doi in found_dois:
+                    ref_counter = ref_counter + 1
+                    processed_element = processed_element + " [" + str(ref_counter) + "]"
+                    references.append(doi)
             # otherwise, keep as is.
             else:
                 processed_element = element
@@ -835,7 +840,7 @@ def html_taglist_to_doc(document, content):
             #    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
             #    document.add_paragraph(line)
             elif subcontent.name == "sub":
-                sub_text = p.add_run(line)
+                sub_text = p.add_run(line + " ")
                 sub_text.font.subscript = True
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
@@ -851,7 +856,7 @@ def html_taglist_to_doc(document, content):
                 bold_text = p.add_run(line)
                 bold_text.bold = True
             elif subcontent.name == "sup":
-                super_text = p.add_run(line)
+                super_text = p.add_run(line + " ")
                 super_text.font.superscript = True
             else:
                 p.add_run(line)
