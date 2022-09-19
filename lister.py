@@ -26,6 +26,8 @@ from pathlib import Path
 import pathlib
 import pandas as pd
 from docx.shared import Mm, RGBColor
+from lxml import etree
+import latex2mathml.converter
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -73,7 +75,9 @@ class Misc_error_and_warning_msg(Enum):
                      "Check the following part: %s"
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
                                 "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
-
+    SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
+                            "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
+                            "Otherwise please check this pair: %s ."
 
 class Regex_patterns(Enum):
     EXPLICIT_KEY = r':.+?:' # catch explicit key which indicated within ":" sign
@@ -83,6 +87,7 @@ class Regex_patterns(Enum):
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
+    FORMULA = "\$.*\$"  # define regex for parsing comment
     # COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
     COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
     COMMENT_VISIBLE = "\(:.+?:\)"
@@ -580,6 +585,13 @@ def extract_kvmu(kvmu):
         unit = strip_unwanted_mvu_colons(kv_split[1])
         key = kv_split[3]
         val = strip_unwanted_mvu_colons(kv_split[2])
+    elif len(kv_split) == 1:
+        key = ""
+        val = ""
+        measure = ""
+        unit = ""
+        print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value % kvmu)
+        log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value % kvmu
     else:
         log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value % (len(kv_split), str(source_kvmu))
         raise SystemExit(log)
@@ -633,6 +645,16 @@ def is_explicit_key(key):
        return True
     else:
         return False
+
+
+def latex_formula_to_docx(latex_formula):
+    mathml = latex2mathml.converter.convert(latex_formula)
+    tree = etree.fromstring(mathml)
+    xslt = etree.parse('omml2mml.xsl') # please check whether path on mac is ok
+    transform = etree.XSLT(xslt)
+    new_dom = transform(tree)
+    docx_formula = new_dom.getroot()
+    return docx_formula
 
 
 def process_reg_bracket(line):
@@ -818,7 +840,11 @@ def html_taglist_to_doc(document, content):
     if isinstance(content,Tag):
         for subcontent in content.contents:
             # strip_markup_and_explicit_keys()
-            line, references = strip_markup_and_explicit_keys(subcontent.string)
+            if isinstance(subcontent,Tag):
+                line, references = strip_markup_and_explicit_keys(subcontent.get_text())
+            else:
+                line, references = strip_markup_and_explicit_keys(subcontent.string)
+
             if len(references) > 0:
                 all_references.extend(references)
             # check if the line is either goal, procedure, or result - but only limit that to one word
@@ -842,6 +868,9 @@ def html_taglist_to_doc(document, content):
             elif subcontent.name == "sub":
                 sub_text = p.add_run(line + " ")
                 sub_text.font.subscript = True
+            elif subcontent.name == "em":
+                italic_text = p.add_run( " " + line + " ")
+                italic_text.font.italic = True
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
                 if attr=="color":
@@ -865,21 +894,22 @@ def html_taglist_to_doc(document, content):
         if len(references) > 0:
             all_references.extend(references)
         p.add_run(line)
-    return p, all_references
+    return all_references
 
 
 def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
-    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong', 'sub']
+    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong', 'sub', 'em', 'sup']
     for content in tagged_contents: # iterate over list of tags
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
                 upl_id, real_name = get_upl_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
-                par, references = html_taglist_to_doc(document, content)
+                references = html_taglist_to_doc(document, content)
+                # references = html_taglist_to_doc_granular(document, content)
                 if len(references) > 0:
                    all_references.extend(references)
             if content.name == "table":
