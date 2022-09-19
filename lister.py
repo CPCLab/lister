@@ -650,7 +650,7 @@ def is_explicit_key(key):
 def latex_formula_to_docx(latex_formula):
     mathml = latex2mathml.converter.convert(latex_formula)
     tree = etree.fromstring(mathml)
-    xslt = etree.parse('omml2mml.xsl') # please check whether path on mac is ok
+    xslt = etree.parse('MML2OMML.XSL') # please check whether path on mac is ok
     transform = etree.XSLT(xslt)
     new_dom = transform(tree)
     docx_formula = new_dom.getroot()
@@ -843,7 +843,20 @@ def html_taglist_to_doc(document, content):
             if isinstance(subcontent,Tag):
                 line, references = strip_markup_and_explicit_keys(subcontent.get_text())
             else:
-                line, references = strip_markup_and_explicit_keys(subcontent.string)
+                if re.match(Regex_patterns.FORMULA.value, subcontent):
+                    references = []
+                    # print("FORMULA FOUND")
+                    line = ""
+                    formulas = re.findall(Regex_patterns.FORMULA.value, subcontent)
+                    processed_subcontent = str(subcontent)
+                    for formula in formulas:
+                        stripped_formula = formula[1:-1]
+                        processed_subcontent = processed_subcontent.replace(formula,'')
+                        docx_formula = latex_formula_to_docx(stripped_formula)
+                        p._element.append(docx_formula)
+                    p.add_run(processed_subcontent)
+                else:
+                    line, references = strip_markup_and_explicit_keys(subcontent.string)
 
             if len(references) > 0:
                 all_references.extend(references)
@@ -865,6 +878,7 @@ def html_taglist_to_doc(document, content):
             #                  line)  # replace superfluous whitespaces in preceding text with a single space
             #    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
             #    document.add_paragraph(line)
+
             elif subcontent.name == "sub":
                 sub_text = p.add_run(line + " ")
                 sub_text.font.subscript = True
