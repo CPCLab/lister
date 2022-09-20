@@ -78,6 +78,11 @@ class Misc_error_and_warning_msg(Enum):
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
                             "Otherwise please check this pair: %s ."
+    MISSING_MML2OMML = "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires " \
+                       "MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. " \
+                       "It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, " \
+                       "formula parsing is disabled."
+
 
 class Regex_patterns(Enum):
     EXPLICIT_KEY = r':.+?:' # catch explicit key which indicated within ":" sign
@@ -648,13 +653,21 @@ def is_explicit_key(key):
 
 
 def latex_formula_to_docx(latex_formula):
+    log = ""
     mathml = latex2mathml.converter.convert(latex_formula)
     tree = etree.fromstring(mathml)
-    xslt = etree.parse('MML2OMML.XSL') # please check whether path on mac is ok
-    transform = etree.XSLT(xslt)
-    new_dom = transform(tree)
-    docx_formula = new_dom.getroot()
+    try:
+        xslt = etree.parse('MML2OMML.XSL') # please check whether path on mac is ok
+        transform = etree.XSLT(xslt)
+        new_dom = transform(tree)
+        docx_formula = new_dom.getroot()
+    except Exception as e:
+        docx_formula = None
+        log = log + Misc_error_and_warning_msg.MISSING_MML2OMML.value
+        print(log)
+        pass
     return docx_formula
+
 
 
 def process_reg_bracket(line):
@@ -853,8 +866,9 @@ def html_taglist_to_doc(document, content):
                         stripped_formula = formula[1:-1]
                         processed_subcontent = processed_subcontent.replace(formula,'')
                         docx_formula = latex_formula_to_docx(stripped_formula)
-                        p._element.append(docx_formula)
-                    p.add_run(processed_subcontent)
+                        if docx_formula != None:
+                            p._element.append(docx_formula)
+                            p.add_run(processed_subcontent)
                 else:
                     line, references = strip_markup_and_explicit_keys(subcontent.string)
 
@@ -1293,7 +1307,10 @@ def get_default_output_path(file_name):
         print("OUTPUT PATH: %s" % (output_path))
     else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         current_path = pathlib.Path().resolve()
-        output_path = str(current_path) + "/output/"
+        if platform.system()=="Windows":
+            output_path = str(current_path) + "\output" # + "\\"
+        else:
+            output_path = str(current_path) + "/output/"
     return output_path
 
 
