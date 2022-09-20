@@ -28,3 +28,6 @@ htmlsplit.py
 test_html_split.py
 lister.scrap.py
 lister.scrap.py
+get-pip.py
+DigiCertHighAssuranceEVRootCA.crt
+DigiCertHighAssuranceEVRootCA.pem

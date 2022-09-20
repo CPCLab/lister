@@ -1346,64 +1346,65 @@ def parse_args():
                                          '(for latest eLabFTW instance only)')
 
     # DOCX PARAMETERS
-    docx_arg_parser = subs.add_parser(
-        'DOCX', help='Parse metadata from DOCX files')
-    docx_arg_parser.add_argument('output_file_name',
-                                 metavar = 'Output file name',
-                                 help='[FILENAME] for your metadata and log outputs, without extension',
-                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                                 # [FILENAME].log files in the specified output folder
-                                 type=str,
-                                 default='cpc03-CG')
-    docx_arg_parser.add_argument('base_output_dir',
-                                 metavar='Base output directory',
-                                 help='Local directory generally used to save your outputs',
-                                 type=str,
-                                 default=base_output_path,
-                                 widget='DirChooser')
-    docx_arg_parser.add_argument('input_file',
-                                 metavar='Input file',
-                                 help='DOCX file to be parsed',
-                                 gooey_options={
-                                     'wildcard': "Microsoft WOrd Document (*.docx)|*.docx|" 
-                                     "All files (*.*)|*.*",
-                                     'default_dir': 'input/cpc/',
-                                     'default_file': "cpc03-CG.md"
-                                 },
-                                 type=str,
-                                 widget='FileChooser',
-                                 default='input/cpc/cpc03-CG.docx')
-
-    # MD PARAMETERS
-    md_arg_parser = subs.add_parser(
-        'MD', help='Parse metadata from Markdown files')
-    md_arg_parser.add_argument('output_file_name',
-                               metavar='Output file name',
-                               help='[FILENAME] for your metadata and log outputs, without extension',
-                               # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                               # [FILENAME].log files in the specified output folder
-                               default='cpc03-CG-md',
-                               type=str)
-    md_arg_parser.add_argument('base_output_dir',
-                               metavar='Base output directory',
-                               help='Local directory generally used to save your outputs',
-                               type=str,
-                               default=base_output_path,
-                               widget='DirChooser')
-    md_arg_parser.add_argument('input_file',
-                               metavar='Input file',
-                               gooey_options={
-                                   'wildcard':
-                                       "Markdown file (*.md)|*.md|"
-                                   "All files (*.*)|*.*",
-                                   'default_dir': 'input/cpc/',
-                                   'default_file': "cpc03-CG.md"
-                                   # 'message': "pick me"
-                               },
-                               help='MD file to be parsed',
-                               type=str,
-                               default='input/cpc/cpc03-CG.md',
-                               widget='FileChooser')
+    # docx_arg_parser = subs.add_parser(
+    #     'DOCX', help='Parse metadata from DOCX files')
+    # docx_arg_parser.add_argument('output_file_name',
+    #                              metavar = 'Output file name',
+    #                              help='[FILENAME] for your metadata and log outputs, without extension',
+    #                              # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+    #                              # [FILENAME].log files in the specified output folder
+    #                              type=str,
+    #                              default='cpc03-CG')
+    # docx_arg_parser.add_argument('base_output_dir',
+    #                              metavar='Base output directory',
+    #                              help='Local directory generally used to save your outputs',
+    #                              type=str,
+    #                              default=base_output_path,
+    #                              widget='DirChooser')
+    # docx_arg_parser.add_argument('input_file',
+    #                              metavar='Input file',
+    #                              help='DOCX file to be parsed',
+    #                              gooey_options={
+    #                                  'wildcard': "Microsoft WOrd Document (*.docx)|*.docx|"
+    #                                  "All files (*.*)|*.*",
+    #                                  'default_dir': 'input/cpc/',
+    #                                  'default_file': "cpc03-CG.md"
+    #                              },
+    #                              type=str,
+    #                              widget='FileChooser',
+    #                              default='input/cpc/cpc03-CG.docx')
+    #
+    #
+    # # MD PARAMETERS
+    # md_arg_parser = subs.add_parser(
+    #     'MD', help='Parse metadata from Markdown files')
+    # md_arg_parser.add_argument('output_file_name',
+    #                            metavar='Output file name',
+    #                            help='[FILENAME] for your metadata and log outputs, without extension',
+    #                            # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+    #                            # [FILENAME].log files in the specified output folder
+    #                            default='cpc03-CG-md',
+    #                            type=str)
+    # md_arg_parser.add_argument('base_output_dir',
+    #                            metavar='Base output directory',
+    #                            help='Local directory generally used to save your outputs',
+    #                            type=str,
+    #                            default=base_output_path,
+    #                            widget='DirChooser')
+    # md_arg_parser.add_argument('input_file',
+    #                            metavar='Input file',
+    #                            gooey_options={
+    #                                'wildcard':
+    #                                    "Markdown file (*.md)|*.md|"
+    #                                "All files (*.*)|*.*",
+    #                                'default_dir': 'input/cpc/',
+    #                                'default_file': "cpc03-CG.md"
+    #                                # 'message': "pick me"
+    #                            },
+    #                            help='MD file to be parsed',
+    #                            type=str,
+    #                            default='input/cpc/cpc03-CG.md',
+    #                            widget='FileChooser')
     args = parser.parse_args()
     return args
 
