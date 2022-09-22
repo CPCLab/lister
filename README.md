@@ -92,7 +92,7 @@ The annotation mechanism below affects both output metadata (xlsx and json) and 
     
     - Annotation is done using brackets and double colon `(: :)`
     
-    - Annotation example: `(:This comment will be totally invisible in the docx output file:)`.
+    - Annotation example: `(:This comment's bracket will be invisible in the docx output file, but the text content will be kept:)`.
 
 - *Conditionals and iterations handling*. 
   
