@@ -1433,6 +1433,8 @@ def main():
     global output_path_prefix, output_file_prefix, base_output_dir
     global token, exp_no, endpoint
 
+    # sys.stdin.reconfigure(encoding='utf-8')
+    # sys.stdout.reconfigure(encoding='utf-8')
 
     args = parse_args()
     output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)

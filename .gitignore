@@ -16,7 +16,6 @@ desktop.ini
 validator/__pycache__/*
 .DS_Store
 .idea/misc.xml
-lister.spec
 output.docx
 MML2OMML.XSL
 omml2mml-versal.xsl
@@ -98,3 +97,4 @@ output/cpc3-CG-elab.json
 output/cpc3-CG-elab.log
 output/cpc3-CG-elab.xlsx
 MML2OMML2.XSL
+.idea/misc.xml
