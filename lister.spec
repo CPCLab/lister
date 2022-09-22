@@ -44,7 +44,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
@@ -70,7 +70,7 @@ if platform.system() == 'Darwin':
     info_plist = {'addition_prop': 'additional_value'}
     app = BUNDLE(exe,
                  name='lister.app',
-                 bundle_identifiser=None,
+                 bundle_identifier=None,
                  info_plist=info_plist
                 )
 
