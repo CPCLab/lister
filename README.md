@@ -237,7 +237,7 @@ From the SOP above, associated key-values are marked with the number after the "
 
 ### Packaging the app on Windows
 - One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
-- One file version - on the root folder of the repo, run `pyinstaller .\build-windows-onefile.spec
+- One file version - on the root folder of the repo, run `pyinstaller .\build-windows-onefile.spec`
 
 ### Packaging the app on Linux
 - One file version - on the root folder of the repo, run `pyinstaller .\build-linux.spec
