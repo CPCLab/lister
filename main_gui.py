@@ -8,7 +8,7 @@ customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 class MainGUI(customtkinter.CTk):
-    WIDTH = 780
+    WIDTH = 680
     HEIGHT = 680
 
     def __init__(self):
@@ -51,12 +51,18 @@ class MainGUI(customtkinter.CTk):
         self.elabftw_endpoint_label = customtkinter.CTkLabel(master=self.required_argument_frame, text="eLabFTW API endpoint URL", fg_color=("red", "gray75"), text_font=("",15))
         self.elabftw_endpoint_label.grid(column=0, row=2, sticky="w", pady=5, padx=5)
         self.elabftw_endpoint_entry = customtkinter.CTkEntry(master=self.required_argument_frame, width=300, placeholder_text="eLabFTW API endpoint URL")
-        self.elabftw_endpoint_entry.grid(column=1, row=2, pady=5, padx=5, sticky="w")
+        self.elabftw_endpoint_entry.grid(column=0, row=3, pady=5, padx=5, sticky="w")
         # BASE OUTPUT DIR
         self.base_output_label = customtkinter.CTkLabel(master=self.required_argument_frame, text="Base Output Directory", fg_color=("white", "gray75"))
-        self.base_output_label.grid(column=0,row=0, pady=5, padx=25, sticky="w", columnspan=4)
+        self.base_output_label.grid(column=1,row=2, pady=5, padx=25, sticky="w", columnspan=4)
         self.base_output_entry = customtkinter.CTkEntry(master=self.required_argument_frame, width=200, placeholder_text="Base output directory")
-        self.base_output_label_entry.grid(column=1, row=1,  pady=5, padx=25, sticky="w")
+        self.base_output_entry.grid(column=1, row=3,  pady=5, padx=25, sticky="w")
+        # ELABFTW TOKEN
+        self.elabftw_token_label = customtkinter.CTkLabel(master=self.required_argument_frame, text="eLabFTW API Token", fg_color=("white", "gray75"))
+        self.elabftw_token_label.grid(column=0,row=4, pady=5, padx=5, sticky="w", columnspan=4)
+        self.elabftw_token_entry = customtkinter.CTkEntry(master=self.required_argument_frame, width=400, placeholder_text="Base output directory")
+        self.elabftw_token_entry.grid(column=0, row=5,  pady=5, padx=5, sticky="w", columnspan=4)
+
 
         # BOTTOM FRAME
         self.optional_argument_frame = customtkinter.CTkFrame(master=self)
