@@ -98,3 +98,7 @@ output/cpc3-CG-elab.log
 output/cpc3-CG-elab.xlsx
 MML2OMML2.XSL
 .idea/misc.xml
+blue.json
+tkinter_position.py
+ttk_sample.py
+ttk_sample.spec
