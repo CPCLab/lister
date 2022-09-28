@@ -38,7 +38,10 @@ class MainGUI(customtkinter.CTk):
         self.header_frame.grid_rowconfigure(0, weight=3)
         self.header_frame.grid(row=0, column=0, sticky="nswe", padx=0, pady=0)
         self.header_label = customtkinter.CTkLabel(master=self.header_frame, text="LISTER: Life Science Metadata Parser", text_font=("",18,'bold'))
-        self.header_label.grid(column=0, row=1, pady=(0,0), padx=5)
+        self.header_label.grid(column=0, row=1, sticky="w", pady=(10,0), padx=20)
+        self.header_desc = customtkinter.CTkLabel(master=self.header_frame, text="LISTER utilizes API to fetch annotated experiments entry on eLabFTW and extract metadata on it.\n"
+                                                                                 "Please headover to https://github.com/fathoni/lister for more details.", text_font=("",10), justify="left", anchor=customtkinter.W)
+        self.header_desc.grid(column=0, row=2, sticky="w", pady=(0,10), padx=20)
 
 
         # MID FRAME
