@@ -5,31 +5,46 @@ from tkinter import ttk
 customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark", "Light"
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-class MainGUI(customtkinter.CTk):
+
+class GeneralGUI(customtkinter.CTk):
     WIDTH = 920
     HEIGHT = 650
+    def __init__(self):
+        super().__init__()
+        self.title("LISTER: Life Science Metadata Parser")
+        self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
+        # self.eval('tk::PlaceWindow . center')
+        # self.eval('tk::PlaceWindow . center' % self.winfo_pathname(self.winfo_id()))
+        self.resizable(False,False) # disable window resizing as it is not designed to be responsive design
+
+    def on_closing(self, event=0):
+        self.destroy()
+
+class SecondaryGUI(GeneralGUI):
+    def __init__(self):
+        super().__init__()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.create_secondary_widgets()
+
+    def create_secondary_widgets(self):
+        pass
+
+class InitialGUI(GeneralGUI):
+    def __init__(self):
+        super().__init__()
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.switch_var = customtkinter.StringVar(value="off")
+        self.create_widgets()
 
 
     def switch_event(self):
         print("switch toggled, current value:", self.switch_var.get())
 
-    def __init__(self):
-        super().__init__()
-
-        self.title("LISTER: Life Science Metadata Parser")
-        self.geometry(f"{MainGUI.WIDTH}x{MainGUI.HEIGHT}")
-        self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.resizable(False,False) # disable windows resizing as it is not designed to be responsive design
-
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=0)
-
-        self.switch_var = customtkinter.StringVar(value="off")
-
-        self.create_widgets()
 
     def create_widgets(self):
-
 
         # TOP FRAME
         self.header_frame = customtkinter.CTkFrame(master=self,height=70, fg_color="white")
@@ -44,7 +59,6 @@ class MainGUI(customtkinter.CTk):
                 "Please headover to https://github.com/fathoni/lister for more details.",
             text_font=("",10), justify="left", anchor=customtkinter.W)
         self.header_desc.grid(column=0, row=2, sticky="w", pady=(0,15), padx=20)
-
 
         # REQUIRED ARGUMENT FRAME
         self.req_label_frame = ttk.LabelFrame(master=self, text="Required arguments")
@@ -117,7 +131,6 @@ class MainGUI(customtkinter.CTk):
             master=self.required_argument_frame, width=600, placeholder_text="eLabFTW API Token", border_width=1)
         self.elabftw_token_entry.grid(column=0, row=8,  pady=(0,20), padx=5, sticky="w", columnspan=4)
 
-
         # OPTIONAL ARGS FRAME
         self.optional_label_frame = ttk.LabelFrame(master=self, text="Optional arguments")
         self.optional_label_frame.grid(row=2, column=0, sticky="nswe", padx=10, pady=(20,10))
@@ -132,20 +145,23 @@ class MainGUI(customtkinter.CTk):
         self.final_frame = customtkinter.CTkFrame(master=self, fg_color="#EBEBEC")
         self.final_frame.grid(row=3, column=0, sticky="e", padx=5, pady=(10,10))
         self.final_run_btn = customtkinter.CTkButton(
-            master=self.final_frame, text="   Run   ", command=self.button_event)
+            master=self.final_frame, text="   Run   ", command=self.run_button_event)
         self.final_run_btn.grid(column=3, row=0, padx=(30,30), pady=10)
-
-    def on_closing(self, event=0):
-        self.destroy()
 
 
     def change_appearance_mode(self, new_appearance_mode):
         customtkinter.set_appearance_mode(new_appearance_mode)
 
+
     def button_event(self):
         print("button clicked")
 
+    def run_button_event(self):
+        print("button clicked")
+        result = SecondaryGUI()
+        # self.destroy()
+
 
 if __name__ == "__main__":
-    app = MainGUI()
+    app = InitialGUI()
     app.mainloop()
