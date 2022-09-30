@@ -14,12 +14,30 @@ class GeneralGUI(customtkinter.CTk):
         self.title("LISTER: Life Science Metadata Parser")
         self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        # self.eval('tk::PlaceWindow . center')
+        # self.eval('tk::PlaceWindow . center') #https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter
         # self.eval('tk::PlaceWindow . center' % self.winfo_pathname(self.winfo_id()))
         self.resizable(False,False) # disable window resizing as it is not designed to be responsive design
+        # https://stackoverflow.com/questions/12351786/how-to-redirect-print-statements-to-tkinter-text-widget
+        self.create_header_widgets()
 
     def on_closing(self, event=0):
         self.destroy()
+
+    def create_header_widgets(self):
+
+        # TOP FRAME
+        self.header_frame = customtkinter.CTkFrame(master=self,height=70, fg_color="white")
+        self.header_frame.grid_rowconfigure(0, weight=3)
+        self.header_frame.grid(row=0, column=0, sticky="nswe", padx=0, pady=0)
+        self.header_label = customtkinter.CTkLabel(
+            master=self.header_frame, text="LISTER: Life Science Metadata Parser", text_font=("",18,'bold'))
+        self.header_label.grid(column=0, row=1, sticky="w", pady=(10,0), padx=20)
+        self.header_desc = customtkinter.CTkLabel(
+            master=self.header_frame,
+            text="LISTER utilizes API to fetch annotated experiments entry on eLabFTW and extract metadata on it.\n"
+                "Please headover to https://github.com/fathoni/lister for more details.",
+            text_font=("",10), justify="left", anchor=customtkinter.W)
+        self.header_desc.grid(column=0, row=2, sticky="w", pady=(0,15), padx=20)
 
 class SecondaryGUI(GeneralGUI):
     def __init__(self):
@@ -45,20 +63,6 @@ class InitialGUI(GeneralGUI):
 
 
     def create_widgets(self):
-
-        # TOP FRAME
-        self.header_frame = customtkinter.CTkFrame(master=self,height=70, fg_color="white")
-        self.header_frame.grid_rowconfigure(0, weight=3)
-        self.header_frame.grid(row=0, column=0, sticky="nswe", padx=0, pady=0)
-        self.header_label = customtkinter.CTkLabel(
-            master=self.header_frame, text="LISTER: Life Science Metadata Parser", text_font=("",18,'bold'))
-        self.header_label.grid(column=0, row=1, sticky="w", pady=(10,0), padx=20)
-        self.header_desc = customtkinter.CTkLabel(
-            master=self.header_frame,
-            text="LISTER utilizes API to fetch annotated experiments entry on eLabFTW and extract metadata on it.\n"
-                "Please headover to https://github.com/fathoni/lister for more details.",
-            text_font=("",10), justify="left", anchor=customtkinter.W)
-        self.header_desc.grid(column=0, row=2, sticky="w", pady=(0,15), padx=20)
 
         # REQUIRED ARGUMENT FRAME
         self.req_label_frame = ttk.LabelFrame(master=self, text="Required arguments")
