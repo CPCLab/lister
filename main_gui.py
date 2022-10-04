@@ -3,10 +3,13 @@ import customtkinter
 from tkinter import ttk
 
 customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark", "Light"
+# note: while customtkinter provides a light/dark/system theme, in this code ttkinter is also used to support LabelFrame
+# widget, and ttk does not provide this theming by default.
 customtkinter.set_default_color_theme("blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
 
 class GeneralGUI(customtkinter.CTk):
+
     WIDTH = 920
     HEIGHT = 650
     def __init__(self):
@@ -144,12 +147,15 @@ class InitialGUI(GeneralGUI):
         self.run_btn.grid(column=3, row=0, padx=(30,30), pady=10)
 
 
-    def change_appearance_mode(self, new_appearance_mode):
-        customtkinter.set_appearance_mode(new_appearance_mode)
-
-
     def button_event(self):
+        # dummy function for now
         print("button clicked")
+
+    def back_button(self):
+        self.output_txtbox.destroy()
+        self.back_to_lister_frame.destroy()
+        self.create_widgets()
+
 
     def run_button_event(self):
         self.req_label_frame.destroy()
@@ -157,11 +163,17 @@ class InitialGUI(GeneralGUI):
         self.run_frame.destroy()
 
         # CREATE NEW FRAME FOR TEXTBOX
-        # self.output_textbox =
+        self.mytext ='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.'
+        self.output_txtbox = tkinter.Text(master=self, state="normal", width=122, height=37)
+        self.output_txtbox.insert(tkinter.END, self.mytext)
+        self.output_txtbox.configure(state='disabled')
+        self.output_txtbox.grid(row=1, column=0, sticky="w", padx=25, pady=10)
+
+        # CREATE NEW FRAME FOR BACK BUTTON
         self.back_to_lister_frame = customtkinter.CTkFrame(master=self, fg_color="#EBEBEC")
         self.back_to_lister_frame.grid(row=3, column=0, sticky="e", padx=5, pady=(10, 10))
         self.lister_back_btn = customtkinter.CTkButton(
-            master=self.back_to_lister_frame, text="   Back   ", command=self.create_widgets)
+            master=self.back_to_lister_frame, text="   Back   ", command=self.back_button)
         self.lister_back_btn.grid(column=3, row=0, padx=(30,30), pady=10)
 
 
