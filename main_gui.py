@@ -39,15 +39,6 @@ class GeneralGUI(customtkinter.CTk):
             text_font=("",10), justify="left", anchor=customtkinter.W)
         self.header_desc.grid(column=0, row=2, sticky="w", pady=(0,15), padx=20)
 
-class SecondaryGUI(GeneralGUI):
-    def __init__(self):
-        super().__init__()
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(0, weight=0)
-        self.create_secondary_widgets()
-
-    def create_secondary_widgets(self):
-        pass
 
 class InitialGUI(GeneralGUI):
     def __init__(self):
@@ -146,11 +137,11 @@ class InitialGUI(GeneralGUI):
         self.upl_to_elab_switch.grid(row=1, column=0)
 
         # FINISHING STEP
-        self.final_frame = customtkinter.CTkFrame(master=self, fg_color="#EBEBEC")
-        self.final_frame.grid(row=3, column=0, sticky="e", padx=5, pady=(10,10))
-        self.final_run_btn = customtkinter.CTkButton(
-            master=self.final_frame, text="   Run   ", command=self.run_button_event)
-        self.final_run_btn.grid(column=3, row=0, padx=(30,30), pady=10)
+        self.run_frame = customtkinter.CTkFrame(master=self, fg_color="#EBEBEC")
+        self.run_frame.grid(row=3, column=0, sticky="e", padx=5, pady=(10,10))
+        self.run_btn = customtkinter.CTkButton(
+            master=self.run_frame, text="   Run   ", command=self.run_button_event)
+        self.run_btn.grid(column=3, row=0, padx=(30,30), pady=10)
 
 
     def change_appearance_mode(self, new_appearance_mode):
@@ -161,9 +152,17 @@ class InitialGUI(GeneralGUI):
         print("button clicked")
 
     def run_button_event(self):
-        print("button clicked")
-        result = SecondaryGUI()
-        # self.destroy()
+        self.req_label_frame.destroy()
+        self.optional_label_frame.destroy()
+        self.run_frame.destroy()
+
+        # CREATE NEW FRAME FOR TEXTBOX
+        # self.output_textbox =
+        self.back_to_lister_frame = customtkinter.CTkFrame(master=self, fg_color="#EBEBEC")
+        self.back_to_lister_frame.grid(row=3, column=0, sticky="e", padx=5, pady=(10, 10))
+        self.lister_back_btn = customtkinter.CTkButton(
+            master=self.back_to_lister_frame, text="   Back   ", command=self.create_widgets)
+        self.lister_back_btn.grid(column=3, row=0, padx=(30,30), pady=10)
 
 
 if __name__ == "__main__":
