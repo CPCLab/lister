@@ -773,7 +773,6 @@ def get_upl_id(exp, content):
     return upl_id, real_name
 
 
-
 def get_text_width(document):
     """
     Returns the text width in mm.
@@ -982,7 +981,16 @@ def parse_lines_for_docx(lines, internal_comments):
     return narrative_lines, references
 
 
-def parse_list_for_metadata(lines):
+def parse_lines_list_to_kv(lines):
+    '''
+    Get a list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''] from nbsp-clean lines
+    :param list lines: list of lines cleaned up from nbsp
+    :return: tuple (multi_nkvmu_pair, internal_comments, log)
+        WHERE
+        list multi_nkvmu_pair: list of [order, key, value, measure, unit] or ['-', section level, section name, '', '']
+        str internal_comments: placeholder for found internal comments within key-value pairs. This may be used in the future.
+        str log: log from runnung subsequent functions
+    '''
     par_no = 0
     multi_nkvmu_pair = []
     multi_nk_pair = []
@@ -1004,7 +1012,7 @@ def parse_list_for_metadata(lines):
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
-                kvmu_set = extract_kvmu(kv_and_flow_pair) #returns tuple with key, value, measure, unit, log
+                kvmu_set = extract_kvmu(kv_and_flow_pair) # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
@@ -1052,7 +1060,7 @@ def extract_docx_content(doc_content):
         par_lines.append(para.text)
         par_no = par_no + 1
     par_lines = list(line for line in par_lines if line)
-    multi_nkvmu_pair, log = parse_list_for_metadata(par_lines)
+    multi_nkvmu_pair, log = parse_lines_list_to_kv(par_lines)
     return multi_nkvmu_pair, log
 
 
@@ -1134,18 +1142,25 @@ def extract_docx_media(filename):
 
 
 def remove_table_tag(soup):
+    '''
+    Removes table tags and its content from the soop object
+
+    :param bs4.BeautifulSoup soup: bs4 soup object
+    :return: bs4.BeautifulSoup soup object without table tag and it's content
+    '''
     for table in soup("table"):
         table.decompose()
     return soup
 
 
-def get_kv_log_from_html(html_content):
-    # soup = BeautifulSoup(html_content, "html5lib")
-    soup = BeautifulSoup(html_content, "html.parser")
-    soup = remove_table_tag(soup)
+def process_nbsp(soup):
+    '''
+    Removes non-break space (nbsp), and provides a 'clean' version of the lines.
+    :param bs4.BeautifulSoup soup: soup object that will be cleaned up from nbsp
+    :return: list clean_lines lines without nbsp
+    '''
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
-
     # fetching the experiment paragraph, line by line
     lines = [x for x in text if x != '\xa0']  # Remove NBSP if it is on a single list element
     # Replace NBSP with space if it is inside the text
@@ -1155,7 +1170,29 @@ def get_kv_log_from_html(html_content):
         line = line.replace(non_break_space, ' ')
         clean_lines.append(line)
         line_no = line_no + 1
-    multi_nkvmu_pair, internal_comments, log = parse_list_for_metadata(clean_lines)
+    return clean_lines
+
+
+def get_kv_log_from_html(html_content):
+    '''
+    Turns html body content into extended key-value pair
+            [order, key, value, measure (if applicable), unit (if applicable)] or
+            [-, section level, section name, '', '']
+
+    :param str html_content: body of the html content, extracted from eLabFTW API experiment
+    :return: tuple (multi_nkvmu_pair, log)
+        WHERE
+        list multi_nkvmu_pair is a list of a list with
+            [order, key, value, measure (if applicable), unit (if applicable)] or
+            [-, section level, section name, '', '']
+        str log is a string log returned from the respectively-executed functions
+    '''
+    # soup = BeautifulSoup(html_content, "html5lib")
+
+    soup = BeautifulSoup(html_content, "html.parser")
+    soup = remove_table_tag(soup)
+    clean_lines = process_nbsp(soup)
+    multi_nkvmu_pair, internal_comments, log = parse_lines_list_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
 
@@ -1228,7 +1265,7 @@ def extract_md_via_text(filename):
     marked_txt = f.read()
     unmarked_txt = unmark(marked_txt).replace("\\","")
     lines = unmarked_txt.splitlines()
-    multi_nkvmu_pair, log = parse_list_for_metadata(lines)
+    multi_nkvmu_pair, log = parse_lines_list_to_kv(lines)
     return multi_nkvmu_pair, log
 
 
