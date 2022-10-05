@@ -17,10 +17,7 @@ class GeneralGUI(customtkinter.CTk):
         self.title("LISTER: Life Science Metadata Parser")
         self.geometry(f"{self.WIDTH}x{self.HEIGHT}")
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
-        # self.eval('tk::PlaceWindow . center') #https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter
-        # self.eval('tk::PlaceWindow . center' % self.winfo_pathname(self.winfo_id()))
         self.resizable(False,False) # disable window resizing as it is not designed to be responsive design
-        # https://stackoverflow.com/questions/12351786/how-to-redirect-print-statements-to-tkinter-text-widget
         self.create_header_widgets()
 
     def on_closing(self, event=0):
@@ -163,7 +160,13 @@ class InitialGUI(GeneralGUI):
         self.run_frame.destroy()
 
         # CREATE NEW FRAME FOR TEXTBOX
-        self.mytext ='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.'
+        self.mytext ='Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ' \
+                     'ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo ' \
+                     'duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum ' \
+                     'dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod ' \
+                     'tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et ' \
+                     'accusam et justo duo dolores et ea rebum Stet clita kasd gubergren, no sea takimata sanctus ' \
+                     'est Lorem ipsum dolor sit amet.'
         self.output_txtbox = tkinter.Text(master=self, state="normal", width=122, height=37)
         self.output_txtbox.insert(tkinter.END, self.mytext)
         self.output_txtbox.configure(state='disabled')

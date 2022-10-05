@@ -1244,21 +1244,22 @@ def fetch_uploads(manager, uploads):
 
 
 def get_elab_experiment(exp_number, current_endpoint, current_token):
+    '''
+    Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
+
+    :param int exp_number: experiment ID to be fetched
+    :param str current_endpoint: eLabFTW API endpoint URL
+    :param str current_token: eLabFTW token
+    :return: tuple (manager, exp)
+        WHERE
+        elabapy.Manager manager is an elabapy.Manager object of the experiment
+        dict exp is a python dictionary containing the experiment properties (id, title, html body, etc)
+    '''
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
     ssl._create_default_https_context = ssl._create_unverified_context
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     exp = manager.get_experiment(exp_number)
     return(manager, exp)
-
-
-def extract_kv_from_elab_exp(manager, exp):
-    # EXTRACT KEY VALUES
-    # extract_imgs_from_html(current_endpoint, exp["body"])
-    kv, log = get_kv_log_from_html(exp["body"])
-    # FETCH ATTACHMENT
-    uploads = exp["uploads"]
-    fetch_uploads(manager, uploads)
-    return kv, log
 
 
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
@@ -1269,10 +1270,22 @@ def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_pa
 
 
 def manage_output_path(dir_name, file_name):
-    if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
+    '''
+    Get the output path according to respective platform.
+
+    If it is on macOS, just return the dir_name (which have already been appended with output filename),
+    on Mindows/Linux, return the dir_name + output file_name
+
+    :param str dir_name: the home directory name for the output
+    :param str file_name: the output name
+    :return: str output_path is the output directory created from appending the home path and output path
+    '''
+    if platform.system()=="Darwin":
+        # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         output_path = dir_name
     else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         output_path = dir_name + "/" + file_name + "/"
+
     return output_path
 
 
@@ -1286,11 +1299,25 @@ def manage_input_path():
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
 def parse_cfg():
-    # Manual debugging as Gooey does not support debugging directly
+    '''
+    Parse JSON config file, requires existing config.json file which should be specified on certain directory.
+
+    The directory is OS-dependent. On Windows/Linux, it is in the same folder as the script/executables.
+    On macOS, it is in the users' Apps/lister/config.json file.
+
+    :returns: tuple (token, endpoint, output_file_name, exp_no)
+        str token: eLabFTW API Token
+        str endpoint: eLabFTW API endpoint URL
+        str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file)
+        int exp_no: the parsed experiment ID (int)
+
+    '''
+
     # dirname, filename = os.path.split(os.path.abspath(__file__))
     # print("CURRENT CONFIG DIRECTORY: %s" % (str(dirname))) # this shows from where the executable was actually run
     input_file = manage_input_path() + "config.json"
     print("CONFIG FILE: %s" % (input_file))
+    # using ...wirh open... allows file to be closed automatically.
     with open(input_file) as json_data_file:
         data = json.load(json_data_file)
     token = data['elabftw']['token']
@@ -1301,6 +1328,15 @@ def parse_cfg():
 
 
 def get_default_output_path(file_name):
+    '''
+    Create an output path based on the home path (OS-dependent) and output file name.
+
+    The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
+    On macOS, it is in the users' Apps/lister/output/ directory.
+
+    :param str file_name: file name for the output
+    :returns: str output_path is the output path created from appending lister's output home directory and output file name
+    '''
     if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         home = str(Path.home())
         output_path = home + "/Apps/lister/output/" + file_name + "/"
@@ -1317,6 +1353,22 @@ def get_default_output_path(file_name):
 @Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:',
            default_size=(900, 650)) # , image_dir='resources/')
 def parse_args():
+    '''
+    Get arguments from an existing JSON config to be passed to Gooey's interface.
+
+    Manual debugging (i.e., printout) is necessary when Gooey is used.
+
+    :returns: args
+        WHERE
+        argparse.Namespace args is an object containing several attributes:
+            - str command (e.g., eLabFTW),
+            - str output_file_name
+            - int exp_no
+            - str endpoint
+            - str base_output_dir
+            - str token
+            - bool uploadToggle
+    '''
     token, endpoint, output_file_name, exp_no = parse_cfg()
     settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
     parser = GooeyParser(description=settings_msg)
@@ -1362,6 +1414,7 @@ def parse_args():
                                     help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
                                          '(for latest eLabFTW instance only)')
 
+    # This used to be docx and md parser, but now it is set to be obselete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
     # docx_arg_parser = subs.add_parser(
     #     'DOCX', help='Parse metadata from DOCX files')
@@ -1449,18 +1502,21 @@ def main():
         exp_no = args.exp_no
         endpoint = args.endpoint
         manager, exp = get_elab_experiment(exp_no, endpoint, token)
-        nkvmu, log = extract_kv_from_elab_exp(manager, exp)
+        # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
+        nkvmu, log = get_kv_log_from_html(exp["body"])
+        fetch_uploads(manager, exp["uploads"])
         serialize_to_docx_detailed(manager, exp)
-    elif args.command == 'DOCX':
-        input_file = args.input_file
-        document = get_docx_content(input_file)
-        nkvmu, log = extract_docx_content(document)
-    elif args.command == 'MD':
-        input_file = args.input_file
+
+    # elif args.command == 'DOCX':
+    #     input_file = args.input_file
+    #     document = get_docx_content(input_file)
+    #     nkvmu, log = extract_docx_content(document)
+    # elif args.command == 'MD':
+    #     input_file = args.input_file
         # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
         # kv, log = extract_md_exp_content_via_pandoc(input_file)
         # -- use below to transform md->text is needed prior to extraction (faster).
-        nkvmu, log = extract_md_via_text(input_file)
+    #    nkvmu, log = extract_md_via_text(input_file)
 
     # Writing to JSON and XLSX
     write_to_json(nkvmu)
