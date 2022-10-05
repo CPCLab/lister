@@ -124,6 +124,11 @@ class Arg_num(Enum):
 
 
 def split_into_sentences(content):
+    '''
+    Splits into sentences
+    :param str content: a line string that potentially consists of multiple sentences.
+    :return: list sentences: list of splitted sentences, with regular/annotation bracket still intact.
+    '''
     # The code in this function is adapted from user:5133085's answer in SO: https://stackoverflow.com/a/31505798/548451
     # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
     latin_alphabets = "([A-Za-z])"
@@ -188,6 +193,15 @@ def is_num(s):
 
 # -------------------------------- CONTROL-FLOW VALIDATOR FUNCTIONS --------------------------------
 def check_bracket_num(par_no, text):
+    '''
+    Checks if there is any bracketing error over the text line
+    :param int par_no: paragraph number for the referred line
+    :param str text: string of the line
+    :return: tuple (log, error)
+        WHERE
+        str log: error log (if any)
+        bool is_error:flag if the checked line contains bracketing error
+    '''
     log = ""
     base_error_warning = "BRACKET ERROR: %s %s: %s"
     is_error = False
