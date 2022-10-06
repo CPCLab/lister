@@ -640,7 +640,7 @@ def get_comment_properties(str_with_brackets):
 
 def strip_unwanted_mvu_colons(word):
     if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
-        print("Sorrounding colons in the value/measure/unit {} is removed".format(word))
+        print("Surrounding colons in the value/measure/unit {} is removed".format(word))
         word = word[1:-1] # if there are colons surrounding the word remains, remove it
     return word
 
@@ -914,6 +914,17 @@ def get_upl_long_name(img_path):
 
 
 def get_upl_id(exp, content):
+    '''
+    get upload id from given experiment and content
+    :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc)
+    :param bs4.element.Tag content: a bs4 Tag object containing <h1>/<p><img alt=... src=...> Tag that provides the
+            link to a particular image file.
+    :return: tuple (upl_id, real_name)
+        WHERE
+        str upl_id: upload id of the image attachment, used to access the image through API.
+        str real_name: the name of the file when it was uploaded to eLabFTW.
+
+    '''
     img_path = content.img['src']
     upl_long_name = get_upl_long_name(img_path)
     uploads = exp['uploads']
@@ -942,6 +953,14 @@ def get_text_width(document):
 
 
 def add_img_to_doc(manager, document, upl_id, real_name):
+    '''
+    add image to the document file, based on upload id and image name when it was uploaded. 
+    
+    :param str elabapy.Manager manager: manager object to get access to the eLabFTW API.
+    :param str document: the document object that is being modified.
+    :param str upl_id: upload id of the image/attachment that is going to be inserted to the document file.
+    :param str real_name: real name of the image when it was uploaded to eLabFTW.
+    '''
     log = ""
     if real_name:
         with open(output_path_prefix + real_name, 'wb') as img_file:
@@ -1361,15 +1380,15 @@ def extract_kv_from_htmlbody(html_content):
     multi_nkvmu_pair, internal_comments, log = parse_lines_list_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
-
+# DEPRECATED: we focus now entirely on extracting document in eLabFTW, and no longer supporting docx/md
 # extracting md via docx conversion using pandoc in case it is needed in the future
-def extract_md_exp_content_via_pandoc(filename):
-    output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
-    document = get_docx_content(filename+".docx")
-    os.remove(filename+".docx")
-    kv, log = extract_docx_content(document)
-    log = log + output
-    return kv, log
+# def extract_md_exp_content_via_pandoc(filename):
+#    output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
+#    document = get_docx_content(filename+".docx")
+#    os.remove(filename+".docx")
+#    kv, log = extract_docx_content(document)
+#    log = log + output
+#    return kv, log
 
 
 # note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
@@ -1390,49 +1409,51 @@ def extract_imgs_from_md(filename):
 
 
 # DEPRECATED: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
-def extract_imgs_from_html(current_endpoint, html_doc):
-    soup = BeautifulSoup(html_doc, 'html.parser')
-    imgs = soup.findAll("img")
-    parsed_uri = urlparse(current_endpoint)
-    base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-    for img in imgs:
-        src = img.get('src')
-        file_path = base_url + src
-        fd = urlopen(file_path)
-        read_img = BytesIO(fd.read())
-        loaded_img = Image.open(read_img)
-        path_tail = os.path.split(file_path)
-        loaded_img.save(output_path_prefix + path_tail[1])
+# def extract_imgs_from_html(current_endpoint, html_doc):
+#    soup = BeautifulSoup(html_doc, 'html.parser')
+#    imgs = soup.findAll("img")
+#    parsed_uri = urlparse(current_endpoint)
+#    base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
+#    for img in imgs:
+#        src = img.get('src')
+#        file_path = base_url + src
+#        fd = urlopen(file_path)
+#        read_img = BytesIO(fd.read())
+#        loaded_img = Image.open(read_img)
+#        path_tail = os.path.split(file_path)
+#        loaded_img.save(output_path_prefix + path_tail[1])
 
 
-def unmark_element(element, stream=None):
-    if stream is None:
-        stream = StringIO()
-    if element.text:
-        stream.write(element.text)
-    for sub in element:
-        unmark_element(sub, stream)
-    if element.tail:
-        stream.write(element.tail)
-    return stream.getvalue()
+# DEPRECATED: we do not support MD inputs anymore
+# def unmark_element(element, stream=None):
+#    if stream is None:
+#        stream = StringIO()
+#    if element.text:
+#        stream.write(element.text)
+#    for sub in element:
+#        unmark_element(sub, stream)
+#    if element.tail:
+#        stream.write(element.tail)
+#    return stream.getvalue()
 
 
 # patching Markdown
-Markdown.output_formats["plain"] = unmark_element
-__md = Markdown(output_format="plain")
-__md.stripTopLevelTags = False
-def unmark(text):
-    return __md.convert(text)
+#Markdown.output_formats["plain"] = unmark_element
+#__md = Markdown(output_format="plain")
+#__md.stripTopLevelTags = False
+#def unmark(text):
+#    return __md.convert(text)
 
 
-def extract_md_via_text(filename):
-    extract_imgs_from_md(filename)
-    f = open(filename, 'r', encoding='utf-8')
-    marked_txt = f.read()
-    unmarked_txt = unmark(marked_txt).replace("\\","")
-    lines = unmarked_txt.splitlines()
-    multi_nkvmu_pair, log = parse_lines_list_to_kv(lines)
-    return multi_nkvmu_pair, log
+# DEPRECATED: we do not support MD inputs anymore
+# def extract_md_via_text(filename):
+#    extract_imgs_from_md(filename)
+#    f = open(filename, 'r', encoding='utf-8')
+#    marked_txt = f.read()
+#    unmarked_txt = unmark(marked_txt).replace("\\","")
+#    lines = unmarked_txt.splitlines()
+#    multi_nkvmu_pair, log = parse_lines_list_to_kv(lines)
+#    return multi_nkvmu_pair, log
 
 
 def fetch_uploads(manager, uploads):
