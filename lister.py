@@ -28,6 +28,7 @@ import pandas as pd
 from docx.shared import Mm, RGBColor
 from lxml import etree
 import latex2mathml.converter
+from pprint import pprint
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -380,6 +381,17 @@ def validate_section(cf_split):
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
+    '''
+    Converts key value based on foreach control-metadata entry.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log, is_error = validate_foreach(cf_split)
     if is_error:
@@ -396,6 +408,17 @@ def process_foreach(par_no, cf_split):
 
 
 def process_while(par_no, cf_split):
+    '''
+    Converts key value based on while control-metadata entry.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log, is_error = validate_while(cf_split)
     if is_error:
@@ -416,6 +439,17 @@ def process_while(par_no, cf_split):
 
 
 def process_if(par_no, cf_split):
+    '''
+    Converts key value based on if control-metadata entry.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log, is_error = validate_if(cf_split)
     if is_error:
@@ -436,6 +470,17 @@ def process_if(par_no, cf_split):
 
 
 def process_elseif(par_no, cf_split):
+    '''
+    Converts key value based on else-if control-metadata entry.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log, is_error = validate_elseif(cf_split)
     if is_error:
@@ -463,6 +508,17 @@ def process_elseif(par_no, cf_split):
 
 # no arguments are passed so no validation is needed.
 def process_else(par_no, cf_split):
+    '''
+    Converts key value based on else control-metadata entry.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     print(cf_split)
     key_val = []
     log = ""
@@ -480,6 +536,17 @@ def process_else(par_no, cf_split):
 
 
 def process_range(flow_range):
+    '''
+    Converts key value based on range control-metadata entry. Please consult LISTER documentation on GitHub.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     log, is_error = "", False
     log, is_error = validate_range(flow_range)
     if is_error:
@@ -492,11 +559,21 @@ def process_range(flow_range):
 
 
 def process_for(par_no, cf_split):
+    '''
+    Converts key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log, is_error = validate_for(cf_split)
     if is_error:
         write_log(log)
-        # print(log)
         exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -518,6 +595,17 @@ def process_for(par_no, cf_split):
 
 # should happen only after having 'while' iterations to provide additional steps on the iterator
 def process_iterate(par_no, cf_split):
+    '''
+    Converts key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
+
+    :param int par_no: paragraph number where string fragment containing the referred pair was found.
+    :param list cf_split: list of split string.
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full control-flow metadata,
+        str log: log resulted from running this and subsequent functions,
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log = ""
     is_error = False
@@ -582,6 +670,17 @@ def process_internal_comment(str_with_brackets):
 
 
 def process_section(cf_split):
+    '''
+    Converts key value based on section to a full section metadata entry
+
+    :param list cf_split: list of strings split e.g., ['Section', 'Remarks']
+    :returns: tuple (key_val, log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full section-metadata line
+                    e.g. [['-', 'section level 0', 'Precultures', '', '']]
+        str log: log resulted from running this and subsequent functions
+        bool is_error: flag that indicates whether an error occured.
+    '''
     key_val = []
     log = ""
     is_error = False
@@ -1224,7 +1323,7 @@ def process_nbsp(soup):
     return clean_lines
 
 
-def get_kv_log_from_html(html_content):
+def extract_kv_from_htmlbody(html_content):
     '''
     Turns html body content into extended key-value pair
             [order, key, value, measure (if applicable), unit (if applicable)] or
@@ -1321,6 +1420,13 @@ def extract_md_via_text(filename):
 
 
 def fetch_uploads(manager, uploads):
+    '''
+    Gets a list of attachments in the experiment entry and serializes this into files.
+
+    :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
+    :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
+                    (e.g., file_size, real_name, long_name, hash, etc).
+    '''
     for upload in uploads:
         with open(output_path_prefix + upload["real_name"], 'wb') as attachment:
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
@@ -1591,7 +1697,7 @@ def main():
         endpoint = args.endpoint
         manager, exp = get_elab_experiment(exp_no, endpoint, token)
         # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
-        nkvmu, log = get_kv_log_from_html(exp["body"])
+        nkvmu, log = extract_kv_from_htmlbody(exp["body"])
         fetch_uploads(manager, exp["uploads"])
         serialize_to_docx_detailed(manager, exp)
 
