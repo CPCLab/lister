@@ -92,7 +92,7 @@ The annotation mechanism below affects both output metadata (xlsx and json) and 
     
     - Annotation is done using brackets and double colon `(: :)`
     
-    - Annotation example: `(:This comment will be totally invisible in the docx output file:)`.
+    - Annotation example: `(:This comment's bracket will be invisible in the docx output file, but the text content will be kept:)`.
 
 - *Conditionals and iterations handling*. 
   
@@ -228,8 +228,41 @@ From the SOP above, associated key-values are marked with the number after the "
 
 
 
-# Repository structure
+## Packaging LISTER
 
-- The base directory contains the metadata extraction script.
-- `input` directory contains the *.DOCX/*.MD experiment documentation examples for the extraction.
-- `output` directory contains extracted steps order – key – value in both JSON and XLSX format.
+- Packaging is done through the PyInstaller, and has to be done on each respective platform.
+- A spec file to build LISTER can be generated using `pyi-makespec` command, e.g., `pyi-makespec --onedir lister.py` to create a spec file to package lister app as one directory instead of one file.
+- The spec file need to be adjusted accordingly, and the spec file for each platform is povided here.
+- The resulting packaged app is available under te `dist` directory
+
+### Packaging the app on Windows
+- One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
+- One file version - on the root folder of the repo, run `pyinstaller .\build-windows-onefile.spec`
+
+### Packaging the app on Linux
+- One file version - on the root folder of the repo, run `pyinstaller .\build-linux.spec
+`
+### Packaging the app on macOS
+- One file version - on the root folder of the repo, run `pyinstaller .\build-macos.spec`
+
+# 10. Troubleshooting
+
+## Slow app execution
+ 
+Decompressing single-executable lister app into a temporary directory likely caused this problem. 
+The multi-file distribution can be used, although it is not as tidy compared to the single-executable lister app. 
+
+## Encoding problem on Windows
+When the following error ` 'charmap' codec can't encode characters in position...` appears, 
+open `cmd.exe` as an admin prior to running lister,  and then type the following: 
+```
+setx /m PYTHONUTF8 1
+setx PATHEXT "%PATHEXT%;.PY
+```
+
+## Failed building on Windows
+
+The error `win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'The system cannot open the device or file specified.')
+` happens because file access problems on Windows, check if the directory is not read-only, 
+exclude the repo folder from antivirus scanning, and/or try removing both `build` and `dist` directory. 
+Both of these directories are automatically generated upon packaging.
