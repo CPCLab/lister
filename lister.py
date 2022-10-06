@@ -871,16 +871,23 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces, references
 
 
+# used in remove_empty_tags()
 def remove_empty_tags(soup):
     for x in soup.find_all():
-       # if the text within a tag is empty, and tag name is not img/br and it is not img within p tag:
-       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table', 'h1', 'h2', 'h3', 'h5', 'h6'] \
-               and len(x.select("p img")) == 0 :
+       # if the text within a tag is empty, and tag name is not img/br7etc.. and it is not img within p tag:
+       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table', 'h1', 'h2', 'h3',
+                                            'h5', 'h6'] and len(x.select("p img")) == 0 :
            x.extract()
     return soup
 
 
 def get_nonempty_body_tags(exp):
+    '''
+    Cleans up the source-html from empty-content html tags.
+
+    :param bs4.soup exp: beautifulSoup4.soup experiment object
+    :return: list tagged_contents: list of non-empty html tags as well as new lines.
+    '''
     html_body = exp["body"]
     soup = BeautifulSoup(html_body, "html.parser")
     non_empty_soup = remove_empty_tags(soup)
@@ -911,9 +918,12 @@ def get_upl_id(exp, content):
     upl_long_name = get_upl_long_name(img_path)
     uploads = exp['uploads']
     if len(uploads)>0:
-        # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be used in the image url
-        # e.g. long_name: '21/21e1e300442a68bcbc5dc743f7b3f129b6ab4224859be14c9c7e365ceac7b835a4f00064764b16fe195
-        # problem: experiment that imports image from database entry does not have upload id (?) - hence need to discuss with dev
+        # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be
+        # used in the image url e.g. long_name:
+        # '21/21e1e300442a68bcbc5dc743f7b3f129b6ab4224859be14c9c7e365ceac7b835a4f00064764b16fe195
+        # problem: experiment that imports image from database entry does not have upload id
+        # unfortunately there is no fix planned for this on eLabFTW API V1, see:
+        # https://github.com/elabftw/elabftw/issues/3764
         matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
         upl_id = matched_upl['id']
         real_name = matched_upl['real_name']
@@ -1075,6 +1085,12 @@ def html_taglist_to_doc(document, content):
 
 
 def serialize_to_docx_detailed(manager, exp):
+    '''
+    fetches an experiment, cleans the content from LISTER annotation markup and serializes the result to a docx file.
+
+    :param elabapy.Manager manager: elabapy Manager object, required to access the experiment from eLabFTW.
+    :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
+    '''
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
@@ -1357,7 +1373,7 @@ def extract_md_exp_content_via_pandoc(filename):
 
 
 # note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
-# directly to the text file without providing file names. for the parser to work properly, users have to ensure that
+# directly to the text file without providing file names. For the parser to work properly, users have to ensure that
 # copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
 # on eLabFTW and set the name of the image file there.
 def extract_imgs_from_md(filename):
