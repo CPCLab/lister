@@ -560,11 +560,25 @@ def strip_unwanted_mvu_colons(word):
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
 def process_internal_comment(str_with_brackets):
+    '''
+    Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the trailing comments.
+
+    Internal comment refers to any comment that is available within a fragment of a lister bracket annotation.
+    Internal comment will     not be bypassed to the metadata output.
+    However, internal comment is important to be provided to make the experiment clear-text readable in the docx output.
+
+    :param str str_with_brackets: a lister bracket annotation fragment with a comment
+    :returns: tuple (actual_fragment, internal_comment)
+        WHERE
+        str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit
+        str internal_comment: string containing the comment part of the string fragment, with brackets retained.
+    '''
+
     comment = re.search(Regex_patterns.COMMENT.value, str_with_brackets)
     comment = comment.group(0)
     remains = str_with_brackets.replace(comment, '')
-    remains = strip_unwanted_mvu_colons(remains)
-    return remains.strip(), comment.strip()
+    actual_fragment, internal_comment = remains.strip(), comment.strip()
+    return actual_fragment, internal_comment
 
 
 def process_section(cf_split):
@@ -585,6 +599,17 @@ def process_section(cf_split):
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
 def extract_kvmu(kvmu):
+    '''
+    Extract lines to a tuple containing key, vaue, measuere, and log
+    :param str kvmu: a string fragment with a single lister bracketing annotation
+    :returns: tuple (key, val, measure, unit, log)
+        WHERE
+        str key: the key portion of the string fragment
+        str val: the val portion of the string fragment
+        str measure: the measure portion of the string fragment
+        str unit: the unit portion of the string fragment
+        str log: log resulted from executing this and underlying functions
+    '''
     log = ""
     source_kvmu = kvmu
     kvmu = kvmu[1:-1]
@@ -622,6 +647,19 @@ def extract_kvmu(kvmu):
 
 
 def extract_flow_type(par_no, flow_control_pair):
+    '''
+    Extracts the type of flow found on any annotation with angle brackets, which can be control flow or sectioning.
+
+    :param int par_no: paragraph number on where the control flow fragment string was found
+    :param str flow_control_pair: the control flow pair string to be extracted for metadata
+    :returns: tuple (key_val, flow_log, is_error)
+        WHERE
+        list key_val: list of list, each list contain a full complete control flow metadata line
+                    e.g. [['-', 'section level 0', 'Precultures', '', '']]
+        str flow_log: log resulted from running this and subsequent functions
+        bool is_error: flag that indicates whether an error occured.
+    '''
+
     flow_log = ""
     is_error = False
     key_val = []
@@ -648,7 +686,6 @@ def extract_flow_type(par_no, flow_control_pair):
     elif flow_type == "iterate":
         key_val, flow_log, is_error = process_iterate(par_no, cf_split)
     else:
-        # key_val, flow_log, is_error = process_post_while(par_no, cf_split)
         is_error = True
         flow_log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value % (cf_split[0].upper(), cf_split) + "\n"
     return key_val, flow_log, is_error
