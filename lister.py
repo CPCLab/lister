@@ -164,6 +164,7 @@ def split_into_sentences(content):
 
 
 # -------------------------------- TYPE-VALIDATOR HELPER FUNCTIONS --------------------------------
+# used in several control flow validation functionss()
 def is_valid_comparative_operator(operator):
     operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
     if operator.lower() in operators_list:
