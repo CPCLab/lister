@@ -5,7 +5,7 @@ import xlsxwriter
 from docx import Document
 from bs4 import BeautifulSoup, Tag
 import elabapy
-import markdown
+# import markdown
 # import pypandoc
 # from markdown import Markdown
 # from io import StringIO
@@ -165,7 +165,7 @@ def split_into_sentences(content):
 
 
 # -------------------------------- TYPE-VALIDATOR HELPER FUNCTIONS --------------------------------
-# used in several control flow validation functionss()
+# used in several control flow validation functions
 def is_valid_comparative_operator(operator):
     operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
     if operator.lower() in operators_list:
@@ -174,6 +174,7 @@ def is_valid_comparative_operator(operator):
         return False
 
 
+# used in several control flow validation functions
 def is_valid_iteration_operator(operator):
     operators_list = ["+", "-", "*", "/", "%"]
     if operator.lower() in operators_list:
@@ -182,6 +183,7 @@ def is_valid_iteration_operator(operator):
         return False
 
 
+# used in several control flow validation functions
 def is_num(s):
     if isinstance(s, int) or isinstance(s, float):
         return True
@@ -239,6 +241,7 @@ def validate_foreach(cf_split):
         is_error = True
     return log, is_error
 
+
 # used in process_while()
 def validate_while(cf_split):
     log = ""
@@ -258,6 +261,7 @@ def validate_while(cf_split):
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
+
 
 # used in process_if()
 def validate_if(cf_split):
@@ -303,6 +307,7 @@ def validate_elseif(cf_split):
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
 
+
 # used in elsef()
 def validate_else(cf_split):
     log = ""
@@ -329,6 +334,7 @@ def validate_range(flow_range):
         is_error = True
         log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value % (flow_range) + "\n"
     return log, is_error
+
 
 # used in process_for()
 def validate_for(cf_split):
@@ -628,22 +634,27 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
-# obsolete
-def get_comment_properties(str_with_brackets):
-    reference = ""
-    comment = str_with_brackets[1:-1]
-    # doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
-    isVisible = is_explicit_key(comment)
-    isReference = bool(re.search(Regex_patterns.DOI.value, comment))
-    if isReference:
-        reference = re.match(Regex_patterns.DOI.value, comment).group(0)
-        # print("REFERENCE: ", reference)
-    # print("VISIBILITY?: %s" % str(isVisible))
-    # print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
-    return isVisible, isReference, reference
+# OBSOLETE
+# def get_comment_properties(str_with_brackets):
+#    reference = ""
+#    comment = str_with_brackets[1:-1]
+#    # doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
+#    isVisible = is_explicit_key(comment)
+#    isReference = bool(re.search(Regex_patterns.DOI.value, comment))
+#    if isReference:
+#        reference = re.match(Regex_patterns.DOI.value, comment).group(0)
+#        # print("REFERENCE: ", reference)
+#    # print("VISIBILITY?: %s" % str(isVisible))
+#    # print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
+#    return isVisible, isReference, reference
 
 
 def strip_unwanted_mvu_colons(word):
+    '''
+    remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
+    :param str word: string with or without colons
+    :return: str word without colonss
+    '''
     if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
         print("Surrounding colons in the value/measure/unit {} is removed".format(word))
         word = word[1:-1] # if there are colons surrounding the word remains, remove it
@@ -795,12 +806,21 @@ def extract_flow_type(par_no, flow_control_pair):
     return key_val, flow_log, is_error
 
 
+# used in parse_lines_list_to_kv()
 def strip_colon(key):
+    '''strip colon found on key string'''
     stripped_key = re.sub('\:', '', key)
     return stripped_key
 
 
+# Used in parse_lines_list_to_kv().
 def is_explicit_key(key):
+    '''
+    check whether the string is an explicit key.
+    :param str key: checked string.
+    :return: bool stating whether the key is explicit.
+
+'''
     if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
        return True
     else:
@@ -824,8 +844,21 @@ def latex_formula_to_docx(latex_formula):
     return docx_formula
 
 
-
 def process_reg_bracket(line):
+    '''
+    Process strings with regular brackets (), which can be (_invisible comment_), (regular comment), or (DOI).
+    Maintain and update DOI numerical index.
+
+    The string is returned to prepare for further docx content processing, in which the invisible comment will not be
+    included, visible regular comment is still there but without brackets, and the DOI is provided with numerical
+    index reference.
+
+    :param str line: the comment string (with bracket) to be processed
+    :return: tuplle (processed_line, references)
+        WHERE
+        str processed_line is the processed string to be written as a part of docx content
+        list references is the list of available DOI references.
+    '''
     global ref_counter
     references = []
     # split based on the existence of brackets - including the captured bracket block in the result
@@ -857,10 +890,14 @@ def process_reg_bracket(line):
     return processed_line, references
 
 
-# FOCUS HERE: HOW TO RETAIN THE FIG NAMES AND TABLE?
 def strip_markup_and_explicit_keys(line):
-    # strip keys that are not marked visible (keys that are not enclosed with colon)
-    # print(line)
+    '''
+    strip: 1) keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
+    pattern of DOI as reference 2) curly and angle brackets 3)
+
+    :param bs4.element.NavigableString/str line: string to be inspected
+    :return: list of string containing DOI number.
+    '''
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
     # print(stripped_from_explicit_keys)
     # strip curly and angle brackets
@@ -1030,11 +1067,17 @@ def get_span_attr_val(c):
     return attr, val
 
 
-def html_taglist_to_doc(document, content):
+def write_tag_to_doc(document, tag_item):
+    '''
+    writes and format html tag content to docx document.
+    :param document: python-docx document instance.
+    :param  bs4.element.Tag tag_item: tag to be processed and written to document.
+    :return: list all_references containing the whole DOI found in the document.
+    '''
     all_references = []
     p = document.add_paragraph()
-    if isinstance(content,Tag):
-        for subcontent in content.contents:
+    if isinstance(tag_item, Tag):
+        for subcontent in tag_item.contents:
             # strip_markup_and_explicit_keys()
             if isinstance(subcontent,Tag):
                 line, references = strip_markup_and_explicit_keys(subcontent.get_text())
@@ -1101,7 +1144,7 @@ def html_taglist_to_doc(document, content):
             else:
                 p.add_run(line)
     else:
-        line, references = strip_markup_and_explicit_keys(content.string)
+        line, references = strip_markup_and_explicit_keys(tag_item.string)
         if len(references) > 0:
             all_references.extend(references)
         p.add_run(line)
@@ -1125,7 +1168,7 @@ def serialize_to_docx_detailed(manager, exp):
                 upl_id, real_name = get_upl_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
-                references = html_taglist_to_doc(document, content)
+                references = write_tag_to_doc(document, content)
                 # references = html_taglist_to_doc_granular(document, content)
                 if len(references) > 0:
                    all_references.extend(references)
@@ -1153,22 +1196,23 @@ def print_comments(overall_comments, internal_comments, external_comments):
         print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
 
 
-def parse_lines_for_docx(lines, internal_comments):
-    references = []
-    narrative_lines = []
-    for line in lines:
-        # Extract overall comments, including those within KV pairs
-        overall_comments = re.findall(Regex_patterns.COMMENT.value, line)
-        # get overall narrative lines for a clean docx document - completely separated from line parsing
-        narrative_line = strip_markup_and_explicit_keys(line)
-        narrative_lines.append(narrative_line.strip())
-    external_comments = list(set(overall_comments) - set(internal_comments))
-    # print_comments(overall_comments, internal_comments, external_comments)
-    for external_comment in external_comments:
-        isVisible, isReference, reference = get_comment_properties(external_comment)
-        if reference != "":
-            references.append(reference)
-    return narrative_lines, references
+# OBSOLETE: replaced with the detailed version
+# def parse_lines_for_docx(lines, internal_comments):
+#    references = []
+#    narrative_lines = []
+#    for line in lines:
+#        # Extract overall comments, including those within KV pairs
+#        overall_comments = re.findall(Regex_patterns.COMMENT.value, line)
+#        # get overall narrative lines for a clean docx document - completely separated from line parsing
+#        narrative_line = strip_markup_and_explicit_keys(line)
+#       narrative_lines.append(narrative_line.strip())
+#    external_comments = list(set(overall_comments) - set(internal_comments))
+#    # print_comments(overall_comments, internal_comments, external_comments)
+#    for external_comment in external_comments:
+#        isVisible, isReference, reference = get_comment_properties(external_comment)
+#        if reference != "":
+#            references.append(reference)
+ #   return narrative_lines, references
 
 
 def parse_lines_list_to_kv(lines):
@@ -1243,15 +1287,16 @@ def parse_lines_list_to_kv(lines):
     return multi_nkvmu_pair, internal_comments, log
 
 
-def extract_docx_content(doc_content):
-    par_no = 0
-    par_lines = []
-    for para in doc_content.paragraphs:
-        par_lines.append(para.text)
-        par_no = par_no + 1
-    par_lines = list(line for line in par_lines if line)
-    multi_nkvmu_pair, log = parse_lines_list_to_kv(par_lines)
-    return multi_nkvmu_pair, log
+# OBSOLETE: Docx input is no longer supported.
+# def extract_docx_content(doc_content):
+#    par_no = 0
+#    par_lines = []
+#    for para in doc_content.paragraphs:
+#        par_lines.append(para.text)
+#        par_no = par_no + 1
+#    par_lines = list(line for line in par_lines if line)
+#    multi_nkvmu_pair, log = parse_lines_list_to_kv(par_lines)
+#    return multi_nkvmu_pair, log
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
@@ -1259,25 +1304,26 @@ def write_to_json(list):
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
-def format_to_linear(list):
-    linear_lines = []
-    for line in list:
-        if line[0] != "-":
-            linear_key = str(line[0]) + "_" + str(line[1])
-        else:
-            linear_key = str(line[1])
-        if not line[4]:
-            linear_value = str(line[2])
-        else:
-            linear_value = str(line[2]) + "_" + str(line[3]) + "_" + str(line[4])
-        linear_line = [linear_key,linear_value]
-        linear_lines.append(linear_line)
-    return(linear_lines)
+# OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
+# def format_to_linear(list):
+#    linear_lines = []
+#    for line in list:
+#        if line[0] != "-":
+#            linear_key = str(line[0]) + "_" + str(line[1])
+#        else:
+#            linear_key = str(line[1])
+#        if not line[4]:
+#            linear_value = str(line[2])
+#        else:
+#            linear_value = str(line[2]) + "_" + str(line[3]) + "_" + str(line[4])
+#        linear_line = [linear_key,linear_value]
+#        linear_lines.append(linear_line)
+#    return(linear_lines)
 
 
-def write_to_linear_json(list):
-    kv = format_to_linear(list)
-    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
+# def write_to_linear_json(list):
+#    kv = format_to_linear(list)
+#    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 def write_log(log):
@@ -1315,20 +1361,21 @@ def write_to_xlsx(nkvmu, log):
 
 
 # ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API/MARKDOWN ------------------------------------------
+# obsolete: we no lnger support docx inputs
 # open docx document
-def get_docx_content(filename):
-    f = open(filename, 'rb')
-    content = Document(f)
-    extract_docx_media(filename)
-    f.close()
-    return content
+# def get_docx_content(filename):
+#    f = open(filename, 'rb')
+#    content = Document(f)
+#    extract_docx_media(filename)
+#    f.close()
+#    return content
 
 
-def extract_docx_media(filename):
-    archive = zipfile.ZipFile(filename)
-    for file in archive.filelist:
-        if file.filename.startswith('word/media/') and file.file_size > 10000:
-            archive.extract(file, output_path_prefix)
+# def extract_docx_media(filename):
+#    archive = zipfile.ZipFile(filename)
+#    for file in archive.filelist:
+#        if file.filename.startswith('word/media/') and file.file_size > 10000:
+#            archive.extract(file, output_path_prefix)
 
 
 def remove_table_tag(soup):
@@ -1377,15 +1424,13 @@ def extract_kv_from_htmlbody(html_content):
             [-, section level, section name, '', '']
         str log is a string log returned from the respectively-executed functions
     '''
-    # soup = BeautifulSoup(html_content, "html5lib")
-
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
     clean_lines = process_nbsp(soup)
     multi_nkvmu_pair, internal_comments, log = parse_lines_list_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
-# DEPRECATED: we focus now entirely on extracting document in eLabFTW, and no longer supporting docx/md
+# OBSOLETE: we focus now entirely on extracting document in eLabFTW, and no longer supporting docx/md
 # extracting md via docx conversion using pandoc in case it is needed in the future
 # def extract_md_exp_content_via_pandoc(filename):
 #    output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
@@ -1395,25 +1440,25 @@ def extract_kv_from_htmlbody(html_content):
 #    log = log + output
 #    return kv, log
 
-
+# OBSOLETE: md inputs are no longer supported
 # note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
 # directly to the text file without providing file names. For the parser to work properly, users have to ensure that
 # copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
 # on eLabFTW and set the name of the image file there.
-def extract_imgs_from_md(filename):
-    f = open(filename, 'r', encoding='utf-8')
-    md_text = f.read()
-    html_doc = markdown.markdown(md_text)
-    soup = BeautifulSoup(html_doc, 'html.parser')
-    imgs = soup.findAll("img")
-    for img in imgs:
-        file_path = img.get('src')
-        loaded_img = Image.open(file_path)
-        path_tail = os.path.split(file_path)
-        loaded_img.save(output_path_prefix + path_tail[1])
+#def extract_imgs_from_md(filename):
+#    f = open(filename, 'r', encoding='utf-8')
+#    md_text = f.read()
+#    html_doc = markdown.markdown(md_text)
+#    soup = BeautifulSoup(html_doc, 'html.parser')
+#    imgs = soup.findAll("img")
+#    for img in imgs:
+#        file_path = img.get('src')
+#        loaded_img = Image.open(file_path)
+#        path_tail = os.path.split(file_path)
+#        loaded_img.save(output_path_prefix + path_tail[1])
 
 
-# DEPRECATED: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
+# OBSOLETE: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
 # def extract_imgs_from_html(current_endpoint, html_doc):
 #    soup = BeautifulSoup(html_doc, 'html.parser')
 #    imgs = soup.findAll("img")
@@ -1650,7 +1695,7 @@ def parse_args():
                                     help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
                                          '(for latest eLabFTW instance only)')
 
-    # This used to be docx and md parser, but now it is set to be obselete as we are focusing only on elabftw parsing
+    # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
     # docx_arg_parser = subs.add_parser(
     #     'DOCX', help='Parse metadata from DOCX files')
@@ -1756,7 +1801,7 @@ def main():
 
     # Writing to JSON and XLSX
     write_to_json(nkvmu)
-    write_to_linear_json(nkvmu)
+    # write_to_linear_json(nkvmu)
     write_to_xlsx(nkvmu, log)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
