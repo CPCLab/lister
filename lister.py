@@ -221,7 +221,7 @@ def check_bracket_num(par_no, text):
     # print(log)
     return log, is_error
 
-
+# used in process_foreach()
 def validate_foreach(cf_split):
     log = ""
     is_error = False
@@ -238,7 +238,7 @@ def validate_foreach(cf_split):
         is_error = True
     return log, is_error
 
-
+# used in process_while()
 def validate_while(cf_split):
     log = ""
     is_error = False
@@ -258,7 +258,7 @@ def validate_while(cf_split):
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
 
-
+# used in process_if()
 def validate_if(cf_split):
     log = ""
     is_error = False
@@ -279,6 +279,7 @@ def validate_if(cf_split):
     return log, is_error
 
 
+# used in process_elseif()
 # Validation functions for else if, while and if have similar properties. Hence, these functions can be integrated, but
 # if there are changes for each of those, it may be difficult to refactor. For now these validation functions are
 # provided individually.
@@ -301,7 +302,7 @@ def validate_elseif(cf_split):
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
 
-
+# used in elsef()
 def validate_else(cf_split):
     log = ""
     is_error = False
@@ -314,6 +315,7 @@ def validate_else(cf_split):
     return log, is_error
 
 
+# used in process_range()
 def validate_range(flow_range):
     is_error = False
     log = ""
@@ -327,7 +329,7 @@ def validate_range(flow_range):
         log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value % (flow_range) + "\n"
     return log, is_error
 
-
+# used in process_for()
 def validate_for(cf_split):
     log = ""
     is_error = False
@@ -351,6 +353,7 @@ def validate_for(cf_split):
     return log, is_error
 
 
+# used in process_iterate()
 def validate_iterate(cf_split):
     log = ""
     is_error = False
@@ -367,6 +370,7 @@ def validate_iterate(cf_split):
     return log, is_error
 
 
+# used in process_section()
 def validate_section(cf_split):
     log = ""
     is_error = False
