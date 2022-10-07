@@ -25,6 +25,13 @@ latex-docx.py
 demo.docx
 htmlsplit.py
 test_html_split.py
+.idea/misc.xml
+complex_ttk.py
+complex_ttk.spec
+elab-sop-tester (mb's conflicted copy 2022-09-07).py
+lister (mb's conflicted copy 2022-09-07).py
+README (mb's conflicted copy 2022-09-07).md
+.idea/misc.xml
 lister.scrap.py
 lister.scrap.py
 get-pip.py
@@ -103,3 +110,5 @@ tkinter_position.py
 ttk_sample.py
 ttk_sample.spec
 tkinter_multipage.py
+.gitignore (mb's conflicted copy 2022-09-07)
+.idea/misc.xml
