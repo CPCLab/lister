@@ -6,20 +6,20 @@ from docx import Document
 from bs4 import BeautifulSoup, Tag
 import elabapy
 import markdown
-import pypandoc
-from markdown import Markdown
-from io import StringIO
+# import pypandoc
+# from markdown import Markdown
+# from io import StringIO
 import os
 from PIL import Image
-from urllib.parse import urlparse
-from urllib.request import urlopen
-from io import BytesIO
+# from urllib.parse import urlparse
+# from urllib.request import urlopen
+# from io import BytesIO
 import PyInstaller
 import zipfile
-import argparse
+# import argparse
 from gooey import Gooey, GooeyParser
-import sys
-from message import display_message
+# import sys
+# from message import display_message
 import ssl
 import platform
 from pathlib import Path

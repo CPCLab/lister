@@ -1,4 +1,5 @@
-import tkinter
+# import tkinter
+from tkinter import*
 import customtkinter
 from tkinter import ttk
 
