@@ -10,12 +10,12 @@ import elabapy
 # from markdown import Markdown
 # from io import StringIO
 import os
-from PIL import Image
+# from PIL import Image
 # from urllib.parse import urlparse
 # from urllib.request import urlopen
 # from io import BytesIO
 import PyInstaller
-import zipfile
+# import zipfile
 # import argparse
 from gooey import Gooey, GooeyParser
 # import sys
@@ -28,7 +28,7 @@ import pandas as pd
 from docx.shared import Mm, RGBColor
 from lxml import etree
 import latex2mathml.converter
-from pprint import pprint
+# from pprint import pprint
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -126,9 +126,10 @@ class Arg_num(Enum):
 
 def split_into_sentences(content):
     '''
-    Splits into sentences
+    Split a line into proper sentences.
+
     :param str content: a line string that potentially consists of multiple sentences.
-    :return: list sentences: list of splitted sentences, with regular/annotation bracket still intact.
+    :return: list sentences: list of split sentences, with regular/annotation bracket still intact.
     '''
     # The code in this function is adapted from user:5133085's answer in SO: https://stackoverflow.com/a/31505798/548451
     # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
@@ -165,7 +166,7 @@ def split_into_sentences(content):
 
 
 # -------------------------------- TYPE-VALIDATOR HELPER FUNCTIONS --------------------------------
-# used in several control flow validation functions
+# Used in several control flow validation functions.
 def is_valid_comparative_operator(operator):
     operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
     if operator.lower() in operators_list:
@@ -174,7 +175,7 @@ def is_valid_comparative_operator(operator):
         return False
 
 
-# used in several control flow validation functions
+# Used in several control flow validation functions.
 def is_valid_iteration_operator(operator):
     operators_list = ["+", "-", "*", "/", "%"]
     if operator.lower() in operators_list:
@@ -183,7 +184,7 @@ def is_valid_iteration_operator(operator):
         return False
 
 
-# used in several control flow validation functions
+# Used in several control flow validation functions.
 def is_num(s):
     if isinstance(s, int) or isinstance(s, float):
         return True
@@ -198,10 +199,11 @@ def is_num(s):
 # -------------------------------- CONTROL-FLOW VALIDATOR FUNCTIONS --------------------------------
 def check_bracket_num(par_no, text):
     '''
-    Checks if there is any bracketing error over the text line
+    Check if there is any bracketing error over the text line
+
     :param int par_no: paragraph number for the referred line
     :param str text: string of the line
-    :return: tuple (log, error)
+    :return: tuple (log, is_error)
         WHERE
         str log: error log (if any)
         bool is_error:flag if the checked line contains bracketing error
@@ -224,7 +226,7 @@ def check_bracket_num(par_no, text):
     # print(log)
     return log, is_error
 
-# used in process_foreach()
+# Used in process_foreach()
 def validate_foreach(cf_split):
     log = ""
     is_error = False
@@ -242,7 +244,7 @@ def validate_foreach(cf_split):
     return log, is_error
 
 
-# used in process_while()
+# Used in process_while().
 def validate_while(cf_split):
     log = ""
     is_error = False
@@ -263,7 +265,7 @@ def validate_while(cf_split):
     return log, is_error
 
 
-# used in process_if()
+# Used in process_if().
 def validate_if(cf_split):
     log = ""
     is_error = False
@@ -284,7 +286,7 @@ def validate_if(cf_split):
     return log, is_error
 
 
-# used in process_elseif()
+# Used in process_elseif().
 # Validation functions for else if, while and if have similar properties. Hence, these functions can be integrated, but
 # if there are changes for each of those, it may be difficult to refactor. For now these validation functions are
 # provided individually.
@@ -308,7 +310,7 @@ def validate_elseif(cf_split):
     return log, is_error
 
 
-# used in elsef()
+# Used in else().
 def validate_else(cf_split):
     log = ""
     is_error = False
@@ -321,7 +323,7 @@ def validate_else(cf_split):
     return log, is_error
 
 
-# used in process_range()
+# Used in process_range().
 def validate_range(flow_range):
     is_error = False
     log = ""
@@ -336,7 +338,7 @@ def validate_range(flow_range):
     return log, is_error
 
 
-# used in process_for()
+# Used in process_for().
 def validate_for(cf_split):
     log = ""
     is_error = False
@@ -360,7 +362,7 @@ def validate_for(cf_split):
     return log, is_error
 
 
-# used in process_iterate()
+# Used in process_iterate().
 def validate_iterate(cf_split):
     log = ""
     is_error = False
@@ -377,7 +379,7 @@ def validate_iterate(cf_split):
     return log, is_error
 
 
-# used in process_section()
+# Used in process_section().
 def validate_section(cf_split):
     log = ""
     is_error = False
@@ -393,7 +395,7 @@ def validate_section(cf_split):
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
     '''
-    Converts key value based on foreach control-metadata entry.
+    Converts key-value based on foreach control-metadata entry.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -420,7 +422,7 @@ def process_foreach(par_no, cf_split):
 
 def process_while(par_no, cf_split):
     '''
-    Converts key value based on while control-metadata entry.
+    Convert key value based on while control-metadata entry.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -451,7 +453,7 @@ def process_while(par_no, cf_split):
 
 def process_if(par_no, cf_split):
     '''
-    Converts key value based on if control-metadata entry.
+    Convert key-value based on if control-metadata entry.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -482,7 +484,7 @@ def process_if(par_no, cf_split):
 
 def process_elseif(par_no, cf_split):
     '''
-    Converts key value based on else-if control-metadata entry.
+    Convert key-value based on else-if control-metadata entry.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -490,7 +492,7 @@ def process_elseif(par_no, cf_split):
         WHERE
         list key_val: list of list, each list contain a full control-flow metadata,
         str log: log resulted from running this and subsequent functions,
-        bool is_error: flag that indicates whether an error occured.
+        bool is_error: flag that indicates whether an error occurs.
     '''
     key_val = []
     log, is_error = validate_elseif(cf_split)
@@ -517,10 +519,9 @@ def process_elseif(par_no, cf_split):
     return key_val, log, is_error
 
 
-# no arguments are passed so no validation is needed.
 def process_else(par_no, cf_split):
     '''
-    Converts key value based on else control-metadata entry.
+    Convert key value based on else control-metadata entry.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -548,7 +549,7 @@ def process_else(par_no, cf_split):
 
 def process_range(flow_range):
     '''
-    Converts key value based on range control-metadata entry. Please consult LISTER documentation on GitHub.
+    Convert key value based on range control-metadata entry. Please consult LISTER documentation on GitHub.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -571,7 +572,7 @@ def process_range(flow_range):
 
 def process_for(par_no, cf_split):
     '''
-    Converts key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
+    Convert key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -607,7 +608,7 @@ def process_for(par_no, cf_split):
 # should happen only after having 'while' iterations to provide additional steps on the iterator
 def process_iterate(par_no, cf_split):
     '''
-    Converts key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
+    Convert key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
 
     :param int par_no: paragraph number where string fragment containing the referred pair was found.
     :param list cf_split: list of split string.
@@ -651,9 +652,9 @@ def process_iterate(par_no, cf_split):
 
 def strip_unwanted_mvu_colons(word):
     '''
-    remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
-    :param str word: string with or without colons
-    :return: str word without colonss
+    Remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
+    :param str word: string with or without colons.
+    :return: str word without colons.
     '''
     if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
         print("Surrounding colons in the value/measure/unit {} is removed".format(word))
@@ -671,10 +672,10 @@ def process_internal_comment(str_with_brackets):
     Internal comment will     not be bypassed to the metadata output.
     However, internal comment is important to be provided to make the experiment clear-text readable in the docx output.
 
-    :param str str_with_brackets: a lister bracket annotation fragment with a comment
+    :param str str_with_brackets: a lister bracket annotation fragment with a comment.
     :returns: tuple (actual_fragment, internal_comment)
         WHERE
-        str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit
+        str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit,
         str internal_comment: string containing the comment part of the string fragment, with brackets retained.
     '''
 
@@ -687,14 +688,14 @@ def process_internal_comment(str_with_brackets):
 
 def process_section(cf_split):
     '''
-    Converts key value based on section to a full section metadata entry
+    Convert key value based on section to a full section metadata entry
 
     :param list cf_split: list of strings split e.g., ['Section', 'Remarks']
     :returns: tuple (key_val, log, is_error)
         WHERE
         list key_val: list of list, each list contain a full section-metadata line
-                    e.g. [['-', 'section level 0', 'Precultures', '', '']]
-        str log: log resulted from running this and subsequent functions
+                    e.g. [['-', 'section level 0', 'Precultures', '', '']],
+        str log: log resulted from running this and subsequent functions,
         bool is_error: flag that indicates whether an error occured.
     '''
     key_val = []
@@ -715,15 +716,16 @@ def process_section(cf_split):
 # parse opened document, first draft of sop
 def extract_kvmu(kvmu):
     '''
-    Extract lines to a tuple containing key, vaue, measuere, and log
-    :param str kvmu: a string fragment with a single lister bracketing annotation
+    Extract lines to a tuple containing key, vaue, measuere, and log.
+
+    :param str kvmu: a string fragment with a single lister bracketing annotation.
     :returns: tuple (key, val, measure, unit, log)
         WHERE
-        str key: the key portion of the string fragment
-        str val: the val portion of the string fragment
-        str measure: the measure portion of the string fragment
-        str unit: the unit portion of the string fragment
-        str log: log resulted from executing this and underlying functions
+        str key: the key portion of the string fragment,
+        str val: the val portion of the string fragment,
+        str measure: the measure portion of the string fragment,
+        str unit: the unit portion of the string fragment,
+        str log: log resulted from executing this and underlying functions.
     '''
     log = ""
     source_kvmu = kvmu
@@ -765,13 +767,13 @@ def extract_flow_type(par_no, flow_control_pair):
     '''
     Extracts the type of flow found on any annotation with angle brackets, which can be control flow or sectioning.
 
-    :param int par_no: paragraph number on where the control flow fragment string was found
-    :param str flow_control_pair: the control flow pair string to be extracted for metadata
+    :param int par_no: paragraph number on where the control flow fragment string was found.
+    :param str flow_control_pair: the control-flow pair string to be extracted for metadata.
     :returns: tuple (key_val, flow_log, is_error)
         WHERE
         list key_val: list of list, each list contain a full complete control flow metadata line
-                    e.g. [['-', 'section level 0', 'Precultures', '', '']]
-        str flow_log: log resulted from running this and subsequent functions
+                    e.g. [['-', 'section level 0', 'Precultures', '', '']],
+        str flow_log: log resulted from running this and subsequent functions,
         bool is_error: flag that indicates whether an error occured.
     '''
 
@@ -806,9 +808,11 @@ def extract_flow_type(par_no, flow_control_pair):
     return key_val, flow_log, is_error
 
 
-# used in parse_lines_list_to_kv()
+# Used in parse_lines_list_to_kv().
 def strip_colon(key):
-    '''strip colon found on key string'''
+    '''
+    Strip colon found on key string.
+    '''
     stripped_key = re.sub('\:', '', key)
     return stripped_key
 
@@ -816,9 +820,9 @@ def strip_colon(key):
 # Used in parse_lines_list_to_kv().
 def is_explicit_key(key):
     '''
-    check whether the string is an explicit key.
+    Check whether the string is an explicit key.
     :param str key: checked string.
-    :return: bool stating whether the key is explicit.
+    :return: bool stating whether the key is a LISTER explicit key.
 
 '''
     if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
@@ -828,6 +832,15 @@ def is_explicit_key(key):
 
 
 def latex_formula_to_docx(latex_formula):
+    '''
+    Convert latex formula to docx formula.
+
+    This function requires MML2OMML.XSL style sheet, which normally shipped with Microsoft Office suite.
+    The style sheet file should be placed in the same directory as config.json file. Please check LISTER's readme.
+
+    :param str latex_formula: latex string to be converted to docx formula representation.
+    :return: docx_formula that is going to be written to the docx file.
+    '''
     log = ""
     mathml = latex2mathml.converter.convert(latex_formula)
     tree = etree.fromstring(mathml)
@@ -853,10 +866,10 @@ def process_reg_bracket(line):
     included, visible regular comment is still there but without brackets, and the DOI is provided with numerical
     index reference.
 
-    :param str line: the comment string (with bracket) to be processed
+    :param str line: the comment string (with bracket) to be processed.
     :return: tuplle (processed_line, references)
         WHERE
-        str processed_line is the processed string to be written as a part of docx content
+        str processed_line is the processed string to be written as a part of docx content,
         list references is the list of available DOI references.
     '''
     global ref_counter
@@ -892,10 +905,11 @@ def process_reg_bracket(line):
 
 def strip_markup_and_explicit_keys(line):
     '''
-    strip: 1) keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
-    pattern of DOI as reference 2) curly and angle brackets 3)
+    Strip keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
+    pattern of DOI as reference, strip curly and angle brackets, reformat any annotation with regular bracket and fetch
+    the DOI references, and strip unnecessary white spaces.
 
-    :param bs4.element.NavigableString/str line: string to be inspected
+    :param bs4.element.NavigableString/str line: string to be inspected.
     :return: list of string containing DOI number.
     '''
     stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
@@ -913,7 +927,7 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces, references
 
 
-# used in remove_empty_tags()
+# Used in remove_empty_tags().
 def remove_empty_tags(soup):
     for x in soup.find_all():
        # if the text within a tag is empty, and tag name is not img/br7etc.. and it is not img within p tag:
@@ -925,9 +939,9 @@ def remove_empty_tags(soup):
 
 def get_nonempty_body_tags(exp):
     '''
-    Cleans up the source-html from empty-content html tags.
+    Clean up the source-html from empty-content html tags.
 
-    :param bs4.soup exp: beautifulSoup4.soup experiment object
+    :param bs4.soup exp: beautifulSoup4.soup experiment object.
     :return: list tagged_contents: list of non-empty html tags as well as new lines.
     '''
     html_body = exp["body"]
@@ -936,13 +950,7 @@ def get_nonempty_body_tags(exp):
     tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
     return tagged_contents
 
-
-def generate_uploads_dict(exp):
-    # print(exp['uploads'])
-    for upload in exp['uploads']:
-        print(upload)
-
-
+# Used in get_upl_long_name()
 def split(text, separators):
     default_sep = separators[0]
     for sep in separators[1:]:
@@ -951,21 +959,23 @@ def split(text, separators):
 
 
 def get_upl_long_name(img_path):
+    '''
+    Get upload long name from the img path.
+    '''
     splitted_path = split(img_path, ('&','='))
     return(splitted_path[1]) # strip first 19 chars to get the long_name field in the upload dictionary
 
 
 def get_upl_id(exp, content):
     '''
-    get upload id from given experiment and content
-    :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc)
+    Get upload id from given experiment and content.
+    :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
     :param bs4.element.Tag content: a bs4 Tag object containing <h1>/<p><img alt=... src=...> Tag that provides the
             link to a particular image file.
     :return: tuple (upl_id, real_name)
         WHERE
-        str upl_id: upload id of the image attachment, used to access the image through API.
+        str upl_id: upload id of the image attachment, used to access the image through API,
         str real_name: the name of the file when it was uploaded to eLabFTW.
-
     '''
     img_path = content.img['src']
     upl_long_name = get_upl_long_name(img_path)
@@ -986,17 +996,18 @@ def get_upl_id(exp, content):
     return upl_id, real_name
 
 
+# Used in add_img_to_doc()
 def get_text_width(document):
-    """
-    Returns the text width in mm.
-    """
+    '''
+    Return the text width in mm.
+    '''
     section = document.sections[0]
     return (section.page_width - section.left_margin - section.right_margin) / 36000
 
 
 def add_img_to_doc(manager, document, upl_id, real_name):
     '''
-    add image to the document file, based on upload id and image name when it was uploaded. 
+    Add image to the document file, based on upload id and image name when it was uploaded.
     
     :param str elabapy.Manager manager: manager object to get access to the eLabFTW API.
     :param str document: the document object that is being modified.
@@ -1022,7 +1033,6 @@ def add_img_to_doc(manager, document, upl_id, real_name):
         print("Image found in the experiment, but not attached. Parsing this image is disabled for security reason."
                   "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
 
-
 # helper function to print dataframe, used for development and debugging
 def print_whole_df(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
@@ -1032,6 +1042,7 @@ def print_whole_df(df):
 def add_table_to_doc(doc, content):
     '''
     Add table content to docx instance.
+
     :param doc: python-docx instance of the modified document.
     :param bs4.Elements.Tag content: html table tag.
     '''
@@ -1161,7 +1172,7 @@ def write_tag_to_doc(document, tag_item):
 
 def serialize_to_docx_detailed(manager, exp):
     '''
-    fetches an experiment, cleans the content from LISTER annotation markup and serializes the result to a docx file.
+    fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
     :param elabapy.Manager manager: elabapy Manager object, required to access the experiment from eLabFTW.
     :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
@@ -1195,13 +1206,14 @@ def serialize_to_docx_detailed(manager, exp):
     document.save(output_file_prefix + '.docx')
 
 
-def print_comments(overall_comments, internal_comments, external_comments):
-    if len(overall_comments) > 0:
-        print("OVERALL COMMENTS TYPE: %s. CONTENT: %s" % (str(type(overall_comments)), str(overall_comments)))
-    if len(internal_comments) > 0:
-        print("INTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(internal_comments)), str(internal_comments)))
-    if len(external_comments) > 0:
-        print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
+# OBSOLETE: Helper function to print different type of comments
+# def print_comments(overall_comments, internal_comments, external_comments):
+#    if len(overall_comments) > 0:
+#        print("OVERALL COMMENTS TYPE: %s. CONTENT: %s" % (str(type(overall_comments)), str(overall_comments)))
+#    if len(internal_comments) > 0:
+#        print("INTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(internal_comments)), str(internal_comments)))
+#    if len(external_comments) > 0:
+#        print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
 
 
 # OBSOLETE: replaced with the detailed version
@@ -1225,13 +1237,13 @@ def print_comments(overall_comments, internal_comments, external_comments):
 
 def parse_lines_list_to_kv(lines):
     '''
-    Get a list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''] from nbsp-clean lines
-    :param list lines: list of lines cleaned up from nbsp
+    Get a list of [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
+    :param list lines: list of lines cleaned up from nbsp.
     :return: tuple (multi_nkvmu_pair, internal_comments, log)
         WHERE
-        list multi_nkvmu_pair: list of [order, key, value, measure, unit] or ['-', section level, section name, '', '']
-        str internal_comments: placeholder for found internal comments within key-value pairs. This may be used in the future.
-        str log: log from runnung subsequent functions
+        list multi_nkvmu_pair: list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''],
+        str internal_comments: placeholder for found internal comments within key-value pairs - currently unused,
+        str log: log from running subsequent functions.
     '''
     par_no = 0
     multi_nkvmu_pair = []
@@ -1308,6 +1320,8 @@ def parse_lines_list_to_kv(lines):
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
+
+# Used to serialize extracted metadata to json file.
 def write_to_json(list):
     json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
@@ -1334,6 +1348,7 @@ def write_to_json(list):
 #    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
+# Used to write into the log file.
 def write_log(log):
     log = log.strip()
     print("WRITING LOGS...")
@@ -1346,8 +1361,8 @@ def write_to_xlsx(nkvmu, log):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
-    :param list nkvmu: list containing the order/key/value/measure/unit to be written
-    :param str log: log containing information necessary if this (and underlying) functions are not executed properly
+    :param list nkvmu: list containing the order/key/value/measure/unit to be written.
+    :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
@@ -1394,10 +1409,10 @@ def write_to_xlsx(nkvmu, log):
 
 def remove_table_tag(soup):
     '''
-    Removes table tags and its content from the soop object
+    Remove table tags and its content from the soup object.
 
-    :param bs4.BeautifulSoup soup: bs4 soup object
-    :return: bs4.BeautifulSoup soup object without table tag and it's content
+    :param bs4.BeautifulSoup soup: bs4 soup object.
+    :return: bs4.BeautifulSoup soup object without table tag and it's content.
     '''
     for table in soup("table"):
         table.decompose()
@@ -1406,9 +1421,10 @@ def remove_table_tag(soup):
 
 def process_nbsp(soup):
     '''
-    Removes non-break space (nbsp), and provides a 'clean' version of the lines.
-    :param bs4.BeautifulSoup soup: soup object that will be cleaned up from nbsp
-    :return: list clean_lines lines without nbsp
+    Remove non-break space (nbsp), and provide a 'clean' version of the lines.
+
+    :param bs4.BeautifulSoup soup: soup object that is going to be cleaned up from nbsp.
+    :return: list clean_lines lines without nbsp.
     '''
     non_break_space = u'\xa0'
     text = soup.get_text().splitlines()
@@ -1426,17 +1442,17 @@ def process_nbsp(soup):
 
 def extract_kv_from_htmlbody(html_content):
     '''
-    Turns html body content into extended key-value pair
+    Turn html body content into extended key-value pair
             [order, key, value, measure (if applicable), unit (if applicable)] or
-            [-, section level, section name, '', '']
+            [-, section level, section name, '', ''].
 
-    :param str html_content: body of the html content, extracted from eLabFTW API experiment
+    :param str html_content: body of the html content, extracted from eLabFTW API experiment.
     :return: tuple (multi_nkvmu_pair, log)
         WHERE
         list multi_nkvmu_pair is a list of a list with
             [order, key, value, measure (if applicable), unit (if applicable)] or
-            [-, section level, section name, '', '']
-        str log is a string log returned from the respectively-executed functions
+            [-, section level, section name, '', ''],
+        str log is a string log returned from the respectively-executed functions.
     '''
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
@@ -1522,7 +1538,7 @@ def extract_kv_from_htmlbody(html_content):
 
 def fetch_uploads(manager, uploads):
     '''
-    Gets a list of attachments in the experiment entry and serializes this into files.
+    Get a list of attachments in the experiment entry and download these attachments.
 
     :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
     :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
@@ -1542,13 +1558,13 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
 
-    :param int exp_number: experiment ID to be fetched
-    :param str current_endpoint: eLabFTW API endpoint URL
-    :param str current_token: eLabFTW token
+    :param int exp_number: experiment ID to be fetched.
+    :param str current_endpoint: eLabFTW API endpoint URL.
+    :param str current_token: eLabFTW token.
     :return: tuple (manager, exp)
         WHERE
-        elabapy.Manager manager is an elabapy.Manager object of the experiment
-        dict exp is a python dictionary containing the experiment properties (id, title, html body, etc)
+        elabapy.Manager manager is an elabapy.Manager object of the experiment,
+        dict exp is a python dictionary containing the experiment properties (id, title, html body, etc).
     '''
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
     ssl._create_default_https_context = ssl._create_unverified_context
@@ -1570,11 +1586,11 @@ def manage_output_path(dir_name, file_name):
     Get the output path according to respective platform.
 
     If it is on macOS, just return the dir_name (which have already been appended with output filename),
-    on Mindows/Linux, return the dir_name + output file_name
+    on Mindows/Linux, return the dir_name + output file_name.
 
-    :param str dir_name: the home directory name for the output
-    :param str file_name: the output name
-    :return: str output_path is the output directory created from appending the home path and output path
+    :param str dir_name: the home directory name for the output.
+    :param str file_name: the output name.
+    :return: str output_path is the output directory created from appending the home path and output path.
     '''
     if platform.system()=="Darwin":
         # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
@@ -1586,8 +1602,10 @@ def manage_output_path(dir_name, file_name):
 
 
 def manage_input_path():
-    '''enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
-    from the executable file's directory)'''
+    '''
+    Enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
+    from the executable file's directory).
+    '''
     input_path = ""
     if platform.system()=="Darwin": # enforce input path to be specific to ~/Apps/lister/
         home = str(Path.home())
@@ -1604,10 +1622,10 @@ def parse_cfg():
     On macOS, it is in the users' Apps/lister/config.json file.
 
     :returns: tuple (token, endpoint, output_file_name, exp_no)
-        str token: eLabFTW API Token
-        str endpoint: eLabFTW API endpoint URL
-        str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file)
-        int exp_no: the parsed experiment ID (int)
+        str token: eLabFTW API Token,
+        str endpoint: eLabFTW API endpoint URL,
+        str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file),
+        int exp_no: the parsed experiment ID (int).
 
     '''
 
@@ -1615,7 +1633,7 @@ def parse_cfg():
     # print("CURRENT CONFIG DIRECTORY: %s" % (str(dirname))) # this shows from where the executable was actually run
     input_file = manage_input_path() + "config.json"
     print("CONFIG FILE: %s" % (input_file))
-    # using ...wirh open... allows file to be closed automatically.
+    # using ...with open... allows file to be closed automatically.
     with open(input_file) as json_data_file:
         data = json.load(json_data_file)
     token = data['elabftw']['token']
@@ -1632,8 +1650,9 @@ def get_default_output_path(file_name):
     The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
     On macOS, it is in the users' Apps/lister/output/ directory.
 
-    :param str file_name: file name for the output
-    :returns: str output_path is the output path created from appending lister's output home directory and output file name
+    :param str file_name: file name for the output.
+    :returns: str output_path is the output path created from appending lister's output home directory and
+        output file name.
     '''
     if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         home = str(Path.home())
@@ -1660,12 +1679,12 @@ def parse_args():
         WHERE
         argparse.Namespace args is an object containing several attributes:
             - str command (e.g., eLabFTW),
-            - str output_file_name
-            - int exp_no
-            - str endpoint
-            - str base_output_dir
-            - str token
-            - bool uploadToggle
+            - str output_file_name,
+            - int exp_no,
+            - str endpoint,
+            - str base_output_dir,
+            - str token,
+            - bool uploadToggle.
     '''
     token, endpoint, output_file_name, exp_no = parse_cfg()
     settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
