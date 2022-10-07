@@ -1023,12 +1023,18 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                   "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
 
 
+# helper function to print dataframe, used for development and debugging
 def print_whole_df(df):
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
         print(df)
 
 
 def add_table_to_doc(doc, content):
+    '''
+    Add table content to docx instance.
+    :param doc: python-docx instance of the modified document.
+    :param bs4.Elements.Tag content: html table tag.
+    '''
     html_str_table = str(content.contents)[1:-1]
     dfs = pd.read_html("<table>" + html_str_table + "</table>")
     # read_html unfortunately does not retain styles/formatting, hence write your own html table parser if formatting
@@ -1053,6 +1059,7 @@ def add_table_to_doc(doc, content):
                 t.cell(i, j).text = str(df.values[i, j])
 
 
+# Used in write_tag_to_doc()
 def get_section_title(line):
     words = line.split()
     if len(words)>1:
@@ -1061,6 +1068,7 @@ def get_section_title(line):
         return ""
 
 
+# Used in write_tag_to_doc()
 def get_span_attr_val(c):
     found = re.findall(Regex_patterns.SPAN_ATTR_VAL.value, c.get("style"))
     attr, val = found[0]
@@ -1335,6 +1343,12 @@ def write_log(log):
 
 
 def write_to_xlsx(nkvmu, log):
+    '''
+    Write extracted order/key/value/measure/unit to an Excel file.
+
+    :param list nkvmu: list containing the order/key/value/measure/unit to be written
+    :param str log: log containing information necessary if this (and underlying) functions are not executed properly
+    '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
         # formatting cells
@@ -1543,6 +1557,7 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
     return(manager, exp)
 
 
+# TODO: test this functionality.
 def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
     manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     with open(file_with_path, 'r+b') as myfile:
@@ -1571,6 +1586,8 @@ def manage_output_path(dir_name, file_name):
 
 
 def manage_input_path():
+    '''enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
+    from the executable file's directory)'''
     input_path = ""
     if platform.system()=="Darwin": # enforce input path to be specific to ~/Apps/lister/
         home = str(Path.home())
@@ -1622,7 +1639,7 @@ def get_default_output_path(file_name):
         home = str(Path.home())
         output_path = home + "/Apps/lister/output/" + file_name + "/"
         print("OUTPUT PATH: %s" % (output_path))
-    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
+    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         current_path = pathlib.Path().resolve()
         if platform.system()=="Windows":
             output_path = str(current_path) + "\output" # + "\\"
