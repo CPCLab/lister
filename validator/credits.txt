@@ -1,4 +1,0 @@
-The code in this directory was originated from
-https://eli.thegreenplace.net/2013/06/25/regex-based-lexical-analysis-in-python-and-javascript,
-which is licensed as Public Domain (https://eli.thegreenplace.net/pages/about) at the time of this writing.
-Some modifications may have been made to adapt with the needs of protocol-parsing use case.
