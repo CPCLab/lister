@@ -1687,7 +1687,7 @@ def parse_args():
             - bool uploadToggle.
     '''
     token, endpoint, output_file_name, exp_no = parse_cfg()
-    settings_msg = 'Choose your source: an eLabFTW entry, a DOCX or a Markdown file.'
+    settings_msg = 'Please ensure to enter the fields below properly, or ask your eLabFTW admin if you have questions.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
 
