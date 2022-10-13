@@ -1591,12 +1591,13 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
     return(manager, exp)
 
 
-# TODO: test this functionality.
-def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
-    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
-    with open(file_with_path, 'r+b') as myfile:
-        params = {'file': myfile}
-        manager.upload_to_experiment(exp_number, params)
+# Deactivating this function for now as it is not clear how the extracted metadata across different
+# exectuions can be versioned.
+# def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
+#    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+#    with open(file_with_path, 'r+b') as myfile:
+#        params = {'file': myfile}
+#        manager.upload_to_experiment(exp_number, params)
 
 
 def manage_output_path(dir_name, file_name):
@@ -1658,7 +1659,8 @@ def parse_cfg():
     endpoint = data['elabftw']['endpoint']
     exp_no = data['elabftw']['exp_no']
     output_file_name = data['elabftw']['output_file_name']
-    return token, endpoint, output_file_name, exp_no
+    db_item_no = data['elabftw']['db_item_no']
+    return token, endpoint, output_file_name, exp_no, db_item_no
 
 
 def get_default_output_path(file_name):
@@ -1685,8 +1687,8 @@ def get_default_output_path(file_name):
     return output_path
 
 
-@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Type:',
-           default_size=(900, 650)) # , image_dir='resources/')
+@Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
+           default_size=(720, 780), navigation="TABBED") # , image_dir='resources/')
 def parse_args():
     '''
     Get arguments from an existing JSON config to be passed to Gooey's interface.
@@ -1704,7 +1706,7 @@ def parse_args():
             - str token,
             - bool uploadToggle.
     '''
-    token, endpoint, output_file_name, exp_no = parse_cfg()
+    token, endpoint, output_file_name, exp_no, db_item_no = parse_cfg()
     settings_msg = 'Please ensure to enter the fields below properly, or ask your eLabFTW admin if you have questions.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
@@ -1754,39 +1756,39 @@ def parse_args():
     #                                     '(for latest eLabFTW instance only)')
 
     # ELABFTW DATABASE PARAMETERS
-    elab_arg_parser = subs.add_parser(
-        'Database', help='Parse metadata from an eLabFTW database items')
-    elab_arg_parser.add_argument('output_file_name',
-                                 metavar='Output file name',
-                                 help='[FILENAME] for your metadata and log outputs, without extension. '
-                                      'This will also be used as a base file output',
-                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                                 # [FILENAME].log files in the specified output folder
-                                 default=output_file_name,
-                                 type=str)
-    elab_arg_parser.add_argument('db_item_no',
+    # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
+    elab_arg_parser = subs.add_parser('Database', help='Parse metadata from an eLabFTW database items')
+
+    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns':2})
+    elabftw_args.add_argument('db_item_no',
                                  metavar='eLabFTW Database Item ID',
                                  help='Integer indicated in the URL of the database item',
                                  # default=db_item_no,
-                                 default=0,
+                                 default=db_item_no,
                                  type=int)
-    elab_arg_parser.add_argument('endpoint',
+    elabftw_args.add_argument('endpoint',
                                  metavar="eLabFTW API endpoint URL",
                                  help='Ask your eLabFTW admin to provide the endpoint URL for you',
                                  default=endpoint,
                                  type=str)
-    elab_arg_parser.add_argument('base_output_dir',
-                                 metavar='Base output directory',
-                                 help='Local directory generally used to save your outputs',
-                                 type=str,
-                                 default=base_output_path,
-                                 widget='DirChooser')
-    elab_arg_parser.add_argument('token',
+    elabftw_args.add_argument('token',
                                  metavar='eLabFTW API Token',
                                  help='Ask your eLabFTW admin to generate an API token for you',
                                  default=token,
                                  # Ask your eLabFTW admin to instance to generate one for you
                                  type=str)
+
+    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns':1})
+    io_args.add_argument('base_output_dir',
+                                 metavar='Base output directory',
+                                 help='Local directory generally used to save your outputs',
+                                 type=str,
+                                 default=base_output_path,
+                                 widget='DirChooser')
+    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
+            'title': "Naming method for the outputs",'initial_selection':0})
+    radio_group.add_argument("-i", "--ID", action="store_true", help='Name files and folder based on item ID')
+    radio_group.add_argument("-t", "--Title", action="store_true", help='Name files and folder based on item title')
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
@@ -1873,6 +1875,9 @@ def main():
 
     if args.command == 'Experiment':
         process_experiment(args.exp_no, args.endpoint, args.token)
+
+    if args.command == 'Database':
+        print(args)
 
 
     # elif args.command == 'DOCX':
