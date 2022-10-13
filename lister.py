@@ -1685,7 +1685,7 @@ def get_default_output_path(file_name):
     return output_path
 
 
-@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Format:',
+@Gooey(optional_cols=1, program_name="LISTER: Life Science Experiment Metadata Parser", sidebar_title='Source Type:',
            default_size=(900, 650)) # , image_dir='resources/')
 def parse_args():
     '''
@@ -1713,7 +1713,7 @@ def parse_args():
 
     # ELABFTW EXPERIMENT PARAMETERS
     elab_arg_parser = subs.add_parser(
-        'eLabFTW.Experiment', help='Parse metadata from an eLabFTW experiment entry')
+        'Experiment', help='Parse metadata from an eLabFTW experiment entry')
     elab_arg_parser.add_argument('output_file_name',
                                  metavar='Output file name',
                                  help='[FILENAME] for your metadata and log outputs, without extension',
@@ -1752,6 +1752,41 @@ def parse_args():
     #                                action='store_true',
     #                                help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
     #                                     '(for latest eLabFTW instance only)')
+
+    # ELABFTW DATABASE PARAMETERS
+    elab_arg_parser = subs.add_parser(
+        'Database', help='Parse metadata from an eLabFTW database items')
+    elab_arg_parser.add_argument('output_file_name',
+                                 metavar='Output file name',
+                                 help='[FILENAME] for your metadata and log outputs, without extension. '
+                                      'This will also be used as a base file output',
+                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                                 # [FILENAME].log files in the specified output folder
+                                 default=output_file_name,
+                                 type=str)
+    elab_arg_parser.add_argument('db_item_no',
+                                 metavar='eLabFTW Database Item ID',
+                                 help='Integer indicated in the URL of the database item',
+                                 # default=db_item_no,
+                                 default=0,
+                                 type=int)
+    elab_arg_parser.add_argument('endpoint',
+                                 metavar="eLabFTW API endpoint URL",
+                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
+                                 default=endpoint,
+                                 type=str)
+    elab_arg_parser.add_argument('base_output_dir',
+                                 metavar='Base output directory',
+                                 help='Local directory generally used to save your outputs',
+                                 type=str,
+                                 default=base_output_path,
+                                 widget='DirChooser')
+    elab_arg_parser.add_argument('token',
+                                 metavar='eLabFTW API Token',
+                                 help='Ask your eLabFTW admin to generate an API token for you',
+                                 default=token,
+                                 # Ask your eLabFTW admin to instance to generate one for you
+                                 type=str)
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
@@ -1836,7 +1871,7 @@ def main():
         print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
         os.makedirs(output_path_prefix)
 
-    if args.command == 'eLabFTW.Experiment':
+    if args.command == 'Experiment':
         process_experiment(args.exp_no, args.endpoint, args.token)
 
 
@@ -1844,6 +1879,7 @@ def main():
     #     input_file = args.input_file
     #     document = get_docx_content(input_file)
     #     nkvmu, log = extract_docx_content(document)
+    # elif args.command == 'MD':
     # elif args.command == 'MD':
     #     input_file = args.input_file
         # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
