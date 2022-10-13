@@ -1688,7 +1688,7 @@ def get_default_output_path(file_name):
 
 
 @Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
-           default_size=(720, 780), navigation="TABBED") # , image_dir='resources/')
+           default_size=(753, 753), navigation="TABBED") # , image_dir='resources/')
 def parse_args():
     '''
     Get arguments from an existing JSON config to be passed to Gooey's interface.
@@ -1787,8 +1787,8 @@ def parse_args():
                                  widget='DirChooser')
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
             'title': "Naming method for the outputs",'initial_selection':0})
-    radio_group.add_argument("-i", "--ID", action="store_true", help='Name files and folder based on item ID')
-    radio_group.add_argument("-t", "--Title", action="store_true", help='Name files and folder based on item title')
+    radio_group.add_argument("-i", "--ID", action="store_true", help='Name files and folders based on item ID')
+    radio_group.add_argument("-t", "--Title", action="store_true", help='Name files and folders based on item title')
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
