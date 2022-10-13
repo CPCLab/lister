@@ -1554,6 +1554,24 @@ def fetch_uploads(manager, uploads):
                 pass
 
 
+def process_experiment(exp_no, endpoint, token):
+    manager, exp = get_elab_experiment(exp_no, endpoint, token)
+    # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
+    nkvmu, log = extract_kv_from_htmlbody(exp["body"])
+    fetch_uploads(manager, exp["uploads"])
+    serialize_to_docx_detailed(manager, exp)
+
+    # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
+    # if args.uploadToggle == True:
+    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
+    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
+
+    # Writing to JSON and XLSX
+    write_to_json(nkvmu)
+    # write_to_linear_json(nkvmu)
+    write_to_xlsx(nkvmu, log)
+
+
 def get_elab_experiment(exp_number, current_endpoint, current_token):
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
@@ -1693,9 +1711,9 @@ def parse_args():
 
     base_output_path = get_default_output_path(output_file_name)
 
-    # ELABFTW PARAMETERS
+    # ELABFTW EXPERIMENT PARAMETERS
     elab_arg_parser = subs.add_parser(
-        'eLabFTW', help='Parse metadata from an eLabFTW experiment entry')
+        'eLabFTW.Experiment', help='Parse metadata from an eLabFTW experiment entry')
     elab_arg_parser.add_argument('output_file_name',
                                  metavar='Output file name',
                                  help='[FILENAME] for your metadata and log outputs, without extension',
@@ -1725,11 +1743,15 @@ def parse_args():
                                  default=token,
                                  # Ask your eLabFTW admin to instance to generate one for you
                                  type=str)
-    elab_arg_parser.add_argument('-f', '--uploadToggle',
-                                    metavar='Upload',
-                                    action='store_true',
-                                    help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
-                                         '(for latest eLabFTW instance only)')
+
+    # disabling this as it is unclear whow to prevent this feature from making many version of uploads (if it is
+    # run several times and how it behaves when we generate metadata but also at the same time getting
+    # already-extracted metadata from previous experiment versions)
+    # elab_arg_parser.add_argument('-f', '--uploadToggle',
+    #                                metavar='Upload',
+    #                                action='store_true',
+    #                                help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
+    #                                     '(for latest eLabFTW instance only)')
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
@@ -1814,15 +1836,9 @@ def main():
         print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
         os.makedirs(output_path_prefix)
 
-    if args.command == 'eLabFTW':
-        token = args.token
-        exp_no = args.exp_no
-        endpoint = args.endpoint
-        manager, exp = get_elab_experiment(exp_no, endpoint, token)
-        # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
-        nkvmu, log = extract_kv_from_htmlbody(exp["body"])
-        fetch_uploads(manager, exp["uploads"])
-        serialize_to_docx_detailed(manager, exp)
+    if args.command == 'eLabFTW.Experiment':
+        process_experiment(args.exp_no, args.endpoint, args.token)
+
 
     # elif args.command == 'DOCX':
     #     input_file = args.input_file
@@ -1835,15 +1851,10 @@ def main():
         # -- use below to transform md->text is needed prior to extraction (faster).
     #    nkvmu, log = extract_md_via_text(input_file)
 
-    # Writing to JSON and XLSX
-    write_to_json(nkvmu)
-    # write_to_linear_json(nkvmu)
-    write_to_xlsx(nkvmu, log)
 
-    # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
-    if args.command == 'eLabFTW' and args.uploadToggle == True:
-       upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
-       upload_to_elab_exp(exp_no, endpoint, token,  output_file_prefix + ".json")
+
+
+
 
 
 if __name__ == "__main__":
