@@ -1714,32 +1714,35 @@ def parse_args():
     base_output_path = get_default_output_path(output_file_name)
 
     # ELABFTW EXPERIMENT PARAMETERS
-    elab_arg_parser = subs.add_parser(
-        'Experiment', help='Parse metadata from an eLabFTW experiment entry')
-    elab_arg_parser.add_argument('output_file_name',
+    elab_arg_parser = subs.add_parser('Experiment', help='Parse metadata from an eLabFTW experiment entry')
+
+    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns':1})
+    io_args.add_argument('output_file_name',
                                  metavar='Output file name',
                                  help='[FILENAME] for your metadata and log outputs, without extension',
                                  # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                                  # [FILENAME].log files in the specified output folder
                                  default=output_file_name,
                                  type=str)
-    elab_arg_parser.add_argument('exp_no',
-                                 metavar='eLabFTW experiment ID',
-                                 help='Integer indicated in the URL of the experiment',
-                                 default=exp_no,
-                                 type=int)
-    elab_arg_parser.add_argument('endpoint',
-                                 metavar = "eLabFTW API endpoint URL",
-                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
-                                 default=endpoint,
-                                 type=str)
-    elab_arg_parser.add_argument('base_output_dir',
+    io_args.add_argument('base_output_dir',
                                  metavar = 'Base output directory',
                                  help='Local directory generally used to save your outputs',
                                  type=str,
                                  default=base_output_path,
                                  widget='DirChooser')
-    elab_arg_parser.add_argument('token',
+
+    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns':2})
+    elabftw_args.add_argument('exp_no',
+                                 metavar='eLabFTW experiment ID',
+                                 help='Integer indicated in the URL of the experiment',
+                                 default=exp_no,
+                                 type=int)
+    elabftw_args.add_argument('endpoint',
+                                 metavar = "eLabFTW API endpoint URL",
+                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
+                                 default=endpoint,
+                                 type=str)
+    elabftw_args.add_argument('token',
                                  metavar='eLabFTW API Token',
                                  help='Ask your eLabFTW admin to generate an API token for you',
                                  default=token,
