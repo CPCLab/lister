@@ -1597,6 +1597,17 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
+def process_linked_db_item(manager, id):
+    print("*"*120)
+    linked_item = manager.get_item(id)
+    title = linked_item["title"]
+    category = linked_item["category"]
+    html_body = linked_item["body"]
+    dfs = pd.read_html(html_body)
+    print(slugify(title), " @@@@@@@@@@@@@@@@ ",slugify(category))
+    print(dfs)
+
+
 def process_database(db_item_no, endpoint, token, id, title):
     print("Processsing database with ID:", db_item_no)
     manager = create_elab_manager(endpoint, token)
@@ -1608,9 +1619,28 @@ def process_database(db_item_no, endpoint, token, id, title):
     elif title:
         print(slugify(db_item["title"]))
         print("output file name is based on db item title")
+    print("-"*80)
     print(related_experiments)
     print("-"*80)
     print(db_item)
+    print("-"*80)
+    print(db_item["body"])
+    print("-"*80)
+    print("DFS")
+    dfs = pd.read_html(db_item["body"])
+    print(type(dfs))
+    df = pd.concat(dfs)
+    df.columns = ["Key", "Value"]
+    df.to_excel(output_file_prefix+".xlsx", index=False)
+    print(dfs)
+    print("-"*80)
+    print(db_item["links"])
+    print("-"*80)
+    linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
+    print(linked_item_ids)
+    for id in linked_item_ids:
+        process_linked_db_item(manager, id)
+    #  with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
 
 
 def get_elab_experiment(exp_number, current_endpoint, current_token):
@@ -1904,6 +1934,12 @@ def parse_args():
     return args
 
 
+def get_db_cat_and_title(endpoint, token, db_item_no):
+    manager = create_elab_manager(endpoint, token)
+    db_item = manager.get_item(db_item_no)
+    return db_item["category"], db_item["title"]
+
+
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 ref_counter = 0
 def main():
@@ -1916,17 +1952,26 @@ def main():
 
     args = parse_args()
 
-    if args.command == 'parse_experiment':
-        output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
-        output_file_prefix = output_path_prefix + args.output_file_name
-        if not os.path.isdir(output_path_prefix):
-            print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
-            os.makedirs(output_path_prefix)
-
-        process_experiment(args.exp_no, args.endpoint, args.token)
-
     if args.command == 'parse_database':
-        print("Processing Database")
+        if args.id:
+            output_file_name = str(args.db_item_no)
+        elif args.title:
+            cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
+            output_file_name = slugify(cat) + "_" + slugify(title)
+    elif args.command == 'parse_experiment':
+        output_file_name = args.output_file_name
+    print("The output is written to %s directory" % (output_file_name))
+
+    output_path_prefix = manage_output_path(args.base_output_dir, output_file_name)
+    output_file_prefix = output_path_prefix + output_file_name
+    if not os.path.isdir(output_path_prefix):
+        print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
+        os.makedirs(output_path_prefix)
+
+    if args.command == 'parse_experiment':
+        print("Processing experiment...")
+        process_experiment(args.exp_no, args.endpoint, args.token)
+    elif args.command == 'parse_database':
         process_database(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
 
