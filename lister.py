@@ -29,6 +29,7 @@ from docx.shared import Mm, RGBColor
 from lxml import etree
 import latex2mathml.converter
 # from pprint import pprint
+import unicodedata
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -1579,18 +1580,37 @@ def create_elab_manager(current_endpoint, current_token):
     return manager
 
 
+def slugify(value, allow_unicode=False):
+    """
+    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+    dashes to single dashes. Remove characters that aren't alphanumerics,
+    underscores, or hyphens. Convert to lowercase. Also strip leading and
+    trailing whitespace, dashes, and underscores.
+    """
+    value = str(value)
+    if allow_unicode:
+        value = unicodedata.normalize('NFKC', value)
+    else:
+        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
+    value = re.sub(r'[^\w\s-]', '', value.lower())
+    return re.sub(r'[-\s]+', '-', value).strip('-_')
+
+
 def process_database(db_item_no, endpoint, token, id, title):
     print("Processsing database with ID:", db_item_no)
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    if id:
+        output_file_name = str(db_item_no)
+        print("output file name: ", output_file_name)
+    elif title:
+        print(slugify(db_item["title"]))
+        print("output file name is based on db item title")
     print(related_experiments)
     print("-"*80)
     print(db_item)
-    if id:
-        print("output file name: ", db_item_no)
-    elif title:
-        print("output file name is based on db item title")
 
 
 def get_elab_experiment(exp_number, current_endpoint, current_token):
