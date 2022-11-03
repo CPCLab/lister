@@ -1412,7 +1412,7 @@ def remove_table_tag(soup):
     Remove table tags and its content from the soup object.
 
     :param bs4.BeautifulSoup soup: bs4 soup object.
-    :return: bs4.BeautifulSoup soup object without table tag and it's content.
+    :return: bs4.BeautifulSoup soup object without table tag, and it's content.
     '''
     for table in soup("table"):
         table.decompose()
@@ -1572,6 +1572,27 @@ def process_experiment(exp_no, endpoint, token):
     write_to_xlsx(nkvmu, log)
 
 
+def create_elab_manager(current_endpoint, current_token):
+    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+    ssl._create_default_https_context = ssl._create_unverified_context
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    return manager
+
+
+def process_database(db_item_no, endpoint, token, id, title):
+    print("Processsing database with ID:", db_item_no)
+    manager = create_elab_manager(endpoint, token)
+    db_item = manager.get_item(db_item_no)
+    related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    print(related_experiments)
+    print("-"*80)
+    print(db_item)
+    if id:
+        print("output file name: ", db_item_no)
+    elif title:
+        print("output file name is based on db item title")
+
+
 def get_elab_experiment(exp_number, current_endpoint, current_token):
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
@@ -1581,12 +1602,13 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
     :param str current_token: eLabFTW token.
     :return: tuple (manager, exp)
         WHERE
-        elabapy.Manager manager is an elabapy.Manager object of the experiment,
+        elabapy.Manager is an elabapy.Manager object of the experiment,
         dict exp is a python dictionary containing the experiment properties (id, title, html body, etc).
     '''
     # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
-    ssl._create_default_https_context = ssl._create_unverified_context
-    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    # ssl._create_default_https_context = ssl._create_unverified_context
+    # manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    manager = create_elab_manager(current_endpoint, current_token)
     exp = manager.get_experiment(exp_number)
     return(manager, exp)
 
@@ -1714,7 +1736,8 @@ def parse_args():
     base_output_path = get_default_output_path(output_file_name)
 
     # ELABFTW EXPERIMENT PARAMETERS
-    elab_arg_parser = subs.add_parser('Experiment', help='Parse metadata from an eLabFTW experiment entry')
+    elab_arg_parser = subs.add_parser('parse_experiment', prog="Parse Experiment",
+                                      help='Parse metadata from an eLabFTW experiment entry')
 
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns':1})
     io_args.add_argument('output_file_name',
@@ -1760,7 +1783,8 @@ def parse_args():
 
     # ELABFTW DATABASE PARAMETERS
     # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
-    elab_arg_parser = subs.add_parser('Database', help='Parse metadata from an eLabFTW database items')
+    elab_arg_parser = subs.add_parser('parse_database', prog="Parse Database",
+                                      help='Parse metadata from an eLabFTW database items')
 
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns':2})
     elabftw_args.add_argument('db_item_no',
@@ -1790,8 +1814,10 @@ def parse_args():
                                  widget='DirChooser')
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
             'title': "Naming method for the outputs",'initial_selection':0})
-    radio_group.add_argument("-i", "--ID", action="store_true", help='Name files and folders based on item ID')
-    radio_group.add_argument("-t", "--Title", action="store_true", help='Name files and folders based on item title')
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+                             help='Name files and folders based on item ID')
+    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
+                             help='Name files and folders based on item title')
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
@@ -1869,18 +1895,19 @@ def main():
     # sys.stdout.reconfigure(encoding='utf-8')
 
     args = parse_args()
-    output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
-    output_file_prefix = output_path_prefix + args.output_file_name
 
-    if not os.path.isdir(output_path_prefix):
-        print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
-        os.makedirs(output_path_prefix)
+    if args.command == 'parse_experiment':
+        output_path_prefix = manage_output_path(args.base_output_dir, args.output_file_name)
+        output_file_prefix = output_path_prefix + args.output_file_name
+        if not os.path.isdir(output_path_prefix):
+            print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
+            os.makedirs(output_path_prefix)
 
-    if args.command == 'Experiment':
         process_experiment(args.exp_no, args.endpoint, args.token)
 
-    if args.command == 'Database':
-        print(args)
+    if args.command == 'parse_database':
+        print("Processing Database")
+        process_database(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
 
     # elif args.command == 'DOCX':
@@ -1894,11 +1921,6 @@ def main():
         # kv, log = extract_md_exp_content_via_pandoc(input_file)
         # -- use below to transform md->text is needed prior to extraction (faster).
     #    nkvmu, log = extract_md_via_text(input_file)
-
-
-
-
-
 
 
 if __name__ == "__main__":
