@@ -1017,7 +1017,7 @@ def add_img_to_doc(manager, document, upl_id, real_name):
     '''
     log = ""
     if real_name:
-        with open(output_path_prefix + real_name, 'wb') as img_file:
+        with open(output_path + real_name, 'wb') as img_file:
             try:
                 if real_name == "":
                     # ‚img_file.write(manager.get_upload(upl_id))
@@ -1025,7 +1025,7 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                     pass
                 else:
                     img_file.write(manager.get_upload(upl_id))
-                document.add_picture(output_path_prefix + real_name, width=Mm(get_text_width(document)))
+                document.add_picture(output_path + real_name, width=Mm(get_text_width(document)))
             except Exception as e:
                 log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
                     real_name, upl_id, str(e))
@@ -1204,7 +1204,7 @@ def serialize_to_docx_detailed(manager, exp):
         document.add_heading("Reference", level=1)
         for reference in all_references:
             document.add_paragraph(reference, style='List Number')
-    document.save(output_file_prefix + '.docx')
+    document.save(output_path_and_fname + '.docx')
 
 
 # OBSOLETE: Helper function to print different type of comments
@@ -1324,7 +1324,7 @@ def parse_lines_list_to_kv(lines):
 
 # Used to serialize extracted metadata to json file.
 def write_to_json(list):
-    json.dump(list, open(output_file_prefix + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+    json.dump(list, open(output_path_and_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
@@ -1354,7 +1354,7 @@ def write_log(log):
     log = log.strip()
     print("WRITING LOGS...")
     print(log)
-    with open(output_file_prefix + ".log", 'w', encoding="utf-8") as f:
+    with open(output_path_and_fname + ".log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 
@@ -1366,7 +1366,7 @@ def write_to_xlsx(nkvmu, log):
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-    with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
+    with xlsxwriter.Workbook(output_path_and_fname + ".xlsx") as workbook:
         # formatting cells
         header_format = workbook.add_format({'bold': True, 'bg_color':'9bbb59', 'font_color':'ffffff'})
         default_format = workbook.add_format({'border':1, 'border_color': '9bbb59'})
@@ -1546,7 +1546,7 @@ def fetch_uploads(manager, uploads):
                     (e.g., file_size, real_name, long_name, hash, etc).
     '''
     for upload in uploads:
-        with open(output_path_prefix + upload["real_name"], 'wb') as attachment:
+        with open(output_path + upload["real_name"], 'wb') as attachment:
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
             try:
                 attachment.write(manager.get_upload(upload["id"]))
@@ -1606,7 +1606,7 @@ def process_linked_db_item(manager, id):
     dfs = pd.read_html(html_body)
     df = pd.concat(dfs)
     df.columns = ["Key", "Value"]
-    df.to_excel(output_path_prefix+slugify(category)+"_"+slugify(title)+".xlsx", index=False)
+    df.to_excel(output_path + slugify(category) + "_" + slugify(title) + ".xlsx", index=False)
     print(slugify(title), " @@@@@@@@@@@@@@@@ ",slugify(category))
     print(dfs)
 
@@ -1637,7 +1637,7 @@ def process_database(db_item_no, endpoint, token, id, title):
     print(type(dfs))
     df = pd.concat(dfs)
     df.columns = ["Key", "Value"]
-    df.to_excel(output_file_prefix+".xlsx", index=False)
+    df.to_excel(output_path_and_fname + ".xlsx", index=False)
     print("-"*10+"DB_ITEM LINKS CONTENT"+"-"*10)
     print(db_item["links"])
     print("-"*10+"DB_ITEM LINKED ITEMS ID"+"-"*10)
@@ -1948,8 +1948,8 @@ def get_db_cat_and_title(endpoint, token, db_item_no):
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 ref_counter = 0
 def main():
-    global output_file_name, input_file
-    global output_path_prefix, output_file_prefix, base_output_dir
+    global output_fname#, input_file
+    global output_path, output_path_and_fname#, base_output_dir
     global token, exp_no, endpoint
 
     # sys.stdin.reconfigure(encoding='utf-8')
@@ -1959,19 +1959,25 @@ def main():
 
     if args.command == 'parse_database':
         if args.id:
-            output_file_name = str(args.db_item_no)
+            output_fname = str(args.db_item_no)
         elif args.title:
             cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
-            output_file_name = slugify(cat) + "_" + slugify(title)
+            output_fname = slugify(cat) + "_" + slugify(title)
     elif args.command == 'parse_experiment':
-        output_file_name = args.output_file_name
-    print("The output is written to %s directory" % (output_file_name))
+        output_fname = args.output_file_name
+    print("The output is written to %s directory" % (output_fname))
 
-    output_path_prefix = manage_output_path(args.base_output_dir, output_file_name)
-    output_file_prefix = output_path_prefix + output_file_name
-    if not os.path.isdir(output_path_prefix):
-        print("Output path %s is not available, creating the path directory..." % (output_path_prefix))
-        os.makedirs(output_path_prefix)
+    output_path = manage_output_path(args.base_output_dir, output_fname)
+    output_path_and_fname = output_path + output_fname
+    if not os.path.isdir(output_path):
+        print("Output path %s is not available, creating the path directory..." % (output_path))
+        os.makedirs(output_path)
+
+    # print("base_output_dir: %s", (base_output_dir))
+    print("output_path_and_fname: ", (output_path_and_fname))
+    print("output_fname: ", (output_fname))
+    print("output_path: ", (output_path))
+
 
     if args.command == 'parse_experiment':
         print("Processing experiment...")
