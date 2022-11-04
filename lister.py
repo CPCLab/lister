@@ -1604,38 +1604,43 @@ def process_linked_db_item(manager, id):
     category = linked_item["category"]
     html_body = linked_item["body"]
     dfs = pd.read_html(html_body)
+    df = pd.concat(dfs)
+    df.columns = ["Key", "Value"]
+    df.to_excel(output_path_prefix+slugify(category)+"_"+slugify(title)+".xlsx", index=False)
     print(slugify(title), " @@@@@@@@@@@@@@@@ ",slugify(category))
     print(dfs)
 
 
 def process_database(db_item_no, endpoint, token, id, title):
     print("Processsing database with ID:", db_item_no)
+
+    # get db item
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    rel_exp_ids = [exp['id'] for exp in related_experiments]
     if id:
         output_file_name = str(db_item_no)
         print("output file name: ", output_file_name)
     elif title:
         print(slugify(db_item["title"]))
         print("output file name is based on db item title")
-    print("-"*80)
+    print("-"*10+"RELATED EXPERIMENTS"+"-"*10)
     print(related_experiments)
-    print("-"*80)
+    print(rel_exp_ids)
+    print("-"*10+"DB_ITEM RETURNS"+"-"*10)
     print(db_item)
-    print("-"*80)
+    print("-"*10+"DB_ITEM BODY"+"-"*10)
     print(db_item["body"])
-    print("-"*80)
-    print("DFS")
+    print("-"*10+"DB_ITEM DFS"+"-"*10)
     dfs = pd.read_html(db_item["body"])
     print(type(dfs))
     df = pd.concat(dfs)
     df.columns = ["Key", "Value"]
     df.to_excel(output_file_prefix+".xlsx", index=False)
-    print(dfs)
-    print("-"*80)
+    print("-"*10+"DB_ITEM LINKS CONTENT"+"-"*10)
     print(db_item["links"])
-    print("-"*80)
+    print("-"*10+"DB_ITEM LINKED ITEMS ID"+"-"*10)
     linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
     print(linked_item_ids)
     for id in linked_item_ids:
