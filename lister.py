@@ -73,8 +73,8 @@ class Misc_error_and_warning_msg(Enum):
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, %s. Please " \
                             "make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name %s and ID %s is not accessible, with the exception: " \
-                              "\n %s. \n Try contacting eLabFTW administrator reporting the exception mentioned."  \
-                     "Check the following part: %s"
+                              "\n %s. \n Try contacting eLabFTW administrator reporting the exception mentioned." \
+                              "Check the following part: %s"
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
                                 "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
@@ -87,21 +87,21 @@ class Misc_error_and_warning_msg(Enum):
 
 
 class Regex_patterns(Enum):
-    EXPLICIT_KEY = r':.+?:' # catch explicit key which indicated within ":" sign
-    SORROUNDED_W_COLONS = r'^:.+?:$' # catch explicit key which indicated within ":" sign
+    EXPLICIT_KEY = r':.+?:'  # catch explicit key which indicated within ":" sign
+    SORROUNDED_W_COLONS = r'^:.+?:$'  # catch explicit key which indicated within ":" sign
     KV_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KV or control flow
     KV = r'\{.+?\}'  # find any occurrences of KV
     FLOW = r'<.+?>'  # find any occurrences of control flows
-    DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b" # catch DOI
+    DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"  # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
     FORMULA = "\$.*\$"  # define regex for parsing comment
     # COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
     COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
     COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = "\(_.+?_\)"
-    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}" # catch the end part of KV pairs (the key, tolerating trailing spaces)
-    BRACKET_MARKUPS = r"([{}<>])" # catch KV/section bracket annotations
-    SEPARATOR_COLON_MARKUP = r"([|:])" # catch separator annotation
+    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KV pairs (the key, tolerating trailing spaces)
+    BRACKET_MARKUPS = r"([{}<>])"  # catch KV/section bracket annotations
+    SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator annotation
     PRE_PERIOD_SPACES = '\s+\.'
     PRE_COMMA_SPACES = '\s+,'
     SUBSECTION = '(sub)*section'
@@ -227,6 +227,7 @@ def check_bracket_num(par_no, text):
     # print(log)
     return log, is_error
 
+
 # Used in process_foreach()
 def validate_foreach(cf_split):
     log = ""
@@ -239,8 +240,8 @@ def validate_foreach(cf_split):
             log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
     else:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
+            cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -259,8 +260,8 @@ def validate_while(cf_split):
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
+            cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
@@ -280,8 +281,8 @@ def validate_if(cf_split):
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
+            cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
     return log, is_error
@@ -304,8 +305,8 @@ def validate_elseif(cf_split):
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
     else:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
+            cf_split) + "\n"
         is_error = True
     # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
     return log, is_error
@@ -318,8 +319,8 @@ def validate_else(cf_split):
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_ELSE.value:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
+            cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -357,8 +358,8 @@ def validate_for(cf_split):
             log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[3], cf_split) + "\n"
     else:  # if number of argument is invalid
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
+            cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -374,8 +375,8 @@ def validate_iterate(cf_split):
             log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[1], cf_split) + "\n"
     else:  # if number of argument is invalid
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
-        cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
+            cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -387,8 +388,8 @@ def validate_section(cf_split):
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_SECTION.value:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
-        cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
-        elements, cf_split) + "\n"
+            cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
+            elements, cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -636,6 +637,7 @@ def process_iterate(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
     return key_val, log, is_error
 
+
 # OBSOLETE
 # def get_comment_properties(str_with_brackets):
 #    reference = ""
@@ -659,7 +661,7 @@ def strip_unwanted_mvu_colons(word):
     '''
     if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
         print("Surrounding colons in the value/measure/unit {} is removed".format(word))
-        word = word[1:-1] # if there are colons surrounding the word remains, remove it
+        word = word[1:-1]  # if there are colons surrounding the word remains, remove it
     return word
 
 
@@ -827,7 +829,7 @@ def is_explicit_key(key):
 
 '''
     if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
-       return True
+        return True
     else:
         return False
 
@@ -846,7 +848,7 @@ def latex_formula_to_docx(latex_formula):
     mathml = latex2mathml.converter.convert(latex_formula)
     tree = etree.fromstring(mathml)
     try:
-        xslt = etree.parse('MML2OMML.XSL') # please check whether path on mac is ok
+        xslt = etree.parse('MML2OMML.XSL')  # please check whether path on mac is ok
         transform = etree.XSLT(xslt)
         new_dom = transform(tree)
         docx_formula = new_dom.getroot()
@@ -924,17 +926,17 @@ def strip_markup_and_explicit_keys(line):
     # strip unnecessary whitespaces
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',', stripped_from_trailing_spaces)
-    stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split()) # strip from trailing whitespaces
+    stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split())  # strip from trailing whitespaces
     return stripped_from_trailing_spaces, references
 
 
 # Used in remove_empty_tags().
 def remove_empty_tags(soup):
     for x in soup.find_all():
-       # if the text within a tag is empty, and tag name is not img/br7etc.. and it is not img within p tag:
-       if len(x.get_text(strip=True)) == 0 and x.name not in ['img','br', 'td','tr', 'table', 'h1', 'h2', 'h3',
-                                            'h5', 'h6'] and len(x.select("p img")) == 0 :
-           x.extract()
+        # if the text within a tag is empty, and tag name is not img/br7etc.. and it is not img within p tag:
+        if len(x.get_text(strip=True)) == 0 and x.name not in ['img', 'br', 'td', 'tr', 'table', 'h1', 'h2', 'h3',
+                                                               'h5', 'h6'] and len(x.select("p img")) == 0:
+            x.extract()
     return soup
 
 
@@ -951,6 +953,7 @@ def get_nonempty_body_tags(exp):
     tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
     return tagged_contents
 
+
 # Used in get_upl_long_name()
 def split(text, separators):
     default_sep = separators[0]
@@ -963,8 +966,8 @@ def get_upl_long_name(img_path):
     '''
     Get upload long name from the img path.
     '''
-    splitted_path = split(img_path, ('&','='))
-    return(splitted_path[1]) # strip first 19 chars to get the long_name field in the upload dictionary
+    splitted_path = split(img_path, ('&', '='))
+    return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
 
 def get_upl_id(exp, content):
@@ -981,7 +984,7 @@ def get_upl_id(exp, content):
     img_path = content.img['src']
     upl_long_name = get_upl_long_name(img_path)
     uploads = exp['uploads']
-    if len(uploads)>0:
+    if len(uploads) > 0:
         # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be
         # used in the image url e.g. long_name:
         # '21/21e1e300442a68bcbc5dc743f7b3f129b6ab4224859be14c9c7e365ceac7b835a4f00064764b16fe195
@@ -1021,7 +1024,7 @@ def add_img_to_doc(manager, document, upl_id, real_name):
             try:
                 if real_name == "":
                     # ‚img_file.write(manager.get_upload(upl_id))
-                    print("IMAGE INACCESSIBLE") # need to discuss wuth elabftw dev
+                    print("IMAGE INACCESSIBLE")  # need to discuss wuth elabftw dev
                     pass
                 else:
                     img_file.write(manager.get_upload(upl_id))
@@ -1032,7 +1035,8 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                 pass
     else:
         print("Image found in the experiment, but not attached. Parsing this image is disabled for security reason."
-                  "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
+              "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
+
 
 # helper function to print dataframe, used for development and debugging
 def print_whole_df(df):
@@ -1059,10 +1063,10 @@ def add_table_to_doc(doc, content):
     for h in range(df.shape[-1]):
         if not pd.isna(df.values[0, h]):
             t.cell(0, h).text = str(df.values[0, h])
-        if h < (df.shape[-1]-1):
+        if h < (df.shape[-1] - 1):
             if df.values[0, h] == df.values[0, h + 1]:
-                t.cell(0, h).merge(t.cell(0, h+1))
-                h = h+1
+                t.cell(0, h).merge(t.cell(0, h + 1))
+                h = h + 1
 
     # process remaining table entries
     for i in range(1, df.shape[0]):
@@ -1074,7 +1078,7 @@ def add_table_to_doc(doc, content):
 # Used in write_tag_to_doc()
 def get_section_title(line):
     words = line.split()
-    if len(words)>1:
+    if len(words) > 1:
         return ' '.join(words[1:])
     else:
         return ""
@@ -1099,7 +1103,7 @@ def write_tag_to_doc(document, tag_item):
     if isinstance(tag_item, Tag):
         for subcontent in tag_item.contents:
             # strip_markup_and_explicit_keys()
-            if isinstance(subcontent,Tag):
+            if isinstance(subcontent, Tag):
                 line, references = strip_markup_and_explicit_keys(subcontent.get_text())
             else:
                 if re.match(Regex_patterns.FORMULA.value, subcontent):
@@ -1110,7 +1114,7 @@ def write_tag_to_doc(document, tag_item):
                     processed_subcontent = str(subcontent)
                     for formula in formulas:
                         stripped_formula = formula[1:-1]
-                        processed_subcontent = processed_subcontent.replace(formula,'')
+                        processed_subcontent = processed_subcontent.replace(formula, '')
                         docx_formula = latex_formula_to_docx(stripped_formula)
                         if docx_formula != None:
                             p._element.append(docx_formula)
@@ -1143,14 +1147,14 @@ def write_tag_to_doc(document, tag_item):
                 sub_text = p.add_run(line + " ")
                 sub_text.font.subscript = True
             elif subcontent.name == "em":
-                italic_text = p.add_run( " " + line + " ")
+                italic_text = p.add_run(" " + line + " ")
                 italic_text.font.italic = True
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
-                if attr=="color":
+                if attr == "color":
                     color_text = p.add_run(line)
                     color_text.font.color.rgb = RGBColor.from_string(val[1:])
-                elif attr=="font-style" and attr=="italic":
+                elif attr == "font-style" and attr == "italic":
                     styled_text = p.add_run(line)
                     styled_text.italic = True
                 else:
@@ -1181,8 +1185,8 @@ def serialize_to_docx_detailed(manager, exp):
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
-    watched_tags = ['p','h1','h2','h3','h4','h5','h6', 'span', 'strong', 'sub', 'em', 'sup']
-    for content in tagged_contents: # iterate over list of tags
+    watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
+    for content in tagged_contents:  # iterate over list of tags
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
                 upl_id, real_name = get_upl_id(exp, content)
@@ -1191,7 +1195,7 @@ def serialize_to_docx_detailed(manager, exp):
                 references = write_tag_to_doc(document, content)
                 # references = html_taglist_to_doc_granular(document, content)
                 if len(references) > 0:
-                   all_references.extend(references)
+                    all_references.extend(references)
             if content.name == "table":
                 print("A table is found, writing to docx...")
                 add_table_to_doc(document, content)
@@ -1233,7 +1237,7 @@ def serialize_to_docx_detailed(manager, exp):
 #        isVisible, isReference, reference = get_comment_properties(external_comment)
 #        if reference != "":
 #            references.append(reference)
- #   return narrative_lines, references
+#   return narrative_lines, references
 
 
 def parse_lines_list_to_kv(lines):
@@ -1255,7 +1259,7 @@ def parse_lines_list_to_kv(lines):
 
         # Check bracketing validity
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
-        log = log + bracketing_log # + "\n"
+        log = log + bracketing_log  # + "\n"
         if is_bracket_error:
             write_log(log)
             break
@@ -1267,7 +1271,7 @@ def parse_lines_list_to_kv(lines):
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
-                kvmu_set = extract_kvmu(kv_and_flow_pair) # returns tuple with key, value, measure, unit, log
+                kvmu_set = extract_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
@@ -1300,7 +1304,7 @@ def parse_lines_list_to_kv(lines):
                     multi_nkvmu_pair.append(single_nkvmu_pair)
             if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
-                log = log + flow_log # + "\n"
+                log = log + flow_log  # + "\n"
                 if is_flow_error:
                     write_log(log)
                     break
@@ -1323,8 +1327,8 @@ def parse_lines_list_to_kv(lines):
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 
 # Used to serialize extracted metadata to json file.
-def write_to_json(list):
-    json.dump(list, open(output_path_and_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+def write_to_json(list, full_path=output_path_and_fname):
+    json.dump(list, open(full_path + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
@@ -1350,7 +1354,7 @@ def write_to_json(list):
 
 
 # Used to write into the log file.
-def write_log(log):
+def write_log(log, full_path=output_path_and_fname):
     log = log.strip()
     print("WRITING LOGS...")
     print(log)
@@ -1358,7 +1362,7 @@ def write_log(log):
         f.write(log)
 
 
-def write_to_xlsx(nkvmu, log):
+def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
@@ -1366,11 +1370,11 @@ def write_to_xlsx(nkvmu, log):
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-    with xlsxwriter.Workbook(output_path_and_fname + ".xlsx") as workbook:
+    with xlsxwriter.Workbook(full_path + ".xlsx") as workbook:
         # formatting cells
-        header_format = workbook.add_format({'bold': True, 'bg_color':'9bbb59', 'font_color':'ffffff'})
-        default_format = workbook.add_format({'border':1, 'border_color': '9bbb59'})
-        section_format = workbook.add_format({'border':1, 'border_color': '9bbb59', 'bg_color':'ebf1de'})
+        header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
+        default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
+        section_format = workbook.add_format({'border': 1, 'border_color': '9bbb59', 'bg_color': 'ebf1de'})
         # creating and formatting worksheet
         worksheet = workbook.add_worksheet()
         worksheet.write_row(0, 0, header, header_format)
@@ -1382,7 +1386,7 @@ def write_to_xlsx(nkvmu, log):
             key = data[1]
             # do not use regex here, or it will be very slow
             # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
-            if len(key)>=7 and key[0:7].casefold() == "section".casefold():
+            if len(key) >= 7 and key[0:7].casefold() == "section".casefold():
                 worksheet.write_row(row_no + 1, 0, data, section_format)
             else:
                 worksheet.write_row(row_no + 1, 0, data, default_format)
@@ -1461,6 +1465,7 @@ def extract_kv_from_htmlbody(html_content):
     multi_nkvmu_pair, internal_comments, log = parse_lines_list_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
+
 # OBSOLETE: we focus now entirely on extracting document in eLabFTW, and no longer supporting docx/md
 # extracting md via docx conversion using pandoc in case it is needed in the future
 # def extract_md_exp_content_via_pandoc(filename):
@@ -1476,7 +1481,7 @@ def extract_kv_from_htmlbody(html_content):
 # directly to the text file without providing file names. For the parser to work properly, users have to ensure that
 # copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
 # on eLabFTW and set the name of the image file there.
-#def extract_imgs_from_md(filename):
+# def extract_imgs_from_md(filename):
 #    f = open(filename, 'r', encoding='utf-8')
 #    md_text = f.read()
 #    html_doc = markdown.markdown(md_text)
@@ -1519,10 +1524,10 @@ def extract_kv_from_htmlbody(html_content):
 
 
 # patching Markdown
-#Markdown.output_formats["plain"] = unmark_element
-#__md = Markdown(output_format="plain")
-#__md.stripTopLevelTags = False
-#def unmark(text):
+# Markdown.output_formats["plain"] = unmark_element
+# __md = Markdown(output_format="plain")
+# __md.stripTopLevelTags = False
+# def unmark(text):
 #    return __md.convert(text)
 
 
@@ -1536,7 +1541,7 @@ def extract_kv_from_htmlbody(html_content):
 #    multi_nkvmu_pair, log = parse_lines_list_to_kv(lines)
 #    return multi_nkvmu_pair, log
 
-
+# TODO: create mechanism on getting path for saving uploads
 def fetch_and_save_uploads(manager, uploads):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
@@ -1551,7 +1556,8 @@ def fetch_and_save_uploads(manager, uploads):
             try:
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (upload["real_name"], upload["id"], str(e))
+                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
+                upload["real_name"], upload["id"], str(e))
                 pass
 
 
@@ -1598,7 +1604,7 @@ def slugify(value, allow_unicode=False):
 
 
 def process_linked_db_item(manager, id):
-    print("*"*120)
+    print("*" * 120)
     linked_item = manager.get_item(id)
     title = linked_item["title"]
     category = linked_item["category"]
@@ -1607,7 +1613,7 @@ def process_linked_db_item(manager, id):
     df = pd.concat(dfs)
     df.columns = ["Key", "Value"]
     df.to_excel(output_path + slugify(category) + "_" + slugify(title) + ".xlsx", index=False)
-    print(slugify(title), " @@@@@@@@@@@@@@@@ ",slugify(category))
+    print(slugify(title), " @@@@@@@@@@@@@@@@ ", slugify(category))
     print(dfs)
 
 
@@ -1625,22 +1631,22 @@ def process_database(db_item_no, endpoint, token, id, title):
     elif title:
         print(slugify(db_item["title"]))
         print("output file name is based on db item title")
-    print("-"*10+"RELATED EXPERIMENTS"+"-"*10)
+    print("-" * 10 + "RELATED EXPERIMENTS" + "-" * 10)
     print(related_experiments)
     print(rel_exp_ids)
-    print("-"*10+"DB_ITEM RETURNS"+"-"*10)
+    print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
     print(db_item)
-    print("-"*10+"DB_ITEM BODY"+"-"*10)
+    print("-" * 10 + "DB_ITEM BODY" + "-" * 10)
     print(db_item["body"])
-    print("-"*10+"DB_ITEM DFS"+"-"*10)
+    print("-" * 10 + "DB_ITEM DFS" + "-" * 10)
     dfs = pd.read_html(db_item["body"])
     print(type(dfs))
     df = pd.concat(dfs)
     df.columns = ["Key", "Value"]
     df.to_excel(output_path_and_fname + ".xlsx", index=False)
-    print("-"*10+"DB_ITEM LINKS CONTENT"+"-"*10)
+    print("-" * 10 + "DB_ITEM LINKS CONTENT" + "-" * 10)
     print(db_item["links"])
-    print("-"*10+"DB_ITEM LINKED ITEMS ID"+"-"*10)
+    print("-" * 10 + "DB_ITEM LINKED ITEMS ID" + "-" * 10)
     linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
     print(linked_item_ids)
     for id in linked_item_ids:
@@ -1665,7 +1671,7 @@ def get_elab_experiment(exp_number, current_endpoint, current_token):
     # manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     manager = create_elab_manager(current_endpoint, current_token)
     exp = manager.get_experiment(exp_number)
-    return(manager, exp)
+    return (manager, exp)
 
 
 # Deactivating this function for now as it is not clear how the extracted metadata across different
@@ -1688,10 +1694,10 @@ def manage_output_path(dir_name, file_name):
     :param str file_name: the output name.
     :return: str output_path is the output directory created from appending the home path and output path.
     '''
-    if platform.system()=="Darwin":
+    if platform.system() == "Darwin":
         # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         output_path = dir_name
-    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
+    else:  # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         output_path = dir_name + "/" + file_name + "/"
 
     return output_path
@@ -1703,7 +1709,7 @@ def manage_input_path():
     from the executable file's directory).
     '''
     input_path = ""
-    if platform.system()=="Darwin": # enforce input path to be specific to ~/Apps/lister/
+    if platform.system() == "Darwin":  # enforce input path to be specific to ~/Apps/lister/
         home = str(Path.home())
         input_path = home + "/Apps/lister/"
     return input_path
@@ -1751,21 +1757,21 @@ def get_default_output_path(file_name):
     :returns: str output_path is the output path created from appending lister's output home directory and
         output file name.
     '''
-    if platform.system()=="Darwin": # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
+    if platform.system() == "Darwin":  # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         home = str(Path.home())
         output_path = home + "/Apps/lister/output/" + file_name + "/"
         print("OUTPUT PATH: %s" % (output_path))
-    else: # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
+    else:  # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         current_path = pathlib.Path().resolve()
-        if platform.system()=="Windows":
-            output_path = str(current_path) + "\output" # + "\\"
+        if platform.system() == "Windows":
+            output_path = str(current_path) + "\output"  # + "\\"
         else:
             output_path = str(current_path) + "/output/"
     return output_path
 
 
 @Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
-           default_size=(753, 753), navigation="TABBED") # , image_dir='resources/')
+       default_size=(753, 753), navigation="TABBED")  # , image_dir='resources/')
 def parse_args():
     '''
     Get arguments from an existing JSON config to be passed to Gooey's interface.
@@ -1794,38 +1800,38 @@ def parse_args():
     elab_arg_parser = subs.add_parser('parse_experiment', prog="Parse Experiment",
                                       help='Parse metadata from an eLabFTW experiment entry')
 
-    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns':1})
+    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
     io_args.add_argument('output_file_name',
-                                 metavar='Output file name',
-                                 help='[FILENAME] for your metadata and log outputs, without extension',
-                                 # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                                 # [FILENAME].log files in the specified output folder
-                                 default=output_file_name,
-                                 type=str)
+                         metavar='Output file name',
+                         help='[FILENAME] for your metadata and log outputs, without extension',
+                         # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+                         # [FILENAME].log files in the specified output folder
+                         default=output_file_name,
+                         type=str)
     io_args.add_argument('base_output_dir',
-                                 metavar = 'Base output directory',
-                                 help='Local directory generally used to save your outputs',
-                                 type=str,
-                                 default=base_output_path,
-                                 widget='DirChooser')
+                         metavar='Base output directory',
+                         help='Local directory generally used to save your outputs',
+                         type=str,
+                         default=base_output_path,
+                         widget='DirChooser')
 
-    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns':2})
+    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('exp_no',
-                                 metavar='eLabFTW experiment ID',
-                                 help='Integer indicated in the URL of the experiment',
-                                 default=exp_no,
-                                 type=int)
+                              metavar='eLabFTW experiment ID',
+                              help='Integer indicated in the URL of the experiment',
+                              default=exp_no,
+                              type=int)
     elabftw_args.add_argument('endpoint',
-                                 metavar = "eLabFTW API endpoint URL",
-                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
-                                 default=endpoint,
-                                 type=str)
+                              metavar="eLabFTW API endpoint URL",
+                              help='Ask your eLabFTW admin to provide the endpoint URL for you',
+                              default=endpoint,
+                              type=str)
     elabftw_args.add_argument('token',
-                                 metavar='eLabFTW API Token',
-                                 help='Ask your eLabFTW admin to generate an API token for you',
-                                 default=token,
-                                 # Ask your eLabFTW admin to instance to generate one for you
-                                 type=str)
+                              metavar='eLabFTW API Token',
+                              help='Ask your eLabFTW admin to generate an API token for you',
+                              default=token,
+                              # Ask your eLabFTW admin to instance to generate one for you
+                              type=str)
 
     # disabling this as it is unclear how to prevent this feature from making many version of uploads (if it is
     # run several times and how it behaves when we generate metadata but also at the same time getting
@@ -1841,34 +1847,34 @@ def parse_args():
     elab_arg_parser = subs.add_parser('parse_database', prog="Parse Database",
                                       help='Parse metadata from an eLabFTW database items')
 
-    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns':2})
+    elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('db_item_no',
-                                 metavar='eLabFTW Database Item ID',
-                                 help='Integer indicated in the URL of the database item',
-                                 # default=db_item_no,
-                                 default=db_item_no,
-                                 type=int)
+                              metavar='eLabFTW Database Item ID',
+                              help='Integer indicated in the URL of the database item',
+                              # default=db_item_no,
+                              default=db_item_no,
+                              type=int)
     elabftw_args.add_argument('endpoint',
-                                 metavar="eLabFTW API endpoint URL",
-                                 help='Ask your eLabFTW admin to provide the endpoint URL for you',
-                                 default=endpoint,
-                                 type=str)
+                              metavar="eLabFTW API endpoint URL",
+                              help='Ask your eLabFTW admin to provide the endpoint URL for you',
+                              default=endpoint,
+                              type=str)
     elabftw_args.add_argument('token',
-                                 metavar='eLabFTW API Token',
-                                 help='Ask your eLabFTW admin to generate an API token for you',
-                                 default=token,
-                                 # Ask your eLabFTW admin to instance to generate one for you
-                                 type=str)
+                              metavar='eLabFTW API Token',
+                              help='Ask your eLabFTW admin to generate an API token for you',
+                              default=token,
+                              # Ask your eLabFTW admin to instance to generate one for you
+                              type=str)
 
-    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns':1})
+    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
     io_args.add_argument('base_output_dir',
-                                 metavar='Base output directory',
-                                 help='Local directory generally used to save your outputs',
-                                 type=str,
-                                 default=base_output_path,
-                                 widget='DirChooser')
+                         metavar='Base output directory',
+                         help='Local directory generally used to save your outputs',
+                         type=str,
+                         default=base_output_path,
+                         widget='DirChooser')
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
-            'title': "Naming method for the outputs",'initial_selection':0})
+        'title': "Naming method for the outputs", 'initial_selection': 0})
     radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
                              help='Name files and folders based on item ID')
     radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
@@ -1947,8 +1953,10 @@ def get_db_cat_and_title(endpoint, token, db_item_no):
 
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 ref_counter = 0
+
+
 def main():
-    global output_fname#, input_file
+    global output_fname  # , input_file
     global output_path, output_path_and_fname, base_output_path
     global token, exp_no, endpoint
 
@@ -1978,13 +1986,11 @@ def main():
     print("output_fname: ", (output_fname))
     print("output_path: ", (output_path))
 
-
     if args.command == 'parse_experiment':
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token)
     elif args.command == 'parse_database':
         process_database(args.db_item_no, args.endpoint, args.token, args.id, args.title)
-
 
     # elif args.command == 'DOCX':
     #     input_file = args.input_file
@@ -1993,9 +1999,9 @@ def main():
     # elif args.command == 'MD':
     # elif args.command == 'MD':
     #     input_file = args.input_file
-        # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
-        # kv, log = extract_md_exp_content_via_pandoc(input_file)
-        # -- use below to transform md->text is needed prior to extraction (faster).
+    # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
+    # kv, log = extract_md_exp_content_via_pandoc(input_file)
+    # -- use below to transform md->text is needed prior to extraction (faster).
     #    nkvmu, log = extract_md_via_text(input_file)
 
 
