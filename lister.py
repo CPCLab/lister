@@ -1537,7 +1537,7 @@ def extract_kv_from_htmlbody(html_content):
 #    return multi_nkvmu_pair, log
 
 
-def fetch_uploads(manager, uploads):
+def fetch_and_save_uploads(manager, uploads):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1559,7 +1559,7 @@ def process_experiment(exp_no, endpoint, token):
     manager, exp = get_elab_experiment(exp_no, endpoint, token)
     # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
     nkvmu, log = extract_kv_from_htmlbody(exp["body"])
-    fetch_uploads(manager, exp["uploads"])
+    fetch_and_save_uploads(manager, exp["uploads"])
     serialize_to_docx_detailed(manager, exp)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
@@ -1827,7 +1827,7 @@ def parse_args():
                                  # Ask your eLabFTW admin to instance to generate one for you
                                  type=str)
 
-    # disabling this as it is unclear whow to prevent this feature from making many version of uploads (if it is
+    # disabling this as it is unclear how to prevent this feature from making many version of uploads (if it is
     # run several times and how it behaves when we generate metadata but also at the same time getting
     # already-extracted metadata from previous experiment versions)
     # elab_arg_parser.add_argument('-f', '--uploadToggle',
@@ -1949,14 +1949,14 @@ def get_db_cat_and_title(endpoint, token, db_item_no):
 ref_counter = 0
 def main():
     global output_fname#, input_file
-    global output_path, output_path_and_fname#, base_output_dir
+    global output_path, output_path_and_fname, base_output_path
     global token, exp_no, endpoint
 
     # sys.stdin.reconfigure(encoding='utf-8')
     # sys.stdout.reconfigure(encoding='utf-8')
 
     args = parse_args()
-
+    base_output_path = args.base_output_dir
     if args.command == 'parse_database':
         if args.id:
             output_fname = str(args.db_item_no)
@@ -1973,7 +1973,7 @@ def main():
         print("Output path %s is not available, creating the path directory..." % (output_path))
         os.makedirs(output_path)
 
-    # print("base_output_dir: %s", (base_output_dir))
+    print("base_output_dir: ", (base_output_path))
     print("output_path_and_fname: ", (output_path_and_fname))
     print("output_fname: ", (output_fname))
     print("output_path: ", (output_path))
