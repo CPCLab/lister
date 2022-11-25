@@ -10,9 +10,9 @@ As a research group usually has its own set of experiment protocols/Materials an
 
 LISTER is distributed as an executable file for Windows, Linux, or macOS (with an Intel chipset). The executable file for each platform is available on the release page, along with another, platform-specific file.
 
-- **For Windows and Linux**, place the executable file (lister.exe on Windows or lister on Linux) within the same folder as the config.json file.
+- **For Windows and Linux**, place the executable file (`lister.exe `on Windows or `lister` on Linux) within the same folder as the config.json file.
 
-- **For macOS**, create the directory ~/Apps/lister first and place the executable lister.app and config.json in this directory.
+- **For macOS**, create the directory `~/Apps/lister` first and place the executable lister.app and config.json in this directory.
 
 ### Adapting the config.json file
 
@@ -34,21 +34,21 @@ The annotation mechanism allows extracting metadata from experiment documentatio
 
 - *Key-Value (KV) elements*.
   
-  - A KV pair is written as {value|key} in an experiment entry.
+  - A KV pair is written as `{value|key}` in an experiment entry.
   
   - If applicable, a KV pair is extendable with measure and unit. Therefore, there are two more variations for writing a KV pair:
     
-    - {measure|unit|key} the measure and unit will be mapped into value and unit.
-    - {measure|unit|value|key} the measure and unit will be taken as given.
+    - `{measure|unit|key} `the measure and unit will be mapped into value and unit.
+    - `{measure|unit|value|key}` the measure and unit will be taken as given.
   
   - For example, “*Two* *{100|mL|LB Kan|expression media}* *cultures in* *{unbaffled Erlenmeyer|flasks}*” consists of two patterns of pair:
     
-    - {measure|unit|value|key}*{100|mL|LB Kan|expression media}*
-    - *{value|key}**{unbaffled Erlenmeyer|:flasks:}*”
+    - `{measure|unit|value|key}` -> `{100|mL|LB Kan|expression media}`
+    - `{value|key}` -> `{unbaffled Erlenmeyer|:flasks:}`
   
   - Keys are hidden by default in the .docx output file to avoid superfluous text.
   
-  - To make the keys visible, they can be placed within colons as {value|:key:}, such as *{unbaffled Erlenmeyer|:flasks:}*”.
+  - To make the keys visible, they can be placed within colons as `{value|:key:}`, such as `{unbaffled Erlenmeyer|:flasks:}`”.
 
 - *Order.*
   
@@ -59,16 +59,16 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   
   - Comments parsed as-is.
     - This retains both brackets and content in the word document.
-    - Annotation is done using a regular bracket ().
-    - Annotation example: (This comment will be parsed as is, retaining both the content and the brackets in the .docx file.).
+    - Annotation is done using a regular bracket `()`.
+    - Annotation example: `(This comment will be parsed as is, retaining both the content and the brackets in the .docx file.)`.
   - Invisible comments.
     - Used to specify additional notes (regarding, e.g., parameter use) that should be hidden from the final experiment documentation output.
-    - Annotation is done using a pair of underscores inside a regular comment. (_ _)
-    - Annotation example: (\_This comment will be invisible in the .docx output file.\_).
+    - Annotation is done using a pair of underscores inside a regular comment. `(_ _)`
+    - Annotation example: `(\_This comment will be invisible in the .docx output file.\_)`.
   - Comments are retained but without brackets.
     - This is typically used for comments within KV pairs.
-    - Annotation is done using brackets and a double colon (: :)
-    - Annotation example: (:This comment's bracket will be invisible in the .docx output file, but the text content will be kept.:).
+    - Annotation is done using brackets and a double colon `(: :)`
+    - Annotation example: `(:This comment's bracket will be invisible in the .docx output file, but the text content will be kept.:)`.
 
 - *Conditionals and iterations handling*.
   
@@ -80,31 +80,31 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   - Annotation is done using regular brackets and providing the DOI (not URI) in the bracket.
   - The DOI will be converted into Arabic numerals in square brackets, which refer to the reference provided at the bottom of the document.
   - References are only retained in the docx output, but not the metadata outputs (.xlsx/.json).
-  - Example: (DOI_CODE), such as (10.1073/pnas.062492699, 10.1002/elsc.200800043, 10.1088/1478-3975/7/1/016002, 10.1002/prot.22946, 10.1016/S1093-3263(02)00146-8) will be written as [1] [2] [3] [4] [5] in the experiment body, and as a numbered list of DOI codes by the end of the experiment documentation.
+  - Example: `(DOI_CODE)`, such as `(10.1073/pnas.062492699, 10.1002/elsc.200800043, 10.1088/1478-3975/7/1/016002, 10.1002/prot.22946, 10.1016/S1093-3263(02)00146-8)` will be written as `[1] [2] [3] [4] [5]` in the experiment body, and as a numbered list of DOI codes by the end of the experiment documentation.
 
 - *Sections*.
   
   - The keywords section or subsection are designated to provide a separation between sections or subsections.
-  - This is done by using the <section|section name> annotation.
-  - Multiple subsections are also supported, with e.g., <subsubsection|section name>, which will output different sectioning levels in the .xlsx and .json files and different heading levels in the .docx file.
+  - This is done by using the `<section|section name>` annotation.
+  - Multiple subsections are also supported, with e.g., `<subsubsection|section name>`, which will output different sectioning levels in the .xlsx and .json files and different heading levels in the .docx file.
 
 ## Examples of annotations vs. extracted metadata
 
-| **Extracted item**                                                             | **Description**                                                                                                                                                           | **Representation**                                                                           | **Example**                                 | **Extracted order,key, value, and optionally measure, unit in the metadata**                                                                                                                                                                                                                                           |
-|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Section                                                                        | The section name                                                                                                                                                          | <*section*\|*section name*>                                                                  | <*section*\|*Structure Preparation*>        | "-",*section level 0*,*Structure Preparation, -, -*                                                                                                                                                                                                                                                                    |
-| Order                                                                          | The *order* of the steps, based on the order of the paragraph in the experiment documentation                                                                             | -                                                                                            | -                                           | -                                                                                                                                                                                                                                                                                                                        |
-| Key                                                                            | The *key* for the metadata, connected to the value {value\                                                                                                                |key}.                                                                                                          | {value\|*key*}                                                                               | {sequence alignment\|*stage*}               | <order>,*stage*, sequence alignment, -, -                                                                                                                                                                                                                                                                               |
+| **Extracted item**                                                             | **Description**                                                                                                                                                          | **Representation**                                                                           | **Example**                                 | **Extracted order,key, value, and optionally measure, unit in the metadata**                                                                                                                                                                                                                                           |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Section                                                                        | The section name                                                                                                                                                         | <*section*\|*section name*>                                                                  | <*section*\|*Structure Preparation*>        | "-",*section level 0*,*Structure Preparation, -, -*                                                                                                                                                                                                                                                                    |
+| Order                                                                          | The *order* of the steps, based on the order of the paragraph in the experiment documentation                                                                            | -                                                                                            | -                                           | -                                                                                                                                                                                                                                                                                                                        |
+| Key                                                                            | The *key* for the metadata, connected to the value {value\                                                                                                               |key}.                                                                                                          | {value\|*key*}                                                                               | {sequence alignment\|*stage*}               | <order>,*stage*, sequence alignment, -, -                                                                                                                                                                                                                                                                               |
 | Comment, please also see the bullet points about comments above for variations | *Comments* are allowed within the key-value annotation, represented within regular brackets. Comments can be placed both/either before and/or after the key and/or value. | {value\|(*comment*) key} or {value (*comment*)\|key} or {value (*comment*)\|(*comment*) key} | {receptor residue\|(*minimization*) target} | <order>, target, receptor residue, -, -                                                                                                                                                                                                                                                                                  |
-| Value                                                                          | The *value* of the metadata is the first item within the curly brackets {*value*\                                                                                         |key}.                                                                                   | {*value*\|key}                                                                               | {*sequence alignment*\|stage}               | <order>, stage,*sequence alignment, -, -*                                                                                                                                                                                                                                                                               |
-| Measure and Unit                                                               | The measure and unit of corresponding key/value pairs.                                                                                                                    | *{measure\|unit\|value\|key}*                                                                | *{100\|mL\|LB Kan\|expression media}*       | <order>, expression media,*LB Kan, 100, mL*                                                                                                                                                                                                                                                                             |
-| Value and Unit                                                                 | In some cases, value is attached to a unit directly, without having to provide a measure.                                                                                 | `*{value\|unit\|key}*`                                                                       | {250\|rpm\|shaking}                         | <order>, shaking,*250, -, rpm*                                                                                                                                                                                                                                                                                          |
-| Control flow: for each                                                         | Extract multiple key-value pairs related to for each iteration                                                                                                            | <for each\|iterated value>                                                                   | <for each\|*generated pose*>                | <order>, flow type,*for each, -,- *<order>, flow parameter, generated pose*, -, -*                                                                                                                                                                                                                                    |
-| Control flow: for                                                              | Extract multiple key-value pairs related to for iteration                                                                                                                 | <for\|key\|[range]\|iteration operation\|magnitude>                                          | <for\|pH\|[1-7]\|+\|1>                      | <order>, step type,*iteration, -, -*<order>, flow type,*for, -, -*<order>, flow parameter, pH*, -, -*<order>, flow range, [1-7]*, -, -*<order>, start iteration value,1*, -, -*<order>, end iteration value,7*, -, -*<order>, flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -*                |
-| Control flow: while                                                            | Extract multiple key-value pairs related to while iteration                                                                                                               | <while\|key\|logical operator\|value> ... <iterate\|iteration operation\|magnitude>          | <while\|pH\|lte\|7> ... <iterate\|+\|1>     | <order>, step type,*iteration, -, -*<order>, flow type,*while, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7*, -, -*<order>, flow type,*iterate*(after while) <order>flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -* |
-| Control flow: if                                                               | Extract multiple key-value pairs related to if iteration                                                                                                                  | <if~~´~~\|key\|logical operator\|value>                                                      | <if\|pH\|lte\|7>                            | <order>, step type,*conditional, -, -*<order>, flow type,*if, -, -*<order>, flow parameter, pH<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7                                                                                                                                      |
-| Control flow: else if                                                          | Extract multiple key-value pairs related to else if iteration                                                                                                             | <else if\|key\|logical operator\|value>                                                      | <else if\|pH\|between\|[8-12]>              | <order>, step type,*conditional, -, -*<order>, flow type,*else if, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, between*, -, -*<order>, flow range, [8-12]*, -, -*<order>, start iteration value,8*, -, -*<order>, end iteration value,12*, -, -*                              |
-| Control flow: else                                                             | Extract multiple key-value pairs related to else iteration                                                                                                                | <else>                                                                                       |                                             | <order>, step type,*conditional, -, -*<order>, flow type,*else, -, -*                                                                                                                                                                                                                                                |
+| Value                                                                          | The *value* of the metadata is the first item within the curly brackets {*value*\                                                                                        |key}.                                                                                   | {*value*\|key}                                                                               | {*sequence alignment*\|stage}               | <order>, stage,*sequence alignment, -, -*                                                                                                                                                                                                                                                                               |
+| Measure and Unit                                                               | The measure and unit of corresponding key/value pairs.                                                                                                                   | *{measure\|unit\|value\|key}*                                                                | *{100\|mL\|LB Kan\|expression media}*       | <order>, expression media,*LB Kan, 100, mL*                                                                                                                                                                                                                                                                             |
+| Value and Unit                                                                 | In some cases, value is attached to a unit directly, without having to provide a measure.                                                                                | `*{value\|unit\|key}*`                                                                       | {250\|rpm\|shaking}                         | <order>, shaking,*250, -, rpm*                                                                                                                                                                                                                                                                                          |
+| Control flow: `for each`                                                         | Extract multiple key-value pairs related to `for each` iteration                                                                                                           | <for each\|iterated value>                                                                   | <for each\|*generated pose*>                | <order>, flow type,*for each, -,- *<order>, flow parameter, generated pose*, -, -*                                                                                                                                                                                                                                    |
+| Control flow: `for`                                                              | Extract multiple key-value pairs related to `for` iteration                                                                                                                | <for\|key\|[range]\|iteration operation\|magnitude>                                          | <for\|pH\|[1-7]\|+\|1>                      | <order>, step type,*iteration, -, -*<order>, flow type,*for, -, -*<order>, flow parameter, pH*, -, -*<order>, flow range, [1-7]*, -, -*<order>, start iteration value,1*, -, -*<order>, end iteration value,7*, -, -*<order>, flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -*                |
+| Control flow: `while`                                                            | Extract multiple key-value pairs related to `while` iteration                                                                                                              | <while\|key\|logical operator\|value> ... <iterate\|iteration operation\|magnitude>          | <while\|pH\|lte\|7> ... <iterate\|+\|1>     | <order>, step type,*iteration, -, -*<order>, flow type,*while, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7*, -, -*<order>, flow type,*iterate*(after while) <order>flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -* |
+| Control flow: `if`                                                               | Extract multiple key-value pairs related to `if` iteration                                                                                                                 | <if~~´~~\|key\|logical operator\|value>                                                      | <if\|pH\|lte\|7>                            | <order>, step type,*conditional, -, -*<order>, flow type,*if, -, -*<order>, flow parameter, pH<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7                                                                                                                                      |
+| Control flow: `else if`                                                          | Extract multiple key-value pairs related to `else if` iteration                                                                                                            | <else if\|key\|logical operator\|value>                                                      | <else if\|pH\|between\|[8-12]>              | <order>, step type,*conditional, -, -*<order>, flow type,*else if, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, between*, -, -*<order>, flow range, [8-12]*, -, -*<order>, start iteration value,8*, -, -*<order>, end iteration value,12*, -, -*                              |
+| Control flow: `else`                                                             | Extract multiple key-value pairs related to `else` iteration                                                                                                               | <else>                                                                                       |                                             | <order>, step type,*conditional, -, -*<order>, flow type,*else, -, -*                                                                                                                                                                                                                                                |
 
 ### Supported operators
 
@@ -112,19 +112,19 @@ The annotation mechanism allows extracting metadata from experiment documentatio
 
 A logical operator is used to decide whether a particular condition is met in an iteration/conditional block. It is available for while, if , and else if control flows. The following logical operators are supported:
 
-- e: equal
+- `e`: equal
 
-- ne: not equal
+- `ne`: not equal
 
-- lt: less than
+- `lt`: less than
 
-- lte: less than equal
+- `lte`: less than equal
 
-- gt: greater than
+- `gt`: greater than
 
-- gte: greater than equal
+- `gte`: greater than equal
 
-- between: between
+- `between`: between
 
 #### Iteration operator
 
@@ -160,7 +160,7 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 - Avoid referring to, e.g., a section without explicitly using a key-value pair (avoid, e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata extraction for that particular implicit step impossible.
 
-- To minimize confusion regarding units of measurement (e.g., fs vs ps), please explicitly state the units within the value portion of the key-value pair, e.g., {0.01|ps|gamma_ln}.
+- To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units within the value portion of the key-value pair, e.g., `{0.01|ps|gamma_ln}`.
 
 ## GitHub repository structure
 
@@ -174,7 +174,7 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 - Packaging is done through the PyInstaller library and has to be done on the respective platform. PyInstaller should be installed first.
 
-- A .spec file to build LISTER can be generated using the pyi-makespec command, e.g., pyi-makespec --onedir lister.py to create a spec file to package the LISTER app as one directory instead of one file.
+- A .spec file to build LISTER can be generated using the pyi-makespec command, e.g., `pyi-makespec --onedir lister.py` to create a spec file to package the LISTER app as one directory instead of one file.
 
 - The spec file for each platform is provided in the root folder of the LISTER GitHub repository.
 
@@ -182,9 +182,9 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 #### Packaging the app on Windows
 
-- One directory version - on the root folder of the repo, run pyinstaller .\build-windows-onedir.spec
+- One directory version - on the root folder of the repo, run pyinstaller `.\build-windows-onedir.spec`
 
-- One file version - on the root folder of the repo, run pyinstaller .\build-windows-onefile.spec
+- One file version - on the root folder of the repo, run pyinstaller `.\build-windows-onefile.spec`
 
 #### Packaging the app on Linux
 
