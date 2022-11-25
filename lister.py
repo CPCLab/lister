@@ -1327,8 +1327,9 @@ def parse_lines_list_to_kv(lines):
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 
 # Used to serialize extracted metadata to json file.
-def write_to_json(list, full_path=output_path_and_fname):
-    json.dump(list, open(full_path + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+# def write_to_json(list, full_path=output_path_and_fname):
+def write_to_json(list):
+    json.dump(list, open(output_path_and_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
@@ -1354,7 +1355,8 @@ def write_to_json(list, full_path=output_path_and_fname):
 
 
 # Used to write into the log file.
-def write_log(log, full_path=output_path_and_fname):
+# def write_log(log, full_path=output_path_and_fname):
+def write_log(log):
     log = log.strip()
     print("WRITING LOGS...")
     print(log)
@@ -1362,7 +1364,8 @@ def write_log(log, full_path=output_path_and_fname):
         f.write(log)
 
 
-def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
+# def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
+def write_to_xlsx(nkvmu, log):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
@@ -1370,7 +1373,7 @@ def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-    with xlsxwriter.Workbook(full_path + ".xlsx") as workbook:
+    with xlsxwriter.Workbook(output_path_and_fname + ".xlsx") as workbook:
         # formatting cells
         header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
         default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
