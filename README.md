@@ -1,270 +1,213 @@
-# 
+# LISTER: Life Science Experiment Metadata Parser
 
-# LISTER: **Li**fe **S**cience Experimen**t** M**e**tadata Parse**r**
+This repository contains a set of files to parse documentation of experiments in eLabFTW.
 
-This repository contains a set of files to parse SOP from lab experiments.
+## Motivation
 
-# 1. Motivation
+As a research group usually has its own set of experiment protocols/Materials and Methods (MM) to conduct experiments, a tool to extract metadata from protocols/MMs-adapted experiment documentation helps support research data publication according to FAIR (Findable, Accessible, Interoperable, and Reusable) principles. Research data published under FAIR principles is expected to improve the reproducibility of research. To enable metadata extraction, the experiment documentation follows annotation rules described below and is in an HTML format stored as an experiment/database entry in eLabFTW.
 
-As a research group usually has its own set of SOP to conduct experiments, a tool to extract metadata from SOP-adapted experiment document can be helpful in supporting  FAIR research data publication. The research data published in FAIR principle can improve research reproducibility. To enable metadata extraction, the experiment should follow some annotation rules (described below) and in a format supported by LISTER (a eLabFTW entry, a Microsoft Word document or a Markdown file).
+## Installing and running LISTER
 
-# 2. Running LISTER
+LISTER is distributed as an executable file for Windows, Linux, or macOS (with an Intel chipset). The executable file for each platform is available on the release page, along with another, platform-specific file.
 
-LISTER is packaged into an executable file under Windows, Linux and Mac OS (with Intel chip). The executable file for each platform is available in the release page, along with a  file. 
+- **For Windows and Linux**, place the executable file (lister.exe on Windows or lister on Linux) within the same folder as the config.json file.
 
-- **For Windows and Linux**: place the executable file within the same folder as `config.json` file. 
+- **For macOS**, create the directory ~/Apps/lister first and place the executable lister.app and config.json in this directory.
 
-- **For macOS**, place both config file and `lister.app` in your `~/Apps/lister`  directory (please create the directory first). The `config.json` for macOS have to be placed exactly in `~/Apps/lister/config.json` due to a limitation on macOS. 
+### Adapting the config.json file
 
-## Adapting the config.json file
+Parsing an eLabFTW entry requires
 
-### For eLabFTW
-
-Parsing an eLabFTW entry requires:
-
-- General parameter:
+- the general parameters
   
-  - eLabFTW `API token` and `API endpoint`, which can be obtained from the eLabFTW instance's administrator from your lab or university.
+  - eLabFTW API token and API endpoint, which can be obtained from the eLabFTW instance's administrator of the lab or university,
   
-  - Default `output` directory , a directory path used to store the output of the parser.
-
-- Experiment-specific parameter:
+  - Default output directory, i.e., a directory path used to store the parser output,
+    -experiment-specific parameters
+    - Metadata/experiment output filename,
   
-  - Metadata/experiment output filename.
-  
-  - Experiment ID of the parsed entry.
+  - Experiment ID for the entry to be parsed.
 
-### For Microsoft Word or Markdown (TODO: Revise)
+## Annotation mechanism
 
-- Input file name - the filename of the docx or markdown file to parse.
-
-- Base output directory - the output directory for the above files.
-
-- Output file name - the output filename prefix, which will be used for the docx, json, xlsx, and log output.
-
-# 3. Annotation Mechanism
-
-The annotation mechanism below affects both output metadata (xlsx and json) and These are the basics of annotating an experiment/protocol to be parsed by LISTER:
+The annotation mechanism allows extracting metadata from experiment documentation as .xlsx and .json files. In the following points, the basic elements of annotating protocol/MM to be parsed by LISTER are described.
 
 - *Key-Value (KV) elements*.
   
-  - A KV pair is written as *{value|key}* in an experiment entry.
+  - A KV pair is written as {value|key} in an experiment entry.
   
-  - If applicable, a KV pair is extendable with *measure* and *unit*. Therefore, there are two more variations for writing a KV pair: 
+  - If applicable, a KV pair is extendable with measure and unit. Therefore, there are two more variations for writing a KV pair:
     
-    - *{measure|unit|key}* 
+    - {measure|unit|key} the measure and unit will be mapped into value and unit.
+    - {measure|unit|value|key} the measure and unit will be taken as given.
+  
+  - For example, “*Two* *{100|mL|LB Kan|expression media}* *cultures in* *{unbaffled Erlenmeyer|flasks}*” consists of two patterns of pair:
     
-    - *{measure|unit|value|key}* 
+    - {measure|unit|value|key}*{100|mL|LB Kan|expression media}*
+    - *{value|key}**{unbaffled Erlenmeyer|:flasks:}*”
+  
+  - Keys are hidden by default in the .docx output file to avoid superfluous text.
+  
+  - To make the keys visible, they can be placed within colons as {value|:key:}, such as *{unbaffled Erlenmeyer|:flasks:}*”.
 
-- *Adjusting Key visibility on DOCX output*. 
+- *Order.*
   
-  - Keys are hidden by default in the docx output file to avoid superflous text.
-  
-  - To make the keys visible, keys can be placed within colons `{value|:key:}`
+  - As there can be identical keys within an experiment entry, disambiguation is needed.
+  - The disambiguation is done through the *paragraph number*, which will be extracted and associated with each KV pair.
 
-- *Order.* 
-  
-  - There can be similar keys within an experiment entry, hence a disambigation is needed.
-  
-  - The disambiguation is done through the *paragraph number*, which will be extracted for each KV pair.
-
-- *Comments*. There are three different types of comments supported in LISTER.
+- *Comments*. There are three types of comments supported in LISTER.
   
   - Comments parsed as-is.
-    
     - This retains both brackets and content in the word document.
-    
-    - Annotation is done using a regular bracket `()`.
-    
-    - Annotation example: `(This comment will be parsed as is, retaining both the content and the bracket itself in the docx file)`.
+    - Annotation is done using a regular bracket ().
+    - Annotation example: (This comment will be parsed as is, retaining both the content and the brackets in the .docx file.).
+  - Invisible comments.
+    - Used to specify additional notes (regarding, e.g., parameter use) that should be hidden from the final experiment documentation output.
+    - Annotation is done using a pair of underscores inside a regular comment. (_ _)
+    - Annotation example: (\_This comment will be invisible in the .docx output file.\_).
+  - Comments are retained but without brackets.
+    - This is typically used for comments within KV pairs.
+    - Annotation is done using brackets and a double colon (: :)
+    - Annotation example: (:This comment's bracket will be invisible in the .docx output file, but the text content will be kept.:).
+
+- *Conditionals and iterations handling*.
   
-  - Invisible comments. 
-    
-    - Used when MM writers need to specify additional notes (regarding, for example, parameter usage) but wish to hide that note from the final experiment document output.
-    
-    - Annotation is done using a pair of underscore inside a regular comment. `(_ _)`
-    
-    - Annotation example: `(_This comment will be totally invisible in the docx output file_)`.
+  - LISTER supports documenting conditionals and iterations, but this should be used cautiously: As the final experiment documentation is unlikely to have these conditional and iteration clauses, researchers are required to resolve them by adapting the experiment parameter values with the actual values used during the experiment.
+
+- *Reference management*.
   
-  - Comments without brackets retained, with the content kept. 
-    
-    - This is used for typically comment within key-value pairs.
-    
-    - Annotation is done using brackets and double colon `(: :)`
-    
-    - Annotation example: `(:This comment's bracket will be invisible in the docx output file, but the text content will be kept:)`.
+  - References can be provided if the referred source has a DOI.
+  - Annotation is done using regular brackets and providing the DOI (not URI) in the bracket.
+  - The DOI will be converted into Arabic numerals in square brackets, which refer to the reference provided at the bottom of the document.
+  - References are only retained in the docx output, but not the metadata outputs (.xlsx/.json).
+  - Example: (DOI_CODE), such as (10.1073/pnas.062492699, 10.1002/elsc.200800043, 10.1088/1478-3975/7/1/016002, 10.1002/prot.22946, 10.1016/S1093-3263(02)00146-8) will be written as [1] [2] [3] [4] [5] in the experiment body, and as a numbered list of DOI codes by the end of the experiment documentation.
 
-- *Conditionals and iterations handling*. 
+- *Sections*.
   
-  - LISTER supports documenting conditionals and iterations, but it should be used with caution. This is because the final experiment entry  is unlikely to have these conditional and iterations clauses as researchers are encouraged to get rid of conditionals and adapt the experiment parameter values with the actual values that was used during the experiment. 
+  - The keywords section or subsection are designated to provide a separation between sections or subsections.
+  - This is done by using the <section|section name> annotation.
+  - Multiple subsections are also supported, with e.g., <subsubsection|section name>, which will output different sectioning levels in the .xlsx and .json files and different heading levels in the .docx file.
 
-- *Reference management*. 
-  
-  - Reference can be provided if the referred source have a DOI.
-  
-  - Annotation is done using regular brackets, and providing the DOI number (not URI) in the bracket.
-  
-  - Example: `(DOI_CODE)` 
-  
-  - The DOI code will be converted into square bracket number, referring to the reference index that will be provided in the bottom of the document, e.g., `[2]`, in which the number `2` is the index referred in the document.
+## 1.4 Examples of annotations vs. extracted metadata
 
-- *Sections*. 
-  
-  - The keyword sub\*section is designated to provide separation between sections or subsection. 
-  
-  - This is done by using `<section|section name>` annotation.
-  
-  - Multiple subsection is also supported, e.g., `<subsubsection|section name>` which will outputs different sectioning level in the metadata, and different heading level in the microsoft word document.
+| **Extracted item**                                                             | **Description**                                                                                                                                                           | **Representation**                                                                           | **Example**                                 | **Extracted order,key, value, and optionally measure, unit in the metadata**                                                                                                                                                                                                                                           |
+|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Section                                                                        | The section name                                                                                                                                                          | <*section*\|*section name*>                                                                  | <*section*\|*Structure Preparation*>        | "-",*section level 0*,*Structure Preparation, -, -*                                                                                                                                                                                                                                                                    |
+| Order                                                                          | The *order* of the steps, based on the order of the paragraph in the experiment documentation                                                                             | -                                                                                            | -                                           | -                                                                                                                                                                                                                                                                                                                        |
+| Key                                                                            | The *key* for the metadata, connected to the value {value\                                                                                                                |key}.                                                                                                          | {value\|*key*}                                                                               | {sequence alignment\|*stage*}               | <order>,*stage*, sequence alignment, -, -                                                                                                                                                                                                                                                                               |
+| Comment, please also see the bullet points about comments above for variations | *Comments* are allowed within the key-value annotation, represented within regular brackets. Comments can be placed both/either before and/or after the key and/or value. | {value\|(*comment*) key} or {value (*comment*)\|key} or {value (*comment*)\|(*comment*) key} | {receptor residue\|(*minimization*) target} | <order>, target, receptor residue, -, -                                                                                                                                                                                                                                                                                  |
+| Value                                                                          | The *value* of the metadata is the first item within the curly brackets {*value*\                                                                                         |key}.                                                                                   | {*value*\|key}                                                                               | {*sequence alignment*\|stage}               | <order>, stage,*sequence alignment, -, -*                                                                                                                                                                                                                                                                               |
+| Measure and Unit                                                               | The measure and unit of corresponding key/value pairs.                                                                                                                    | *{measure\|unit\|value\|key}*                                                                | *{100\|mL\|LB Kan\|expression media}*       | <order>, expression media,*LB Kan, 100, mL*                                                                                                                                                                                                                                                                             |
+| Value and Unit                                                                 | In some cases, value is attached to a unit directly, without having to provide a measure.                                                                                 | `*{value\|unit\|key}*`                                                                       | {250\|rpm\|shaking}                         | <order>, shaking,*250, -, rpm*                                                                                                                                                                                                                                                                                          |
+| Control flow: for each                                                         | Extract multiple key-value pairs related to for each iteration                                                                                                            | <for each\|iterated value>                                                                   | <for each\|*generated pose*>                | <order>, flow type,*for each, -,- *<order>, flow parameter, generated pose*, -, -*                                                                                                                                                                                                                                    |
+| Control flow: for                                                              | Extract multiple key-value pairs related to for iteration                                                                                                                 | <for\|key\|[range]\|iteration operation\|magnitude>                                          | <for\|pH\|[1-7]\|+\|1>                      | <order>, step type,*iteration, -, -*<order>, flow type,*for, -, -*<order>, flow parameter, pH*, -, -*<order>, flow range, [1-7]*, -, -*<order>, start iteration value,1*, -, -*<order>, end iteration value,7*, -, -*<order>, flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -*                |
+| Control flow: while                                                            | Extract multiple key-value pairs related to while iteration                                                                                                               | <while\|key\|logical operator\|value> ... <iterate\|iteration operation\|magnitude>          | <while\|pH\|lte\|7> ... <iterate\|+\|1>     | <order>, step type,*iteration, -, -*<order>, flow type,*while, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7*, -, -*<order>, flow type,*iterate*(after while) <order>flow operation, +,*-, -*<order>, flow magnitude, 1*, -, -* |
+| Control flow: if                                                               | Extract multiple key-value pairs related to if iteration                                                                                                                  | <if~~´~~\|key\|logical operator\|value>                                                      | <if\|pH\|lte\|7>                            | <order>, step type,*conditional, -, -*<order>, flow type,*if, -, -*<order>, flow parameter, pH<order>, flow logical parameter, lte*, -, -*<order>, flow compared value, 7                                                                                                                                      |
+| Control flow: else if                                                          | Extract multiple key-value pairs related to else if iteration                                                                                                             | <else if\|key\|logical operator\|value>                                                      | <else if\|pH\|between\|[8-12]>              | <order>, step type,*conditional, -, -*<order>, flow type,*else if, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, between*, -, -*<order>, flow range, [8-12]*, -, -*<order>, start iteration value,8*, -, -*<order>, end iteration value,12*, -, -*                              |
+| Control flow: else                                                             | Extract multiple key-value pairs related to else iteration                                                                                                                | <else>                                                                                       |                                             | <order>, step type,*conditional, -, -*<order>, flow type,*else, -, -*                                                                                                                                                                                                                                                |
 
-# 4. Some annotations vs extracted metadata example (TODO: incomplete - no DOI/subsection/visibility/measure-unit yet)
+### 1.4.1 Supported operators
 
-The parser extracts: 
+#### 1.4.1.1 Logical operator
 
-| Extracted Items          | Description                                                                                                                                                                                                                                 | Representation                                                                                 | Example                                        | Extracted order,key,value in the metadata                                                                                                                                                                                                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Section                  | The section name                                                                                                                                                                                                                            | <*section*\|*section name*>                                                                    | <*section*\|*Structure Preparation*>           | <ul><li> "-", *section*, *Structure Preparation*</li></ul>                                                                                                                                                                                                                                                                                                      |
-| Order                    | The *order* of the steps, based on the order of the paragraph in the docx SOP document                                                                                                                                                      | -                                                                                              | -                                              | -                                                                                                                                                                                                                                                                                                                                                               |
-| Key                      | The *key* for the metadata, based on the value represented in the curly bracket after the pipe character {value\|key}.                                                                                                                      | {value\|*key*}                                                                                 | {sequence alignment\|*stage*}                  | <ul><li> \<order\>, *stage*, sequence alignment</li></ul>                                                                                                                                                                                                                                                                                                       |
-| Comment                  | *Comments* are allowed within the key, represented within regular brackets after the pipe symbol. Comment can be placed both/either before and/or after key and/or value. **TBD**: How to serialize comments in the metadata parser output. | - {value\|(*comment*) key} or {value (*comment*)\|key} or {value (*comment*)\|(*comment*) key} | {receptor residue\|(*minimization*) target}    | <ul><li> \<order\> target, receptor residue</li></ul>                                                                                                                                                                                                                                                                                                           |
-| Value                    | The *value* of the metadata is based on the first value represented in the curly bracket before the pipe character {value\|key}. Example:  with ‘sequence alignment’ as the value.                                                          | {*value*\|key}                                                                                 | {*sequence alignment*\|stage}                  | <ul><li> \<order\>, stage, *sequence alignment*</li></ul>                                                                                                                                                                                                                                                                                                       |
-| Control flow: `for each` | Extract multiple key value pairs related to `for each`  iterations                                                                                                                                                                          | <`for each`\|iterated value>                                                                   | <`for each`\|*generated pose*>                 | <ul><li>\<order\>, step type, *iteration*</li><li>\<order\>, flow type, *for each*</li><li>\<order\>, flow parameter, generated pose</li></ul>                                                                                                                                                                                                                  |
-| Control flow:  `while`   | Extract multiple key value pairs related to `while`  iteration                                                                                                                                                                              | \<`while`\|key\|logical operator\|value\> ... \<iteration operation\|magnitude\>               | \<`while`\|pH\|lte\|7\> ... \<iterate\|\+\|1\> | <ul> <li>\<order\>, step type, *iteration*</li> <li>\<order\>, flow type, *while*</li> <li>\<order\>, flow parameter, pH</li> <li>\<order\>, flow logical parameter, lte</li> <li>\<order\>, flow compared value, 7</li> <li>\<order\></li> <li>flow type, iterate  (after while)</li> <li>flow operation, +, </li> <li>\<order\>, flow magnitude, 1</li> </ul> |
-| Control flow: `if`       | Extract multiple key value pairs related to `if`  iteration                                                                                                                                                                                 | \<´if´\|key\|logical operator\|value\>                                                         | \<`if`\|pH\|lte\|7\>                           | <ul> <li>\<order\>, step type, *conditional*</li> <li>\<order\>, flow type, *if*</li> <li>\<order\>, flow parameter, pH</li> <li>\<order\>, flow logical parameter, lte</li> <li>\<order\>, flow compared value, 7</li> </ul>                                                                                                                                   |
-| Control flow: `else if`  | Extract multiple key value pairs related to `else if`   iteration                                                                                                                                                                           | \<`else if`\|key\|logical operator\|value\>                                                    | \<`else if`\|pH\|between\|[8-12]\>             | <ul> <li>\<order\>, step type, *conditional*</li> <li>\<order\>, flow type, *else if*</li> <li>\<order\>, flow parameter, pH</li> <li>\<order\>, flow logical parameter, between</li> <li>\<order\>, flow range, [8-12]</li><li>\<order\>,start iteration value,8</li><li>\<order\>,end iteration value,12</li> </ul>                                           |
-| Control flow: `else`     | Extract multiple key value pairs related to `else`  iteration                                                                                                                                                                               | \<`else`\>                                                                                     |                                                | <ul> <li>\<order\>, step type, *conditional*</li> <li>\<order\>, flow type, *else*</li> </ul>                                                                                                                                                                                                                                                                   |
-| Control flow: `for`      | Extract multiple key value pairs related to `for`  iteration                                                                                                                                                                                | <`for`\|key\|[range]\|iteration operation\|magnitude\>                                         | \<`for`\|pH\|\[1-7]\|\+\|1\>                   | <ul> <li>\<order\>, step type, *iteration*</li> <li>\<order\>, flow type, *for*</li> <li>\<order\>, flow parameter, pH</li> <li>\<order\>, <li>\<order\>, flow flow range, [1-7]</li> <li>\<order\>,start iteration value,1</li><li>\<order\>,end iteration value,7</li> <li>\<order\>, flow operation, +, </li> <li>\<order\>, flow magnitude, 1</li> </ul>    |
-|                          |                                                                                                                                                                                                                                             |                                                                                                |                                                |                                                                                                                                                                                                                                                                                                                                                                 |
+A logical operator is used to decide whether a particular condition is met in an iteration/conditional block. It is available for while, if , and else if control flows. The following logical operators are supported:
 
-The overall example of the SOP document is available in the /*input* directory.  
+- e: equal
 
-Note: subsection, comment visibility, and DOI are not yet in the example.
+- ne: not equal
 
-# Supported operators
+- lt: less than
 
-## Logical operator
+- lte: less than equal
 
-Logical operator is used to decide whether a particular condition  is met during iteration/conditional block. It is available for `while`, `if` and `else if` control flow. The following logical operators are supported: 
+- gt: greater than
 
-- `e` : equal
+- gte: greater than equal
 
-- `ne`: not equal
+- between: between
 
-- `lt`: less than
+#### 1.4.1.2 Iteration operator
 
-- `lte`: less than equal
+An iteration operator is used to change the value of a variable in a loop. It is available for while and for. The following iteration operators are supported:
 
-- `gt`: greater than
+- +: iteration using addition
 
-- `gte`: greater than equal
+- -: iteration using subtraction
 
-- `between`: between
+- %: iteration using modulo
 
-## Iteration operator
+- *: iteration using multiplication
 
-Iteration operator is used to change the value of compared variable during a loop.  It is available for `while` and `for`. The following iteration operators are supported:
+- /: iteration using division
 
-- `+`: iteration using addition
+## 1.5 Document validation
 
-- `-`: iteration using subtraction
+LISTER checks and reports the following syntax issues upon parsing:
 
-- `%`: iteration using modulo
+-  Orphaned brackets.
 
-- `*`: iteration using multiplication
-
-- `/`: iteration using division
-
-# 5. Document validation
-
-LISTER checks the following problems upon parsing, and report accordingly:
-
-- Orphaned brackets and indicates which line the error is located.
 - Mismatched data types for conditionals and iterations.
-- Mismatched argument numbers for conditionals and iterations. 
+
+- Mismatched argument numbers for conditionals and iterations.
+
 - Invalid control flows.
 
-# 6. Image extraction
+## 1.6 Image extraction
 
-Images are extracted from the experiment documents, but as for now there is no metadata or naming scheme from the extracted images.
+Images are extracted from the experiment documentation, but there is no metadata or naming scheme for the extracted images.
 
-# 7. Recommendations
+## 1.7 Recommendations
 
-- Avoid the use of reference without explicit KV-pair (avoid e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata for that particular implicit step unextracted.
-- To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units  within the value portion of the KV-pair, e.g., ` {0.01| ps|gamma_ln}`.
+- Avoid referring to, e.g., a section without explicitly using a key-value pair (avoid, e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata extraction for that particular implicit step impossible.
 
-# 8. Repository structure
+- To minimize confusion regarding units of measurement (e.g., fs vs ps), please explicitly state the units within the value portion of the key-value pair, e.g., {0.01|ps|gamma_ln}.
+
+## 1.8 GitHub repository structure
 
 - The base directory contains the metadata extraction script.
-- `input` directory contains the *.DOCX/*.MD experiment documentation examples for the extraction.
-- `output` directory contains extracted steps order – key – value in both JSON and XLSX format.
 
-# 9. Miscellanous
+- The output directory contains the extracted metadata: step order – key – value – measure – unit in JSON and XLSX format.
 
-## Associated conditionals
+## 1.9 Miscellaneous
 
-Writing conditionals can be exhausting when there are many else clauses involved. To simplify the writing of conditionals, the authors can choose to write it in a concise manner as an associated conditionals using the /{number} notations after the key-value pairs, and a comment notated by regular bracket after the intended value.  Here is an example:
+### 1.9.1 Packaging LISTER
 
-### Example
+- Packaging is done through the PyInstaller library and has to be done on the respective platform. PyInstaller should be installed first.
 
-_"The top five templates identified by TopDomain were {3N25_A (a), 4YJ5_A (b), 3GR4_A (c), 1A49_A (d), 6DU6_B (e)|template_pdbs}**/1** with sequence identities of {99% (a), 93% (b), 93% (c), 100% (d), 63% (e)|template_identities}**/1**, coverages of {95% (a), 97% (b), 97% (c), 97% (d), 96%(e)|template_coverages}**/1**, and predicted TM-Score of {0.96 (a), 0.96 (b), 0.96 (c), 0.96 (d), 0.93(e)| template_confidences}**/1**, respectively."_
+- A .spec file to build LISTER can be generated using the pyi-makespec command, e.g., pyi-makespec --onedir lister.py to create a spec file to package the LISTER app as one directory instead of one file.
 
-### Explanation
+- The spec file for each platform is provided in the root folder of the LISTER GitHub repository.
 
-From the SOP above, associated key-values are marked with the number after the "/" symbol, so keys with a similar number after the "'/" are grouped together. In the example above, _template_pdbs, template_identities, template_coverages,_ and _template_confidences_ belong to the same association. The values on each key are then associated according to the comment in the regular bracket. So, if template_pdbs = 3N25_A, then template_identities = 99%, template_coverages = 95%, and template_confidences = 0.96. On a table, the correlation is grouped as shown below.
+- The resulting packaged app will be available under the dist directory, which is created automatically during the build process.
 
-<style>
-</style>
+#### 1.9.1.1 Packaging the app on Windows
 
-|                      |        |        |        |        |        |
-| -------------------- | ------ | ------ | ------ | ------ | ------ |
-| association<br> set  | 1      | 1      | 1      | 1      | 1      |
-| mapping              | a      | b      | c      | d      | e      |
-| template_pdbs        | 4YJ5_A | 3N25_A | 3GR4_A | 1A49_A | 6DU6_B |
-| template_identities  | 0.99   | 0.93   | 0.93   | 1      | 0.63   |
-| template_coverages   | 0.95   | 0.97   | 0.97   | 0.97   | 0.96   |
-| template_confidences | 0.96   | 0.96   | 0.96   | 0.96   | 0.93   |
+- One directory version - on the root folder of the repo, run pyinstaller .\build-windows-onedir.spec
 
-*Note: the SOP users need to adapt this themselves by removing irrelevant values and /{number} annotations when adapting for their experiment. SOP is not going to be parsed, only the experiments will.*
+- One file version - on the root folder of the repo, run pyinstaller .\build-windows-onefile.spec
 
-## Packaging LISTER
+#### 1.9.1.2 Packaging the app on Linux
 
-- Packaging is done through the PyInstaller, and has to be done on each respective platform.
-- A spec file to build LISTER can be generated using `pyi-makespec` command, e.g., `pyi-makespec --onedir lister.py` to create a spec file to package lister app as one directory instead of one file.
-- The spec file need to be adjusted accordingly, and the spec file for each platform is povided here.
-- The resulting packaged app is available under te `dist` directory
+- One file version - on the root folder of the repo, run pyinstaller .\build-linux.spec
 
-### Packaging the app on Windows
+#### 1.9.1.3 Packaging the app on macOS
 
-- One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
-- One file version - on the root folder of the repo, run `pyinstaller .\build-windows-onefile.spec`
+- One file version - on the root folder of the repo, run pyinstaller .\build-macos.spec
 
-### Packaging the app on Linux
+## 1.10 Troubleshooting
 
-- One file version - on the root folder of the repo, run `pyinstaller .\build-linux.spec
-  `
-  
-  ### Packaging the app on macOS
-- One file version - on the root folder of the repo, run `pyinstaller .\build-macos.spec`
+### 1.10.1 Slow app execution
 
-# 10. Troubleshooting
+Decompressing a single-executable lister app into a temporary directory likely caused this problem. The multi-file distribution (aka one-directory version) can be used instead, although it is not as tidy as compared to the single-executable LISTER app.
 
-## Slow app execution
+### 1.10.2 Encoding problem on Windows
 
-Decompressing single-executable lister app into a temporary directory likely caused this problem. 
-The multi-file distribution can be used, although it is not as tidy compared to the single-executable lister app. 
+When the following error 'charmap' codec can't encode characters in position... appears, open cmd.exe as an administrator before running LISTER and type the following:
 
-## Encoding problem on Windows
-
-When the following error ` 'charmap' codec can't encode characters in position...` appears, 
-open `cmd.exe` as an admin prior to running lister,  and then type the following: 
-
-```
 setx /m PYTHONUTF8 1
-setx PATHEXT "%PATHEXT%;.PY
-```
 
-## Failed building on Windows
+setx PATHEXT "%PATHEXT%;.PY"
 
-The error `win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'The system cannot open the device or file specified.')
-` happens because file access problems on Windows, check if the directory is not read-only, 
-exclude the repo folder from antivirus scanning, and/or try removing both `build` and `dist` directory. 
-Both of these directories are automatically generated upon packaging.
+### 1.10.3 Failed building on Windows
+
+The error win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'The system cannot open the device or file specified.' happens because of file access problems on Windows. Check if the directory is not read-only, exclude the repo folder from antivirus scanning, and/or try removing both the build and dist directories. Both of these directories are automatically generated upon packaging. Cloud storage synchronization may also be the cause of this issue.
