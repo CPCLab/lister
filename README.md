@@ -88,7 +88,7 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   - This is done by using the <section|section name> annotation.
   - Multiple subsections are also supported, with e.g., <subsubsection|section name>, which will output different sectioning levels in the .xlsx and .json files and different heading levels in the .docx file.
 
-## 1.4 Examples of annotations vs. extracted metadata
+## Examples of annotations vs. extracted metadata
 
 | **Extracted item**                                                             | **Description**                                                                                                                                                           | **Representation**                                                                           | **Example**                                 | **Extracted order,key, value, and optionally measure, unit in the metadata**                                                                                                                                                                                                                                           |
 |--------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------------------------------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -106,9 +106,9 @@ The annotation mechanism allows extracting metadata from experiment documentatio
 | Control flow: else if                                                          | Extract multiple key-value pairs related to else if iteration                                                                                                             | <else if\|key\|logical operator\|value>                                                      | <else if\|pH\|between\|[8-12]>              | <order>, step type,*conditional, -, -*<order>, flow type,*else if, -, -*<order>, flow parameter, pH*, -, -*<order>, flow logical parameter, between*, -, -*<order>, flow range, [8-12]*, -, -*<order>, start iteration value,8*, -, -*<order>, end iteration value,12*, -, -*                              |
 | Control flow: else                                                             | Extract multiple key-value pairs related to else iteration                                                                                                                | <else>                                                                                       |                                             | <order>, step type,*conditional, -, -*<order>, flow type,*else, -, -*                                                                                                                                                                                                                                                |
 
-### 1.4.1 Supported operators
+### Supported operators
 
-#### 1.4.1.1 Logical operator
+#### Logical operator
 
 A logical operator is used to decide whether a particular condition is met in an iteration/conditional block. It is available for while, if , and else if control flows. The following logical operators are supported:
 
@@ -126,7 +126,7 @@ A logical operator is used to decide whether a particular condition is met in an
 
 - between: between
 
-#### 1.4.1.2 Iteration operator
+#### Iteration operator
 
 An iteration operator is used to change the value of a variable in a loop. It is available for while and for. The following iteration operators are supported:
 
@@ -140,7 +140,7 @@ An iteration operator is used to change the value of a variable in a loop. It is
 
 - /: iteration using division
 
-## 1.5 Document validation
+## Document validation
 
 LISTER checks and reports the following syntax issues upon parsing:
 
@@ -152,25 +152,25 @@ LISTER checks and reports the following syntax issues upon parsing:
 
 - Invalid control flows.
 
-## 1.6 Image extraction
+## Image extraction
 
 Images are extracted from the experiment documentation, but there is no metadata or naming scheme for the extracted images.
 
-## 1.7 Recommendations
+## Recommendations
 
 - Avoid referring to, e.g., a section without explicitly using a key-value pair (avoid, e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata extraction for that particular implicit step impossible.
 
 - To minimize confusion regarding units of measurement (e.g., fs vs ps), please explicitly state the units within the value portion of the key-value pair, e.g., {0.01|ps|gamma_ln}.
 
-## 1.8 GitHub repository structure
+## GitHub repository structure
 
 - The base directory contains the metadata extraction script.
 
 - The output directory contains the extracted metadata: step order – key – value – measure – unit in JSON and XLSX format.
 
-## 1.9 Miscellaneous
+## Miscellaneous
 
-### 1.9.1 Packaging LISTER
+### Packaging LISTER
 
 - Packaging is done through the PyInstaller library and has to be done on the respective platform. PyInstaller should be installed first.
 
@@ -180,34 +180,34 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 - The resulting packaged app will be available under the dist directory, which is created automatically during the build process.
 
-#### 1.9.1.1 Packaging the app on Windows
+#### Packaging the app on Windows
 
 - One directory version - on the root folder of the repo, run pyinstaller .\build-windows-onedir.spec
 
 - One file version - on the root folder of the repo, run pyinstaller .\build-windows-onefile.spec
 
-#### 1.9.1.2 Packaging the app on Linux
+#### Packaging the app on Linux
 
-- One file version - on the root folder of the repo, run pyinstaller .\build-linux.spec
+- One file version - on the root folder of the repo, run pyinstaller `.\build-linux.spec`
 
-#### 1.9.1.3 Packaging the app on macOS
+#### Packaging the app on macOS
 
-- One file version - on the root folder of the repo, run pyinstaller .\build-macos.spec
+- One file version - on the root folder of the repo, run pyinstaller `.\build-macos.spec`
 
-## 1.10 Troubleshooting
+## Troubleshooting
 
-### 1.10.1 Slow app execution
+### Slow app execution
 
 Decompressing a single-executable lister app into a temporary directory likely caused this problem. The multi-file distribution (aka one-directory version) can be used instead, although it is not as tidy as compared to the single-executable LISTER app.
 
-### 1.10.2 Encoding problem on Windows
+### Encoding problem on Windows
 
 When the following error 'charmap' codec can't encode characters in position... appears, open cmd.exe as an administrator before running LISTER and type the following:
 
-setx /m PYTHONUTF8 1
+`setx /m PYTHONUTF8 1`
 
-setx PATHEXT "%PATHEXT%;.PY"
+`setx PATHEXT "%PATHEXT%;.PY"`
 
-### 1.10.3 Failed building on Windows
+### Failed building on Windows
 
 The error win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'The system cannot open the device or file specified.' happens because of file access problems on Windows. Check if the directory is not read-only, exclude the repo folder from antivirus scanning, and/or try removing both the build and dist directories. Both of these directories are automatically generated upon packaging. Cloud storage synchronization may also be the cause of this issue.
