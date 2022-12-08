@@ -1847,13 +1847,13 @@ def parse_args():
 
     # ELABFTW DATABASE PARAMETERS
     # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
-    elab_arg_parser = subs.add_parser('parse_database', prog="Parse Database",
-                                      help='Parse metadata from an eLabFTW database items')
+    elab_arg_parser = subs.add_parser('parse_database', prog="Parse Container",
+                                      help='Parse metadata from an eLabFTW database/container items')
 
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('db_item_no',
-                              metavar='eLabFTW Database Item ID',
-                              help='Integer indicated in the URL of the database item',
+                              metavar='eLabFTW Database/Container Item ID',
+                              help='Integer indicated in the URL of the database/container item',
                               # default=db_item_no,
                               default=db_item_no,
                               type=int)
