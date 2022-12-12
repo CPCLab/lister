@@ -1850,6 +1850,20 @@ def parse_args():
     elab_arg_parser = subs.add_parser('parse_database', prog="Parse Container",
                                       help='Parse metadata from an eLabFTW database/container items')
 
+    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
+    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
+        'title': "Naming method for the outputs", 'initial_selection': 0})
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+                             help='Name files and folders based on item ID')
+    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
+                             help='Name files and folders based on item title')
+    io_args.add_argument('base_output_dir',
+                         metavar='Base output directory',
+                         help='Local directory generally used to save your outputs',
+                         type=str,
+                         default=base_output_path,
+                         widget='DirChooser')
+
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('db_item_no',
                               metavar='eLabFTW Database/Container Item ID',
@@ -1869,19 +1883,7 @@ def parse_args():
                               # Ask your eLabFTW admin to instance to generate one for you
                               type=str)
 
-    io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
-    io_args.add_argument('base_output_dir',
-                         metavar='Base output directory',
-                         help='Local directory generally used to save your outputs',
-                         type=str,
-                         default=base_output_path,
-                         widget='DirChooser')
-    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
-        'title': "Naming method for the outputs", 'initial_selection': 0})
-    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on item ID')
-    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
-                             help='Name files and folders based on item title')
+
 
     # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
     # DOCX PARAMETERS
