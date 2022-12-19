@@ -1175,7 +1175,7 @@ def write_tag_to_doc(document, tag_item):
     return all_references
 
 
-def serialize_to_docx_detailed(manager, exp):
+def serialize_to_docx_detailed(manager, exp, path):
     '''
     fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
@@ -1208,7 +1208,7 @@ def serialize_to_docx_detailed(manager, exp):
         document.add_heading("Reference", level=1)
         for reference in all_references:
             document.add_paragraph(reference, style='List Number')
-    document.save(output_path_and_fname + '.docx')
+    document.save(path + output_fname + '.docx')
 
 
 # OBSOLETE: Helper function to print different type of comments
@@ -1328,8 +1328,8 @@ def parse_lines_list_to_kv(lines):
 
 # Used to serialize extracted metadata to json file.
 # def write_to_json(list, full_path=output_path_and_fname):
-def write_to_json(list):
-    json.dump(list, open(output_path_and_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+def write_to_json(list, path):
+    json.dump(list, open(path + output_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
@@ -1356,16 +1356,16 @@ def write_to_json(list):
 
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
-def write_log(log):
+def write_log(log, path):
     log = log.strip()
     print("WRITING LOGS...")
     print(log)
-    with open(output_path_and_fname + ".log", 'w', encoding="utf-8") as f:
+    with open(path + output_fname + ".log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 
 # def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
-def write_to_xlsx(nkvmu, log):
+def write_to_xlsx(nkvmu, log, path):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
@@ -1373,7 +1373,7 @@ def write_to_xlsx(nkvmu, log):
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-    with xlsxwriter.Workbook(output_path_and_fname + ".xlsx") as workbook:
+    with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
         # formatting cells
         header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
         default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
@@ -1394,7 +1394,7 @@ def write_to_xlsx(nkvmu, log):
             else:
                 worksheet.write_row(row_no + 1, 0, data, default_format)
 
-    write_log(log)
+    write_log(log, path)
 
 
 # ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API/MARKDOWN ------------------------------------------
@@ -1545,7 +1545,7 @@ def extract_kv_from_htmlbody(html_content):
 #    return multi_nkvmu_pair, log
 
 # TODO: create mechanism on getting path for saving uploads
-def fetch_and_save_uploads(manager, uploads):
+def fetch_and_save_uploads(manager, uploads, path):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1554,7 +1554,7 @@ def fetch_and_save_uploads(manager, uploads):
                     (e.g., file_size, real_name, long_name, hash, etc).
     '''
     for upload in uploads:
-        with open(output_path + upload["real_name"], 'wb') as attachment:
+        with open(path + upload["real_name"], 'wb') as attachment:
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
             try:
                 attachment.write(manager.get_upload(upload["id"]))
@@ -1564,12 +1564,14 @@ def fetch_and_save_uploads(manager, uploads):
                 pass
 
 
-def process_experiment(exp_no, endpoint, token):
+def process_experiment(exp_no, endpoint, token, path):
+
+
     manager, exp = get_elab_experiment(exp_no, endpoint, token)
     # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
     nkvmu, log = extract_kv_from_htmlbody(exp["body"])
-    fetch_and_save_uploads(manager, exp["uploads"])
-    serialize_to_docx_detailed(manager, exp)
+    fetch_and_save_uploads(manager, exp["uploads"], path)
+    serialize_to_docx_detailed(manager, exp, path)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
     # if args.uploadToggle == True:
@@ -1577,9 +1579,9 @@ def process_experiment(exp_no, endpoint, token):
     #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
 
     # Writing to JSON and XLSX
-    write_to_json(nkvmu)
+    write_to_json(nkvmu, path)
     # write_to_linear_json(nkvmu)
-    write_to_xlsx(nkvmu, log)
+    write_to_xlsx(nkvmu, log, path)
 
 
 def create_elab_manager(current_endpoint, current_token):
@@ -1627,7 +1629,6 @@ def process_database(db_item_no, endpoint, token, id, title):
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
-    rel_exp_ids = [exp['id'] for exp in related_experiments]
     if id:
         output_file_name = str(db_item_no)
         print("output file name: ", output_file_name)
@@ -1636,7 +1637,10 @@ def process_database(db_item_no, endpoint, token, id, title):
         print("output file name is based on db item title")
     print("-" * 10 + "RELATED EXPERIMENTS" + "-" * 10)
     print(related_experiments)
-    print(rel_exp_ids)
+    exp_ids = [d['id'] for d in related_experiments if 'id' in d]
+    print(exp_ids)
+    for exp_id in exp_ids:
+        pass
     print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
     print(db_item)
     print("-" * 10 + "DB_ITEM BODY" + "-" * 10)
@@ -1854,9 +1858,9 @@ def parse_args():
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
         'title': "Naming method for the outputs", 'initial_selection': 0})
     radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on item ID')
+                             help='Name files and folders based on container type + ID, including the underlying experiments')
     radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
-                             help='Name files and folders based on item title')
+                             help='Name files and folders based on container type + title, including the underlying experiments')
     io_args.add_argument('base_output_dir',
                          metavar='Base output directory',
                          help='Local directory generally used to save your outputs',
@@ -1986,6 +1990,11 @@ def main():
         print("Output path %s is not available, creating the path directory..." % (output_path))
         os.makedirs(output_path)
 
+    if args.command == 'parse_database':
+        if not os.path.isdir(output_path+output_fname):
+            print("Output path %s is not available, creating the path directory..." % (output_fname))
+            os.makedirs(output_path+output_fname)
+
     print("base_output_dir: ", (base_output_path))
     print("output_path_and_fname: ", (output_path_and_fname))
     print("output_fname: ", (output_fname))
@@ -1993,7 +2002,7 @@ def main():
 
     if args.command == 'parse_experiment':
         print("Processing experiment...")
-        process_experiment(args.exp_no, args.endpoint, args.token)
+        process_experiment(args.exp_no, args.endpoint, args.token, output_path)
     elif args.command == 'parse_database':
         process_database(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
