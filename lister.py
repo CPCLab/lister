@@ -1703,7 +1703,7 @@ def manage_output_path(dir_name, file_name):
     '''
     if platform.system() == "Darwin":
         # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
-        output_path = dir_name
+        output_path = dir_name + file_name + "/"
     else:  # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         output_path = dir_name + "/" + file_name + "/"
 
@@ -1808,13 +1808,21 @@ def parse_args():
                                       help='Parse metadata from an eLabFTW experiment entry')
 
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
-    io_args.add_argument('output_file_name',
-                         metavar='Output file name',
-                         help='[FILENAME] for your metadata and log outputs, without extension',
+    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
+        'title': "Naming method for the outputs", 'initial_selection': 0})
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+                             help='Name files and folders based on the experiment ID')
+    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
+                             help='Name files and folders based on experiment title')
+    # radio_group.add_argument("-t", "--custom", metavar="Custom name", action="store_true",
+    #                         help='Name output file using your input here:')
+    # io_args.add_argument('output_file_name',
+                         # metavar='Output file name',
+                         # help='[FILENAME] for your metadata and log outputs, without extension',
                          # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
                          # [FILENAME].log files in the specified output folder
-                         default=output_file_name,
-                         type=str)
+                         # default=output_file_name,
+                         # type=str)
     io_args.add_argument('base_output_dir',
                          metavar='Base output directory',
                          help='Local directory generally used to save your outputs',
@@ -1960,6 +1968,12 @@ def get_db_cat_and_title(endpoint, token, db_item_no):
     return db_item["category"], db_item["title"]
 
 
+def get_exp_title(endpoint, token, exp_item_no):
+    exp = get_elab_experiment(exp_item_no, endpoint, token)
+    exp_title = exp[1]["title"]
+    return exp_title
+
+
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 ref_counter = 0
 
@@ -1981,7 +1995,11 @@ def main():
             cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
             output_fname = slugify(cat) + "_" + slugify(title)
     elif args.command == 'parse_experiment':
-        output_fname = args.output_file_name
+        if args.id:
+            output_fname = str(args.exp_no)
+        elif args.title:
+            title = get_exp_title(args.endpoint, args.token, args.exp_no)
+            output_fname = slugify("experiment") + "_" + slugify(title)
     print("The output is written to %s directory" % (output_fname))
 
     output_path = manage_output_path(args.base_output_dir, output_fname)
