@@ -717,9 +717,9 @@ def process_section(cf_split):
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
-def extract_kvmu(kvmu):
+def bracketedstring_to_kvmu(kvmu):
     '''
-    Extract lines to a tuple containing key, vaue, measuere, and log.
+    Extract lines to a tuple containing key, value, measure, and log.
 
     :param str kvmu: a string fragment with a single lister bracketing annotation.
     :returns: tuple (key, val, measure, unit, log)
@@ -811,7 +811,7 @@ def extract_flow_type(par_no, flow_control_pair):
     return key_val, flow_log, is_error
 
 
-# Used in parse_lines_list_to_kv().
+# Used in parse_lines_to_kv().
 def strip_colon(key):
     '''
     Strip colon found on key string.
@@ -820,7 +820,7 @@ def strip_colon(key):
     return stripped_key
 
 
-# Used in parse_lines_list_to_kv().
+# Used in parse_lines_to_kv().
 def is_explicit_key(key):
     '''
     Check whether the string is an explicit key.
@@ -933,7 +933,7 @@ def strip_markup_and_explicit_keys(line):
 # Used in remove_empty_tags().
 def remove_empty_tags(soup):
     for x in soup.find_all():
-        # if the text within a tag is empty, and tag name is not img/br7etc.. and it is not img within p tag:
+        # if the text within a tag is empty, and tag name is not img/br/etc.. and it is not img within p tag:
         if len(x.get_text(strip=True)) == 0 and x.name not in ['img', 'br', 'td', 'tr', 'table', 'h1', 'h2', 'h3',
                                                                'h5', 'h6'] and len(x.select("p img")) == 0:
             x.extract()
@@ -954,7 +954,7 @@ def get_nonempty_body_tags(exp):
     return tagged_contents
 
 
-# Used in get_upl_long_name()
+# Used in get_attachment_long_name()
 def split(text, separators):
     default_sep = separators[0]
     for sep in separators[1:]:
@@ -962,7 +962,7 @@ def split(text, separators):
     return [i.strip() for i in text.split(default_sep)]
 
 
-def get_upl_long_name(img_path):
+def get_attachment_long_name(img_path):
     '''
     Get upload long name from the img path.
     '''
@@ -970,7 +970,7 @@ def get_upl_long_name(img_path):
     return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
 
-def get_upl_id(exp, content):
+def get_attachment_id(exp, content):
     '''
     Get upload id from given experiment and content.
     :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
@@ -982,7 +982,7 @@ def get_upl_id(exp, content):
         str real_name: the name of the file when it was uploaded to eLabFTW.
     '''
     img_path = content.img['src']
-    upl_long_name = get_upl_long_name(img_path)
+    upl_long_name = get_attachment_long_name(img_path)
     uploads = exp['uploads']
     if len(uploads) > 0:
         # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be
@@ -1175,7 +1175,7 @@ def write_tag_to_doc(document, tag_item):
     return all_references
 
 
-def serialize_to_docx_detailed(manager, exp, path):
+def write_to_docx(manager, exp, path):
     '''
     fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
@@ -1189,7 +1189,7 @@ def serialize_to_docx_detailed(manager, exp, path):
     for content in tagged_contents:  # iterate over list of tags
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
-                upl_id, real_name = get_upl_id(exp, content)
+                upl_id, real_name = get_attachment_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
             elif any(x in content.name for x in watched_tags):
                 references = write_tag_to_doc(document, content)
@@ -1201,7 +1201,7 @@ def serialize_to_docx_detailed(manager, exp, path):
                 add_table_to_doc(document, content)
             if content.name == "img":
                 print("An image is found, serializing to docx...")
-                upl_id, real_name = get_upl_id(exp, content)
+                upl_id, real_name = get_attachment_id(exp, content)
                 add_img_to_doc(manager, document, upl_id, real_name)
 
     if len(all_references) > 0:
@@ -1240,19 +1240,19 @@ def serialize_to_docx_detailed(manager, exp, path):
 #   return narrative_lines, references
 
 
-def parse_lines_list_to_kv(lines):
+def parse_lines_to_kv(lines):
     '''
     Get a list of [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
     :param list lines: list of lines cleaned up from nbsp.
-    :return: tuple (multi_nkvmu_pair, internal_comments, log)
+    :return: tuple (nkvmu_pairs, internal_comments, log)
         WHERE
-        list multi_nkvmu_pair: list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''],
+        list nkvmu_pairs: list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''],
         str internal_comments: placeholder for found internal comments within key-value pairs - currently unused,
         str log: log from running subsequent functions.
     '''
     par_no = 0
-    multi_nkvmu_pair = []
-    multi_nk_pair = []
+    nkvmu_pairs = []
+    nk_pairs = []
     log = ""
     for line in lines:
         internal_comments = []
@@ -1271,7 +1271,7 @@ def parse_lines_list_to_kv(lines):
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
-                kvmu_set = extract_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+                kvmu_set = bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
@@ -1294,22 +1294,22 @@ def parse_lines_list_to_kv(lines):
                         internal_comments.append(comment)
                     else:
                         unit = kvmu_set[3]
-                    single_nk_pair = [par_no, key]
-                    if (single_nk_pair in multi_nk_pair):
-                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (single_nk_pair) + "\n"
+                    nk_pair = [par_no, key]
+                    if (nk_pair in nk_pairs):
+                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (nk_pair) + "\n"
                     if is_explicit_key(key):
                         key = strip_colon(key)
-                    single_nkvmu_pair = [par_no, key, val, measure, unit]
-                    multi_nk_pair.append(single_nk_pair)
-                    multi_nkvmu_pair.append(single_nkvmu_pair)
+                    nkvmu_pair = [par_no, key, val, measure, unit]
+                    nk_pairs.append(nk_pair)
+                    nkvmu_pairs.append(nkvmu_pair)
             if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log  # + "\n"
                 if is_flow_error:
                     write_log(log)
                     break
-                multi_nkvmu_pair.extend(flow_metadata)
-    return multi_nkvmu_pair, internal_comments, log
+                nkvmu_pairs.extend(flow_metadata)
+    return nkvmu_pairs, internal_comments, log
 
 
 # OBSOLETE: Docx input is no longer supported.
@@ -1320,7 +1320,7 @@ def parse_lines_list_to_kv(lines):
 #        par_lines.append(para.text)
 #        par_no = par_no + 1
 #    par_lines = list(line for line in par_lines if line)
-#    multi_nkvmu_pair, log = parse_lines_list_to_kv(par_lines)
+#    multi_nkvmu_pair, log = parse_lines_to_kv(par_lines)
 #    return multi_nkvmu_pair, log
 
 
@@ -1448,7 +1448,7 @@ def process_nbsp(soup):
     return clean_lines
 
 
-def extract_kv_from_htmlbody(html_content):
+def html_to_nkvmu(html_content):
     '''
     Turn html body content into extended key-value pair
             [order, key, value, measure (if applicable), unit (if applicable)] or
@@ -1465,7 +1465,7 @@ def extract_kv_from_htmlbody(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
     clean_lines = process_nbsp(soup)
-    multi_nkvmu_pair, internal_comments, log = parse_lines_list_to_kv(clean_lines)
+    multi_nkvmu_pair, internal_comments, log = parse_lines_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
 
@@ -1541,11 +1541,11 @@ def extract_kv_from_htmlbody(html_content):
 #    marked_txt = f.read()
 #    unmarked_txt = unmark(marked_txt).replace("\\","")
 #    lines = unmarked_txt.splitlines()
-#    multi_nkvmu_pair, log = parse_lines_list_to_kv(lines)
+#    multi_nkvmu_pair, log = parse_lines_to_kv(lines)
 #    return multi_nkvmu_pair, log
 
 # TODO: create mechanism on getting path for saving uploads
-def fetch_and_save_uploads(manager, uploads, path):
+def get_and_save_attachments(manager, uploads, path):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1567,11 +1567,11 @@ def fetch_and_save_uploads(manager, uploads, path):
 def process_experiment(exp_no, endpoint, token, path):
 
 
-    manager, exp = get_elab_experiment(exp_no, endpoint, token)
+    manager, exp = get_elab_exp(exp_no, endpoint, token)
     # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
-    nkvmu, log = extract_kv_from_htmlbody(exp["body"])
-    fetch_and_save_uploads(manager, exp["uploads"], path)
-    serialize_to_docx_detailed(manager, exp, path)
+    nkvmu, log = html_to_nkvmu(exp["body"])
+    get_and_save_attachments(manager, exp["uploads"], path)
+    write_to_docx(manager, exp, path)
 
     # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
     # if args.uploadToggle == True:
@@ -1661,7 +1661,7 @@ def process_database(db_item_no, endpoint, token, id, title):
     #  with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
 
 
-def get_elab_experiment(exp_number, current_endpoint, current_token):
+def get_elab_exp(exp_number, current_endpoint, current_token):
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
 
@@ -1779,7 +1779,7 @@ def get_default_output_path(file_name):
 
 @Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
        default_size=(753, 753), navigation="TABBED")  # , image_dir='resources/')
-def parse_args():
+def parse_gooey_args():
     '''
     Get arguments from an existing JSON config to be passed to Gooey's interface.
 
@@ -1969,7 +1969,7 @@ def get_db_cat_and_title(endpoint, token, db_item_no):
 
 
 def get_exp_title(endpoint, token, exp_item_no):
-    exp = get_elab_experiment(exp_item_no, endpoint, token)
+    exp = get_elab_exp(exp_item_no, endpoint, token)
     exp_title = exp[1]["title"]
     return exp_title
 
@@ -1986,7 +1986,7 @@ def main():
     # sys.stdin.reconfigure(encoding='utf-8')
     # sys.stdout.reconfigure(encoding='utf-8')
 
-    args = parse_args()
+    args = parse_gooey_args()
     base_output_path = args.base_output_dir
     if args.command == 'parse_database':
         if args.id:
