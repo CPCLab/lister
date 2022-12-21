@@ -717,7 +717,7 @@ def process_section(cf_split):
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
-def bracketedstring_to_kvmu(kvmu):
+def conv_bracketedstring_to_kvmu(kvmu):
     '''
     Extract lines to a tuple containing key, value, measure, and log.
 
@@ -1271,7 +1271,7 @@ def parse_lines_to_kv(lines):
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
-                kvmu_set = bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+                kvmu_set = conv_bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
@@ -1389,7 +1389,7 @@ def write_to_xlsx(nkvmu, log, path):
             key = data[1]
             # do not use regex here, or it will be very slow
             # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
-            if len(key) >= 7 and key[0:7].casefold() == "section".casefold():
+            if len(key) >= 7 and key[0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
                 worksheet.write_row(row_no + 1, 0, data, section_format)
             else:
                 worksheet.write_row(row_no + 1, 0, data, default_format)
@@ -1448,7 +1448,7 @@ def process_nbsp(soup):
     return clean_lines
 
 
-def html_to_nkvmu(html_content):
+def conv_html_to_nkvmu(html_content):
     '''
     Turn html body content into extended key-value pair
             [order, key, value, measure (if applicable), unit (if applicable)] or
@@ -1544,7 +1544,7 @@ def html_to_nkvmu(html_content):
 #    multi_nkvmu_pair, log = parse_lines_to_kv(lines)
 #    return multi_nkvmu_pair, log
 
-# TODO: create mechanism on getting path for saving uploads
+
 def get_and_save_attachments(manager, uploads, path):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
@@ -1564,12 +1564,39 @@ def get_and_save_attachments(manager, uploads, path):
                 pass
 
 
+def process_linked_db_item(manager, id):
+    linked_item = manager.get_item(id)
+    html_body = linked_item["body"]
+    category = linked_item["category"]
+    dfs = pd.read_html(html_body)
+    df = pd.concat(dfs)
+    df.columns = ["metadata section", category]
+    df.insert(loc=0, column="", value="")
+    df = df.reindex(df.columns.tolist() + ['',''], axis=1)
+    filtered_df = df.fillna('')
+    db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
+    return db_item_nkvmu_metadata
+
+
 def process_experiment(exp_no, endpoint, token, path):
 
-
     manager, exp = get_elab_exp(exp_no, endpoint, token)
-    # nkvmu, log = extract_kv_from_elab_exp(manager, exp)
-    nkvmu, log = html_to_nkvmu(exp["body"])
+    links = exp['links']
+    excluded_item_types = ["MM", "Publication"] # may need to configure this in the json file in the future
+    filtered_links = []
+
+    for link in links:
+        if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
+            filtered_links.append(link)
+
+    overall_nkvmu = []
+    for filtered_link in filtered_links:
+        db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
+        overall_nkvmu.extend(db_item_nkvmu_metadata)
+
+    exp_nkvmu, log = conv_html_to_nkvmu(exp["body"])
+    overall_nkvmu.extend(exp_nkvmu)
+
     get_and_save_attachments(manager, exp["uploads"], path)
     write_to_docx(manager, exp, path)
 
@@ -1579,9 +1606,9 @@ def process_experiment(exp_no, endpoint, token, path):
     #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
 
     # Writing to JSON and XLSX
-    write_to_json(nkvmu, path)
+    write_to_json(overall_nkvmu, path)
     # write_to_linear_json(nkvmu)
-    write_to_xlsx(nkvmu, log, path)
+    write_to_xlsx(overall_nkvmu, log, path)
 
 
 def create_elab_manager(current_endpoint, current_token):
@@ -1608,56 +1635,46 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def process_linked_db_item(manager, id):
-    print("*" * 120)
-    linked_item = manager.get_item(id)
-    title = linked_item["title"]
-    category = linked_item["category"]
-    html_body = linked_item["body"]
-    dfs = pd.read_html(html_body)
-    df = pd.concat(dfs)
-    df.columns = ["Key", "Value"]
-    df.to_excel(output_path + slugify(category) + "_" + slugify(title) + ".xlsx", index=False)
-    print(slugify(title), " @@@@@@@@@@@@@@@@ ", slugify(category))
-    print(dfs)
-
-
-def process_database(db_item_no, endpoint, token, id, title):
+def process_ref_db_item(db_item_no, endpoint, token, id, title):
+    # Process reference database item, using the initial database ID for that container item (e.g., publication)
     print("Processsing database with ID:", db_item_no)
 
     # get db item
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
-    if id:
-        output_file_name = str(db_item_no)
-        print("output file name: ", output_file_name)
-    elif title:
-        print(slugify(db_item["title"]))
-        print("output file name is based on db item title")
+
+    #if id:
+    #    output_file_name = str(db_item_no)
+    #    print("output file name: ", output_file_name)
+    #elif title:
+    #    print(slugify(db_item["title"]))
+    #    print("output file name is based on db item title")
     print("-" * 10 + "RELATED EXPERIMENTS" + "-" * 10)
     print(related_experiments)
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
     print(exp_ids)
+
     for exp_id in exp_ids:
+
         pass
-    print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
-    print(db_item)
-    print("-" * 10 + "DB_ITEM BODY" + "-" * 10)
-    print(db_item["body"])
-    print("-" * 10 + "DB_ITEM DFS" + "-" * 10)
-    dfs = pd.read_html(db_item["body"])
-    print(type(dfs))
-    df = pd.concat(dfs)
-    df.columns = ["Key", "Value"]
-    df.to_excel(output_path_and_fname + ".xlsx", index=False)
-    print("-" * 10 + "DB_ITEM LINKS CONTENT" + "-" * 10)
-    print(db_item["links"])
-    print("-" * 10 + "DB_ITEM LINKED ITEMS ID" + "-" * 10)
-    linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
-    print(linked_item_ids)
-    for id in linked_item_ids:
-        process_linked_db_item(manager, id)
+    #print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
+    #print(db_item)
+    #print("-" * 10 + "DB_ITEM BODY" + "-" * 10)
+    #print(db_item["body"])
+    #print("-" * 10 + "DB_ITEM DFS" + "-" * 10)
+    #dfs = pd.read_html(db_item["body"])
+    #print(type(dfs))
+    #df = pd.concat(dfs)
+    #df.columns = ["Key", "Value"]
+    #df.to_excel(output_path_and_fname + ".xlsx", index=False)
+    #print("-" * 10 + "DB_ITEM LINKS CONTENT" + "-" * 10)
+    #print(db_item["links"])
+    #print("-" * 10 + "DB_ITEM LINKED ITEMS ID" + "-" * 10)
+    #linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
+    #print(linked_item_ids)
+    #for id in linked_item_ids:
+    #    process_linked_db_item(manager, id)
     #  with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
 
 
@@ -2022,7 +2039,7 @@ def main():
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token, output_path)
     elif args.command == 'parse_database':
-        process_database(args.db_item_no, args.endpoint, args.token, args.id, args.title)
+        process_ref_db_item(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
     # elif args.command == 'DOCX':
     #     input_file = args.input_file
