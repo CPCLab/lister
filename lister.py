@@ -410,7 +410,7 @@ def process_foreach(par_no, cf_split):
     key_val = []
     log, is_error = validate_foreach(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     step_type = "iteration"
@@ -437,7 +437,7 @@ def process_while(par_no, cf_split):
     key_val = []
     log, is_error = validate_while(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     step_type = "iteration"
@@ -468,7 +468,7 @@ def process_if(par_no, cf_split):
     key_val = []
     log, is_error = validate_if(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     step_type = "conditional"
@@ -499,7 +499,7 @@ def process_elseif(par_no, cf_split):
     key_val = []
     log, is_error = validate_elseif(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     step_type = "conditional"
@@ -539,7 +539,7 @@ def process_else(par_no, cf_split):
     is_error = False
     log, is_error = validate_else(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     step_type = "conditional"
@@ -564,7 +564,7 @@ def process_range(flow_range):
     log, is_error = "", False
     log, is_error = validate_range(flow_range)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         # print(log)
         exit()
     else:
@@ -587,7 +587,7 @@ def process_for(par_no, cf_split):
     key_val = []
     log, is_error = validate_for(cf_split)
     if is_error:
-        write_log(log)
+        write_log(log, output_path+output_fname)
         exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -627,7 +627,7 @@ def process_iterate(par_no, cf_split):
     if pw_is_error:
         log = log + pw_log + "\n"
         # print(log)
-        write_log(log)
+        write_log(log, output_path+output_fname)
         exit()
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
@@ -1009,7 +1009,7 @@ def get_text_width(document):
     return (section.page_width - section.left_margin - section.right_margin) / 36000
 
 
-def add_img_to_doc(manager, document, upl_id, real_name):
+def add_img_to_doc(manager, document, upl_id, real_name, path):
     '''
     Add image to the document file, based on upload id and image name when it was uploaded.
     
@@ -1020,7 +1020,13 @@ def add_img_to_doc(manager, document, upl_id, real_name):
     '''
     log = ""
     if real_name:
-        with open(output_path + real_name, 'wb') as img_file:
+        img_saving_path = path + '/attachments/'
+        print('LOGGING img_saving_path: ' + img_saving_path)
+        if not os.path.isdir(img_saving_path):
+            print("Output path %s is not available, creating the path directory..." % (img_saving_path))
+            os.makedirs(img_saving_path)
+        with open(img_saving_path + real_name, 'wb') as img_file:
+            print("LOGGING add_img_to_doc - " + img_saving_path + real_name)
             try:
                 if real_name == "":
                     # ‚img_file.write(manager.get_upload(upl_id))
@@ -1028,7 +1034,7 @@ def add_img_to_doc(manager, document, upl_id, real_name):
                     pass
                 else:
                     img_file.write(manager.get_upload(upl_id))
-                document.add_picture(output_path + real_name, width=Mm(get_text_width(document)))
+                document.add_picture(img_saving_path + real_name, width=Mm(get_text_width(document)))
             except Exception as e:
                 log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
                     real_name, upl_id, str(e))
@@ -1175,6 +1181,12 @@ def write_tag_to_doc(document, tag_item):
     return all_references
 
 
+def derive_fname_from_exp(exp):
+    exp_title = exp["title"]
+    fname_from_exp = slugify(exp_title)
+    return fname_from_exp
+
+
 def write_to_docx(manager, exp, path):
     '''
     fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
@@ -1182,6 +1194,7 @@ def write_to_docx(manager, exp, path):
     :param elabapy.Manager manager: elabapy Manager object, required to access the experiment from eLabFTW.
     :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
     '''
+
     document = Document()
     all_references = []
     tagged_contents = get_nonempty_body_tags(exp)
@@ -1190,7 +1203,7 @@ def write_to_docx(manager, exp, path):
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
                 upl_id, real_name = get_attachment_id(exp, content)
-                add_img_to_doc(manager, document, upl_id, real_name)
+                add_img_to_doc(manager, document, upl_id, real_name,path)
             elif any(x in content.name for x in watched_tags):
                 references = write_tag_to_doc(document, content)
                 # references = html_taglist_to_doc_granular(document, content)
@@ -1202,13 +1215,14 @@ def write_to_docx(manager, exp, path):
             if content.name == "img":
                 print("An image is found, serializing to docx...")
                 upl_id, real_name = get_attachment_id(exp, content)
-                add_img_to_doc(manager, document, upl_id, real_name)
+                add_img_to_doc(manager, document, upl_id, real_name, path)
 
     if len(all_references) > 0:
         document.add_heading("Reference", level=1)
         for reference in all_references:
             document.add_paragraph(reference, style='List Number')
-    document.save(path + output_fname + '.docx')
+    # document.save(path + '/' + output_fname + '.docx')
+    document.save(path + '/' + derive_fname_from_exp(exp) + '.docx')
 
 
 # OBSOLETE: Helper function to print different type of comments
@@ -1261,7 +1275,7 @@ def parse_lines_to_kv(lines):
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log  # + "\n"
         if is_bracket_error:
-            write_log(log)
+            write_log(log, output_path+output_fname)
             break
 
         # Extract KV and flow metadata
@@ -1306,7 +1320,7 @@ def parse_lines_to_kv(lines):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log  # + "\n"
                 if is_flow_error:
-                    write_log(log)
+                    write_log(log, output_path+output_fname)
                     break
                 nkvmu_pairs.extend(flow_metadata)
     return nkvmu_pairs, internal_comments, log
@@ -1328,8 +1342,9 @@ def parse_lines_to_kv(lines):
 
 # Used to serialize extracted metadata to json file.
 # def write_to_json(list, full_path=output_path_and_fname):
-def write_to_json(list, path):
-    json.dump(list, open(path + output_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+def write_to_json(list, exp, path):
+    # json.dump(list, open(path + output_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+    json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
@@ -1360,12 +1375,12 @@ def write_log(log, path):
     log = log.strip()
     print("WRITING LOGS...")
     print(log)
-    with open(path + output_fname + ".log", 'w', encoding="utf-8") as f:
+    with open(path + '/' +"lister-report.log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 
 # def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
-def write_to_xlsx(nkvmu, log, path):
+def write_to_xlsx(nkvmu, exp, path):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
@@ -1373,7 +1388,9 @@ def write_to_xlsx(nkvmu, log, path):
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
     '''
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-    with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
+    # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+    # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
+    with xlsxwriter.Workbook(path + '/' + derive_fname_from_exp(exp) + ".xlsx") as workbook:
         # formatting cells
         header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
         default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
@@ -1393,8 +1410,6 @@ def write_to_xlsx(nkvmu, log, path):
                 worksheet.write_row(row_no + 1, 0, data, section_format)
             else:
                 worksheet.write_row(row_no + 1, 0, data, default_format)
-
-    write_log(log, path)
 
 
 # ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API/MARKDOWN ------------------------------------------
@@ -1553,8 +1568,19 @@ def get_and_save_attachments(manager, uploads, path):
     :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
                     (e.g., file_size, real_name, long_name, hash, etc).
     '''
+    upload_saving_path = path + '/' + 'attachments' + '/'
+
+    if not os.path.isdir(upload_saving_path):
+        print("Output path %s is not available, creating the path directory..." % (upload_saving_path))
+        os.makedirs(upload_saving_path)
+
     for upload in uploads:
-        with open(path + upload["real_name"], 'wb') as attachment:
+        #print("UPLOAD PATH")
+
+        #print(upload_saving_path)
+        #print(os.getcwd())
+        with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
+            # print(path + '/' + upload["real_name"])
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
             try:
                 attachment.write(manager.get_upload(upload["id"]))
@@ -1606,9 +1632,10 @@ def process_experiment(exp_no, endpoint, token, path):
     #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
 
     # Writing to JSON and XLSX
-    write_to_json(overall_nkvmu, path)
+    write_to_json(overall_nkvmu, exp, path)
     # write_to_linear_json(nkvmu)
-    write_to_xlsx(overall_nkvmu, log, path)
+    write_to_xlsx(overall_nkvmu, exp, path)
+    write_log(log, path)
 
 
 def create_elab_manager(current_endpoint, current_token):
@@ -1656,7 +1683,10 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     print(exp_ids)
 
     for exp_id in exp_ids:
-
+        exp_title = get_exp_title(endpoint, token, exp_id)
+        print(exp_title)
+        exp_path = output_path + slugify(exp_title)
+        process_experiment(exp_id, endpoint, token, exp_path)
         pass
     #print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
     #print(db_item)
@@ -1783,7 +1813,7 @@ def get_default_output_path(file_name):
     '''
     if platform.system() == "Darwin":  # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         home = str(Path.home())
-        output_path = home + "/Apps/lister/output/" + file_name + "/"
+        output_path = home + "/Apps/lister/output/" + file_name
         print("OUTPUT PATH: %s" % (output_path))
     else:  # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         current_path = pathlib.Path().resolve()
@@ -1997,7 +2027,7 @@ ref_counter = 0
 
 def main():
     global output_fname  # , input_file
-    global output_path, output_path_and_fname, base_output_path
+    global output_path, base_output_path
     global token, exp_no, endpoint
 
     # sys.stdin.reconfigure(encoding='utf-8')
@@ -2020,18 +2050,16 @@ def main():
     print("The output is written to %s directory" % (output_fname))
 
     output_path = manage_output_path(args.base_output_dir, output_fname)
-    output_path_and_fname = output_path + output_fname
     if not os.path.isdir(output_path):
         print("Output path %s is not available, creating the path directory..." % (output_path))
         os.makedirs(output_path)
 
-    if args.command == 'parse_database':
-        if not os.path.isdir(output_path+output_fname):
-            print("Output path %s is not available, creating the path directory..." % (output_fname))
-            os.makedirs(output_path+output_fname)
+    # if args.command == 'parse_database':
+    #    if not os.path.isdir(output_path+output_fname):
+    #        print("Output path %s is not available, creating the path directory..." % (output_fname))
+    #        os.makedirs(output_path+output_fname)
 
     print("base_output_dir: ", (base_output_path))
-    print("output_path_and_fname: ", (output_path_and_fname))
     print("output_fname: ", (output_fname))
     print("output_path: ", (output_path))
 
@@ -2039,6 +2067,10 @@ def main():
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token, output_path)
     elif args.command == 'parse_database':
+        print("TITLE: ")
+        print(args.title)
+        # db_extraction_path = output_path + '/'+ output_fname
+        print(output_path)
         process_ref_db_item(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
     # elif args.command == 'DOCX':
