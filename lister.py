@@ -5,21 +5,9 @@ import xlsxwriter
 from docx import Document
 from bs4 import BeautifulSoup, Tag
 import elabapy
-# import markdown
-# import pypandoc
-# from markdown import Markdown
-# from io import StringIO
 import os
-# from PIL import Image
-# from urllib.parse import urlparse
-# from urllib.request import urlopen
-# from io import BytesIO
 import PyInstaller
-# import zipfile
-# import argparse
 from gooey import Gooey, GooeyParser
-# import sys
-# from message import display_message
 import ssl
 import platform
 from pathlib import Path
@@ -28,7 +16,6 @@ import pandas as pd
 from docx.shared import Mm, RGBColor
 from lxml import etree
 import latex2mathml.converter
-# from pprint import pprint
 import unicodedata
 
 
@@ -95,7 +82,6 @@ class Regex_patterns(Enum):
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"  # catch DOI
     COMMENT = "\(.+?\)"  # define regex for parsing comment
     FORMULA = "\$.*\$"  # define regex for parsing comment
-    # COMMENT_W_CAPTURE_GROUP = "(\(.+?\))"
     COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
     COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = "\(_.+?_\)"
@@ -540,7 +526,6 @@ def process_else(par_no, cf_split):
     log, is_error = validate_else(cf_split)
     if is_error:
         write_log(log, output_path+output_fname)
-        # print(log)
         exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
@@ -565,7 +550,6 @@ def process_range(flow_range):
     log, is_error = validate_range(flow_range)
     if is_error:
         write_log(log, output_path+output_fname)
-        # print(log)
         exit()
     else:
         range_values = re.split("-", flow_range[1:-1])
@@ -626,7 +610,6 @@ def process_iterate(par_no, cf_split):
     pw_log, pw_is_error = validate_iterate(cf_split)
     if pw_is_error:
         log = log + pw_log + "\n"
-        # print(log)
         write_log(log, output_path+output_fname)
         exit()
     flow_type = cf_split[0]
@@ -638,24 +621,10 @@ def process_iterate(par_no, cf_split):
     return key_val, log, is_error
 
 
-# OBSOLETE
-# def get_comment_properties(str_with_brackets):
-#    reference = ""
-#    comment = str_with_brackets[1:-1]
-#    # doi_regex = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"
-#    isVisible = is_explicit_key(comment)
-#    isReference = bool(re.search(Regex_patterns.DOI.value, comment))
-#    if isReference:
-#        reference = re.match(Regex_patterns.DOI.value, comment).group(0)
-#        # print("REFERENCE: ", reference)
-#    # print("VISIBILITY?: %s" % str(isVisible))
-#    # print("REFERENCE?: %s STRING: %s" % (str(isReference), comment))
-#    return isVisible, isReference, reference
-
-
 def strip_unwanted_mvu_colons(word):
     '''
     Remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
+
     :param str word: string with or without colons.
     :return: str word without colons.
     '''
@@ -824,6 +793,7 @@ def strip_colon(key):
 def is_explicit_key(key):
     '''
     Check whether the string is an explicit key.
+
     :param str key: checked string.
     :return: bool stating whether the key is a LISTER explicit key.
 
@@ -1112,7 +1082,6 @@ def write_tag_to_doc(document, tag_item):
             else:
                 if re.match(Regex_patterns.FORMULA.value, subcontent):
                     references = []
-                    # print("FORMULA FOUND")
                     line = ""
                     formulas = re.findall(Regex_patterns.FORMULA.value, subcontent)
                     processed_subcontent = str(subcontent)
@@ -1141,11 +1110,6 @@ def write_tag_to_doc(document, tag_item):
                     document.add_heading(section_title, level=3)
                 else:
                     document.add_heading(section_title, level=4)
-            # else:
-            #    line = re.sub('\s{2,}', ' ',
-            #                  line)  # replace superfluous whitespaces in preceding text with a single space
-            #    line = re.sub(r'\s([?.!"](?:\s|$))', r'\1', line)
-            #    document.add_paragraph(line)
 
             elif subcontent.name == "sub":
                 sub_text = p.add_run(line + " ")
@@ -1204,7 +1168,6 @@ def write_to_docx(manager, exp, path):
                 add_img_to_doc(manager, document, upl_id, real_name,path)
             elif any(x in content.name for x in watched_tags):
                 references = write_tag_to_doc(document, content)
-                # references = html_taglist_to_doc_granular(document, content)
                 if len(references) > 0:
                     all_references.extend(references)
             if content.name == "table":
@@ -1219,37 +1182,7 @@ def write_to_docx(manager, exp, path):
         document.add_heading("Reference", level=1)
         for reference in all_references:
             document.add_paragraph(reference, style='List Number')
-    # document.save(path + '/' + output_fname + '.docx')
     document.save(path + '/' + derive_fname_from_exp(exp) + '.docx')
-
-
-# OBSOLETE: Helper function to print different type of comments
-# def print_comments(overall_comments, internal_comments, external_comments):
-#    if len(overall_comments) > 0:
-#        print("OVERALL COMMENTS TYPE: %s. CONTENT: %s" % (str(type(overall_comments)), str(overall_comments)))
-#    if len(internal_comments) > 0:
-#        print("INTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(internal_comments)), str(internal_comments)))
-#    if len(external_comments) > 0:
-#        print("EXTERNAL COMMENTS TYPE: %s, CONTENT: %s", (str(type(external_comments)), str(external_comments)))
-
-
-# OBSOLETE: replaced with the detailed version
-# def parse_lines_for_docx(lines, internal_comments):
-#    references = []
-#    narrative_lines = []
-#    for line in lines:
-#        # Extract overall comments, including those within KV pairs
-#        overall_comments = re.findall(Regex_patterns.COMMENT.value, line)
-#        # get overall narrative lines for a clean docx document - completely separated from line parsing
-#        narrative_line = strip_markup_and_explicit_keys(line)
-#       narrative_lines.append(narrative_line.strip())
-#    external_comments = list(set(overall_comments) - set(internal_comments))
-#    # print_comments(overall_comments, internal_comments, external_comments)
-#    for external_comment in external_comments:
-#        isVisible, isReference, reference = get_comment_properties(external_comment)
-#        if reference != "":
-#            references.append(reference)
-#   return narrative_lines, references
 
 
 def parse_lines_to_kv(lines):
@@ -1324,18 +1257,6 @@ def parse_lines_to_kv(lines):
     return nkvmu_pairs, internal_comments, log
 
 
-# OBSOLETE: Docx input is no longer supported.
-# def extract_docx_content(doc_content):
-#    par_no = 0
-#    par_lines = []
-#    for para in doc_content.paragraphs:
-#        par_lines.append(para.text)
-#        par_no = par_no + 1
-#    par_lines = list(line for line in par_lines if line)
-#    multi_nkvmu_pair, log = parse_lines_to_kv(par_lines)
-#    return multi_nkvmu_pair, log
-
-
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 
 # Used to serialize extracted metadata to json file.
@@ -1345,39 +1266,16 @@ def write_to_json(list, exp, path):
     json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
-# OBSOLETE: This function is no longer needed, as the HHU's data repository is not required to have KV-only metadata.
-# def format_to_linear(list):
-#    linear_lines = []
-#    for line in list:
-#        if line[0] != "-":
-#            linear_key = str(line[0]) + "_" + str(line[1])
-#        else:
-#            linear_key = str(line[1])
-#        if not line[4]:
-#            linear_value = str(line[2])
-#        else:
-#            linear_value = str(line[2]) + "_" + str(line[3]) + "_" + str(line[4])
-#        linear_line = [linear_key,linear_value]
-#        linear_lines.append(linear_line)
-#    return(linear_lines)
-
-
-# def write_to_linear_json(list):
-#    kv = format_to_linear(list)
-#    json.dump(kv, open(output_file_prefix + ".linear.json", 'w', encoding="utf-8"), ensure_ascii=False)
-
-
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
 def write_log(log, path):
     log = log.strip()
-    print("WRITING LOGS...")
+    print("Writing logs...")
     print(log)
     with open(path + '/' +"lister-report.log", 'w', encoding="utf-8") as f:
         f.write(log)
 
 
-# def write_to_xlsx(nkvmu, log, full_path=output_path_and_fname):
 def write_to_xlsx(nkvmu, exp, path):
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
@@ -1408,24 +1306,6 @@ def write_to_xlsx(nkvmu, exp, path):
                 worksheet.write_row(row_no + 1, 0, data, section_format)
             else:
                 worksheet.write_row(row_no + 1, 0, data, default_format)
-
-
-# ------------------------------------- GETTING CONTENT FROM DOCX/ELABFTW API/MARKDOWN ------------------------------------------
-# obsolete: we no lnger support docx inputs
-# open docx document
-# def get_docx_content(filename):
-#    f = open(filename, 'rb')
-#    content = Document(f)
-#    extract_docx_media(filename)
-#    f.close()
-#    return content
-
-
-# def extract_docx_media(filename):
-#    archive = zipfile.ZipFile(filename)
-#    for file in archive.filelist:
-#        if file.filename.startswith('word/media/') and file.file_size > 10000:
-#            archive.extract(file, output_path_prefix)
 
 
 def remove_table_tag(soup):
@@ -1482,82 +1362,6 @@ def conv_html_to_nkvmu(html_content):
     return multi_nkvmu_pair, log
 
 
-# OBSOLETE: we focus now entirely on extracting document in eLabFTW, and no longer supporting docx/md
-# extracting md via docx conversion using pandoc in case it is needed in the future
-# def extract_md_exp_content_via_pandoc(filename):
-#    output = pypandoc.convert_file(filename, 'docx', outputfile=filename+".docx")
-#    document = get_docx_content(filename+".docx")
-#    os.remove(filename+".docx")
-#    kv, log = extract_docx_content(document)
-#    log = log + output
-#    return kv, log
-
-# OBSOLETE: md inputs are no longer supported
-# note: eLabFTW v 3.6.x has bugs for providing html with proper image links if the image is provided per copy-paste
-# directly to the text file without providing file names. For the parser to work properly, users have to ensure that
-# copy-pasted image has a proper name by the end of the URL. It can be set by checking the properties of the image
-# on eLabFTW and set the name of the image file there.
-# def extract_imgs_from_md(filename):
-#    f = open(filename, 'r', encoding='utf-8')
-#    md_text = f.read()
-#    html_doc = markdown.markdown(md_text)
-#    soup = BeautifulSoup(html_doc, 'html.parser')
-#    imgs = soup.findAll("img")
-#    for img in imgs:
-#        file_path = img.get('src')
-#        loaded_img = Image.open(file_path)
-#        path_tail = os.path.split(file_path)
-#        loaded_img.save(output_path_prefix + path_tail[1])
-
-
-# OBSOLETE: no longer functions as it breaks in later eLabFTW (noticed in eLabFTW 4.3.5)
-# def extract_imgs_from_html(current_endpoint, html_doc):
-#    soup = BeautifulSoup(html_doc, 'html.parser')
-#    imgs = soup.findAll("img")
-#    parsed_uri = urlparse(current_endpoint)
-#    base_url = '{uri.scheme}://{uri.netloc}/'.format(uri=parsed_uri)
-#    for img in imgs:
-#        src = img.get('src')
-#        file_path = base_url + src
-#        fd = urlopen(file_path)
-#        read_img = BytesIO(fd.read())
-#        loaded_img = Image.open(read_img)
-#        path_tail = os.path.split(file_path)
-#        loaded_img.save(output_path_prefix + path_tail[1])
-
-
-# DEPRECATED: we do not support MD inputs anymore
-# def unmark_element(element, stream=None):
-#    if stream is None:
-#        stream = StringIO()
-#    if element.text:
-#        stream.write(element.text)
-#    for sub in element:
-#        unmark_element(sub, stream)
-#    if element.tail:
-#        stream.write(element.tail)
-#    return stream.getvalue()
-
-
-# patching Markdown
-# Markdown.output_formats["plain"] = unmark_element
-# __md = Markdown(output_format="plain")
-# __md.stripTopLevelTags = False
-# def unmark(text):
-#    return __md.convert(text)
-
-
-# DEPRECATED: we do not support MD inputs anymore
-# def extract_md_via_text(filename):
-#    extract_imgs_from_md(filename)
-#    f = open(filename, 'r', encoding='utf-8')
-#    marked_txt = f.read()
-#    unmarked_txt = unmark(marked_txt).replace("\\","")
-#    lines = unmarked_txt.splitlines()
-#    multi_nkvmu_pair, log = parse_lines_to_kv(lines)
-#    return multi_nkvmu_pair, log
-
-
 def get_and_save_attachments(manager, uploads, path):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
@@ -1573,12 +1377,7 @@ def get_and_save_attachments(manager, uploads, path):
         os.makedirs(upload_saving_path)
 
     for upload in uploads:
-        #print("UPLOAD PATH")
-
-        #print(upload_saving_path)
-        #print(os.getcwd())
         with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
-            # print(path + '/' + upload["real_name"])
             print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
             try:
                 attachment.write(manager.get_upload(upload["id"]))
@@ -1662,26 +1461,14 @@ def slugify(value, allow_unicode=False):
 
 def process_ref_db_item(db_item_no, endpoint, token, id, title):
     # Process reference database item, using the initial database ID for that container item (e.g., publication)
-    print("Processsing database with ID:", db_item_no)
 
     # get db item
     manager = create_elab_manager(endpoint, token)
-    db_item = manager.get_item(db_item_no)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
-
-    #if id:
-    #    output_file_name = str(db_item_no)
-    #    print("output file name: ", output_file_name)
-    #elif title:
-    #    print(slugify(db_item["title"]))
-    #    print("output file name is based on db item title")
-
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
-    print(exp_ids)
 
     for exp_id in exp_ids:
         exp_title = get_exp_title(endpoint, token, exp_id)
-        print(exp_title)
         exp_path = output_path + slugify(exp_title)
         process_experiment(exp_id, endpoint, token, exp_path)
 
@@ -1704,15 +1491,6 @@ def get_elab_exp(exp_number, current_endpoint, current_token):
     manager = create_elab_manager(current_endpoint, current_token)
     exp = manager.get_experiment(exp_number)
     return (manager, exp)
-
-
-# Deactivating this function for now as it is not clear how the extracted metadata across different
-# exectuions can be versioned.
-# def upload_to_elab_exp(exp_number, current_endpoint, current_token, file_with_path):
-#    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
-#    with open(file_with_path, 'r+b') as myfile:
-#        params = {'file': myfile}
-#        manager.upload_to_experiment(exp_number, params)
 
 
 def manage_output_path(dir_name, file_name):
@@ -1763,8 +1541,6 @@ def parse_cfg():
 
     '''
 
-    # dirname, filename = os.path.split(os.path.abspath(__file__))
-    # print("CURRENT CONFIG DIRECTORY: %s" % (str(dirname))) # this shows from where the executable was actually run
     input_file = manage_input_path() + "config.json"
     print("CONFIG FILE: %s" % (input_file))
     # using ...with open... allows file to be closed automatically.
@@ -1873,15 +1649,6 @@ def parse_gooey_args():
                               # Ask your eLabFTW admin to instance to generate one for you
                               type=str)
 
-    # disabling this as it is unclear how to prevent this feature from making many version of uploads (if it is
-    # run several times and how it behaves when we generate metadata but also at the same time getting
-    # already-extracted metadata from previous experiment versions)
-    # elab_arg_parser.add_argument('-f', '--uploadToggle',
-    #                                metavar='Upload',
-    #                                action='store_true',
-    #                                help='Upload extracted JSON/XLSX metadata to the corresponding experiment '
-    #                                     '(for latest eLabFTW instance only)')
-
     # ELABFTW DATABASE PARAMETERS
     # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
     elab_arg_parser = subs.add_parser('parse_database', prog="Parse Container",
@@ -1920,69 +1687,6 @@ def parse_gooey_args():
                               # Ask your eLabFTW admin to instance to generate one for you
                               type=str)
 
-
-
-    # OBSOLETE: This used to be docx and md parser, but now it is set to be obsolete as we are focusing only on elabftw parsing
-    # DOCX PARAMETERS
-    # docx_arg_parser = subs.add_parser(
-    #     'DOCX', help='Parse metadata from DOCX files')
-    # docx_arg_parser.add_argument('output_file_name',
-    #                              metavar = 'Output file name',
-    #                              help='[FILENAME] for your metadata and log outputs, without extension',
-    #                              # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-    #                              # [FILENAME].log files in the specified output folder
-    #                              type=str,
-    #                              default='cpc03-CG')
-    # docx_arg_parser.add_argument('base_output_dir',
-    #                              metavar='Base output directory',
-    #                              help='Local directory generally used to save your outputs',
-    #                              type=str,
-    #                              default=base_output_path,
-    #                              widget='DirChooser')
-    # docx_arg_parser.add_argument('input_file',
-    #                              metavar='Input file',
-    #                              help='DOCX file to be parsed',
-    #                              gooey_options={
-    #                                  'wildcard': "Microsoft WOrd Document (*.docx)|*.docx|"
-    #                                  "All files (*.*)|*.*",
-    #                                  'default_dir': 'input/cpc/',
-    #                                  'default_file': "cpc03-CG.md"
-    #                              },
-    #                              type=str,
-    #                              widget='FileChooser',
-    #                              default='input/cpc/cpc03-CG.docx')
-    #
-    #
-    # # MD PARAMETERS
-    # md_arg_parser = subs.add_parser(
-    #     'MD', help='Parse metadata from Markdown files')
-    # md_arg_parser.add_argument('output_file_name',
-    #                            metavar='Output file name',
-    #                            help='[FILENAME] for your metadata and log outputs, without extension',
-    #                            # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-    #                            # [FILENAME].log files in the specified output folder
-    #                            default='cpc03-CG-md',
-    #                            type=str)
-    # md_arg_parser.add_argument('base_output_dir',
-    #                            metavar='Base output directory',
-    #                            help='Local directory generally used to save your outputs',
-    #                            type=str,
-    #                            default=base_output_path,
-    #                            widget='DirChooser')
-    # md_arg_parser.add_argument('input_file',
-    #                            metavar='Input file',
-    #                            gooey_options={
-    #                                'wildcard':
-    #                                    "Markdown file (*.md)|*.md|"
-    #                                "All files (*.*)|*.*",
-    #                                'default_dir': 'input/cpc/',
-    #                                'default_file': "cpc03-CG.md"
-    #                                # 'message': "pick me"
-    #                            },
-    #                            help='MD file to be parsed',
-    #                            type=str,
-    #                            default='input/cpc/cpc03-CG.md',
-    #                            widget='FileChooser')
     args = parser.parse_args()
     return args
 
@@ -2032,11 +1736,6 @@ def main():
         print("Output path %s is not available, creating the path directory..." % (output_path))
         os.makedirs(output_path)
 
-    # if args.command == 'parse_database':
-    #    if not os.path.isdir(output_path+output_fname):
-    #        print("Output path %s is not available, creating the path directory..." % (output_fname))
-    #        os.makedirs(output_path+output_fname)
-
     print("base_output_dir: ", (base_output_path))
     print("output_fname: ", (output_fname))
     print("output_path: ", (output_path))
@@ -2045,23 +1744,7 @@ def main():
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token, output_path)
     elif args.command == 'parse_database':
-        print("TITLE: ")
-        print(args.title)
-        # db_extraction_path = output_path + '/'+ output_fname
-        print(output_path)
         process_ref_db_item(args.db_item_no, args.endpoint, args.token, args.id, args.title)
-
-    # elif args.command == 'DOCX':
-    #     input_file = args.input_file
-    #     document = get_docx_content(input_file)
-    #     nkvmu, log = extract_docx_content(document)
-    # elif args.command == 'MD':
-    # elif args.command == 'MD':
-    #     input_file = args.input_file
-    # -- use below when transforming from md->docx is needed, takes longer and pandoc must be installed.
-    # kv, log = extract_md_exp_content_via_pandoc(input_file)
-    # -- use below to transform md->text is needed prior to extraction (faster).
-    #    nkvmu, log = extract_md_via_text(input_file)
 
 
 if __name__ == "__main__":
