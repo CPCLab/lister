@@ -1021,12 +1021,10 @@ def add_img_to_doc(manager, document, upl_id, real_name, path):
     log = ""
     if real_name:
         img_saving_path = path + '/attachments/'
-        print('LOGGING img_saving_path: ' + img_saving_path)
         if not os.path.isdir(img_saving_path):
             print("Output path %s is not available, creating the path directory..." % (img_saving_path))
             os.makedirs(img_saving_path)
         with open(img_saving_path + real_name, 'wb') as img_file:
-            print("LOGGING add_img_to_doc - " + img_saving_path + real_name)
             try:
                 if real_name == "":
                     # ‚img_file.write(manager.get_upload(upl_id))
@@ -1677,8 +1675,7 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     #elif title:
     #    print(slugify(db_item["title"]))
     #    print("output file name is based on db item title")
-    print("-" * 10 + "RELATED EXPERIMENTS" + "-" * 10)
-    print(related_experiments)
+
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
     print(exp_ids)
 
@@ -1687,25 +1684,6 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
         print(exp_title)
         exp_path = output_path + slugify(exp_title)
         process_experiment(exp_id, endpoint, token, exp_path)
-        pass
-    #print("-" * 10 + "DB_ITEM RETURNS" + "-" * 10)
-    #print(db_item)
-    #print("-" * 10 + "DB_ITEM BODY" + "-" * 10)
-    #print(db_item["body"])
-    #print("-" * 10 + "DB_ITEM DFS" + "-" * 10)
-    #dfs = pd.read_html(db_item["body"])
-    #print(type(dfs))
-    #df = pd.concat(dfs)
-    #df.columns = ["Key", "Value"]
-    #df.to_excel(output_path_and_fname + ".xlsx", index=False)
-    #print("-" * 10 + "DB_ITEM LINKS CONTENT" + "-" * 10)
-    #print(db_item["links"])
-    #print("-" * 10 + "DB_ITEM LINKED ITEMS ID" + "-" * 10)
-    #linked_item_ids = [sub['itemid'] for sub in db_item["links"]]
-    #print(linked_item_ids)
-    #for id in linked_item_ids:
-    #    process_linked_db_item(manager, id)
-    #  with xlsxwriter.Workbook(output_file_prefix + ".xlsx") as workbook:
 
 
 def get_elab_exp(exp_number, current_endpoint, current_token):
@@ -2036,14 +2014,14 @@ def main():
     args = parse_gooey_args()
     base_output_path = args.base_output_dir
     if args.command == 'parse_database':
+        cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
         if args.id:
-            output_fname = str(args.db_item_no)
+            output_fname = slugify(cat) + "_" + str(args.db_item_no)
         elif args.title:
-            cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
             output_fname = slugify(cat) + "_" + slugify(title)
     elif args.command == 'parse_experiment':
         if args.id:
-            output_fname = str(args.exp_no)
+            output_fname = slugify("experiment") + "_" +str(args.exp_no)
         elif args.title:
             title = get_exp_title(args.endpoint, args.token, args.exp_no)
             output_fname = slugify("experiment") + "_" + slugify(title)
