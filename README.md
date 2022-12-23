@@ -6,6 +6,35 @@ This repository contains a set of files to parse documentation of experiments in
 
 As a research group usually has its own set of experiment protocols/Materials and Methods (MM) to conduct experiments, a tool to extract metadata from protocols/MMs-adapted experiment documentation helps support research data publication according to FAIR (Findable, Accessible, Interoperable, and Reusable) principles. Research data published under FAIR principles is expected to improve the reproducibility of research. To enable metadata extraction, the experiment documentation follows annotation rules described below and is in an HTML format stored as an experiment/database entry in eLabFTW.
 
+
+## Screenshots
+
+### User interface
+![lister_experiment_tab.png](docs%2Flister_experiment_tab.png)
+Fig. 1: User interface for parsing an experiments
+
+
+![lister_container_tab.png](docs%2Flister_container_tab.png)
+Fig. 2: User interface for parsing a container (e.g., Publications, Project, etc)
+
+### eLabFTW annotations
+
+![elabftw_exp_annotation.png](docs%2Felabftw_exp_annotation.png)
+Fig. 3: How the annotation is done to enable parsing via LISTER. This annotated fragment can be derived from reusable, 
+and lab-curated experiment protocols/material and methods. See the Annotation Mechanism section below.
+
+![elabftw_exp_linked_items.png](docs%2Felabftw_exp_linked_items.png)
+Fig. 4: Linked items section of an experiment, in which the tabular content will be parsed to gather more context
+w.r.t. e.g., Study, Project, and System
+
+### Outputs
+![lister_xlsx_output.png](docs%2Flister_xlsx_output.png)
+Fig. 5: Metadata output in the Excel sheet, after parsing with LISTER.
+
+![lister_docx_output.png](docs%2Flister_docx_output.png)
+Fig. 6: Clean human-friendly output in Word document format, after parsing with LISTER.
+
+
 ## Installing and running LISTER
 
 LISTER is distributed as an executable file for Windows, Linux, or macOS (with an Intel chipset). The executable file for each platform is available on the release page, along with another, platform-specific file.
@@ -28,6 +57,8 @@ Parsing an eLabFTW entry requires
     - Metadata/experiment output filename,
   
   - Experiment ID for the entry to be parsed.
+
+
 
 ## Annotation mechanism
 
