@@ -11,27 +11,34 @@ As a research group usually has its own set of experiment protocols/Materials an
 
 ### User interface
 ![lister_experiment_tab.png](docs%2Flister_experiment_tab.png)
-Fig. 1: User interface for parsing an experiments
+
+Fig. 1: User interface for parsing an experiments.
 
 
 ![lister_container_tab.png](docs%2Flister_container_tab.png)
-Fig. 2: User interface for parsing a container (e.g., Publications, Project, etc)
+
+Fig. 2: User interface for parsing a container (e.g., Publications, Project, etc).
+
 
 ### eLabFTW annotations
 
 ![elabftw_exp_annotation.png](docs%2Felabftw_exp_annotation.png)
+
 Fig. 3: How the annotation is done to enable parsing via LISTER. This annotated fragment can be derived from reusable, 
 and lab-curated experiment protocols/material and methods. See the Annotation Mechanism section below.
 
 ![elabftw_exp_linked_items.png](docs%2Felabftw_exp_linked_items.png)
+
 Fig. 4: Linked items section of an experiment, in which the tabular content will be parsed to gather more context
-w.r.t. e.g., Study, Project, and System
+w.r.t. e.g., Study, Project, and System.
 
 ### Outputs
 ![lister_xlsx_output.png](docs%2Flister_xlsx_output.png)
+
 Fig. 5: Metadata output in the Excel sheet, after parsing with LISTER.
 
 ![lister_docx_output.png](docs%2Flister_docx_output.png)
+
 Fig. 6: Clean human-friendly output in Word document format, after parsing with LISTER.
 
 
@@ -112,7 +119,7 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   - Annotation is done using regular brackets and providing the DOI (not URI) in the bracket.
   - The DOI will be converted into Arabic numerals in square brackets, which refer to the reference provided at the bottom of the document.
   - References are only retained in the docx output, but not the metadata outputs (.xlsx/.json).
-  - Example: `(DOI_CODE)`, such as `(10.1073/pnas.062492699, 10.1002/elsc.200800043, 10.1088/1478-3975/7/1/016002, 10.1002/prot.22946, 10.1016/S1093-3263(02)00146-8)` will be written as `[1] [2] [3] [4] [5]` in the experiment body, and as a numbered list of DOI codes by the end of the experiment documentation.
+  - Example: `(DOI_CODE)`, such as `(10.1073/pnas.062492699)` will be written as `[1]` in the experiment body, and as a numbered list of DOI codes by the end of the experiment documentation.
 
 - *Sections*.
   
