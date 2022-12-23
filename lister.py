@@ -1196,7 +1196,10 @@ def parse_lines_to_kv(lines):
         str log: log from running subsequent functions.
     '''
     par_no = 0
+    # nkvmu_pairs = ["","metadata section","Experiment","",""]
     nkvmu_pairs = []
+    nkvmu_header = ["","metadata section","Experiment","",""]
+    nkvmu_pairs.append(nkvmu_header)
     nk_pairs = []
     log = ""
     for line in lines:
@@ -1611,10 +1614,10 @@ def parse_gooey_args():
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
         'title': "Naming method for the outputs", 'initial_selection': 0})
-    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on the experiment ID')
     radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
                              help='Name files and folders based on experiment title')
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+                             help='Name files and folders based on the experiment ID')
     # radio_group.add_argument("-t", "--custom", metavar="Custom name", action="store_true",
     #                         help='Name output file using your input here:')
     # io_args.add_argument('output_file_name',
@@ -1657,10 +1660,10 @@ def parse_gooey_args():
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
         'title': "Naming method for the outputs", 'initial_selection': 0})
-    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on container type + ID, including the underlying experiments')
     radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
                              help='Name files and folders based on container type + title, including the underlying experiments')
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+                             help='Name files and folders based on container type + ID, including the underlying experiments')
     io_args.add_argument('base_output_dir',
                          metavar='Base output directory',
                          help='Local directory generally used to save your outputs',
