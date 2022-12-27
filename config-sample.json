@@ -1,8 +1,9 @@
 {
     "elabftw": {
-        "token":"",
-        "endpoint":"",
+        "token":"thisIsAPlaceholderForELABFTWtoken4071b5ced3195b617a41583bc456a97a8172721f44dd7622a",
+        "endpoint":"http://elabftw.XXX.XXX/api/v1/",
         "exp_no":12345,
-        "output_file_name":""
+        "output_file_name":"",
+        "db_item_no":54321
     }
 }
