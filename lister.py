@@ -1196,9 +1196,8 @@ def parse_lines_to_kv(lines):
         str log: log from running subsequent functions.
     '''
     par_no = 0
-    # nkvmu_pairs = ["","metadata section","Experiment","",""]
     nkvmu_pairs = []
-    nkvmu_header = ["","metadata section","Experiment","",""]
+    nkvmu_header = ["","metadata section","Experiment Context","",""]
     nkvmu_pairs.append(nkvmu_header)
     nk_pairs = []
     log = ""
@@ -1403,6 +1402,19 @@ def process_linked_db_item(manager, id):
     db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
     return db_item_nkvmu_metadata
 
+def get_exp_info(exp):
+   #print(exp)
+    nkvmu_pairs = []
+    nkvmu_pairs.append(["","metadata section","Experiment Info","",""])
+    nkvmu_pairs.append(["","title",exp['title'],"",""])
+    nkvmu_pairs.append(["","creation date",exp['date'],"",""])
+    nkvmu_pairs.append(["","category",exp['category'],"",""])
+    nkvmu_pairs.append(["","author",exp['fullname'],"",""])
+    nkvmu_pairs.append(["","tags",exp['tags'],"",""])
+    return nkvmu_pairs
+
+
+
 
 def process_experiment(exp_no, endpoint, token, path):
 
@@ -1420,8 +1432,11 @@ def process_experiment(exp_no, endpoint, token, path):
         db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
         overall_nkvmu.extend(db_item_nkvmu_metadata)
 
+    exp_nkvmu_info = get_exp_info(exp)
+    overall_nkvmu.extend(exp_nkvmu_info)
     exp_nkvmu, log = conv_html_to_nkvmu(exp["body"])
     overall_nkvmu.extend(exp_nkvmu)
+
 
     get_and_save_attachments(manager, exp["uploads"], path)
     write_to_docx(manager, exp, path)
