@@ -1155,6 +1155,7 @@ def write_to_docx(manager, exp, path):
 
     :param elabapy.Manager manager: elabapy Manager object, required to access the experiment from eLabFTW.
     :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
+    :param str path: the path for writing the docx file, typically named based on experiment title or ID.
     '''
 
     document = Document()
@@ -1264,13 +1265,14 @@ def parse_lines_to_kv(lines):
 # Used to serialize extracted metadata to json file.
 # def write_to_json(list, full_path=output_path_and_fname):
 def write_to_json(list, exp, path):
-    # json.dump(list, open(path + output_fname + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+    #     :param str path: the path for writing the json file, typically named based on experiment title or ID.
     json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
 
 
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
 def write_log(log, path):
+    # :param str path: the path for writing the log file, typically named based on experiment title or ID.
     log = log.strip()
     print("Writing logs...")
     print(log)
@@ -1284,7 +1286,9 @@ def write_to_xlsx(nkvmu, exp, path):
 
     :param list nkvmu: list containing the order/key/value/measure/unit to be written.
     :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
+    :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
     '''
+
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
     # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
@@ -1371,6 +1375,7 @@ def get_and_save_attachments(manager, uploads, path):
     :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
     :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
                     (e.g., file_size, real_name, long_name, hash, etc).
+    :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
     '''
     upload_saving_path = path + '/' + 'attachments' + '/'
 
