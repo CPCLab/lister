@@ -21,6 +21,7 @@ MML2OMML.XSL
 omml2mml-versal.xsl
 mml2omml-tei.xsl
 demo2.docx
+main_gui.py
 latex-docx.py
 demo.docx
 htmlsplit.py

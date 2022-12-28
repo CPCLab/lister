@@ -217,17 +217,17 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 #### Packaging the app on Windows
 
-- One directory version - on the root folder of the repo, run pyinstaller `.\build-windows-onedir.spec`
+- One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
 
-- One file version - on the root folder of the repo, run pyinstaller `.\build-windows-onefile.spec`
+- One file version - on the root folder of the repo, run `pyinstaller  .\build-windows-onefile.spec`
 
 #### Packaging the app on Linux
 
-- One file version - on the root folder of the repo, run pyinstaller `.\build-linux.spec`
+- One file version - on the root folder of the repo, run `pyinstaller .\build-linux.spec`
 
 #### Packaging the app on macOS
 
-- One file version - on the root folder of the repo, run pyinstaller `.\build-macos.spec`
+- One file version - on the root folder of the repo, run `pyinstaller .\build-macos.spec`
 
 ## Troubleshooting
 
@@ -237,7 +237,7 @@ Decompressing a single-executable lister app into a temporary directory likely c
 
 ### Encoding problem on Windows
 
-When the following error 'charmap' codec can't encode characters in position... appears, open cmd.exe as an administrator before running LISTER and type the following:
+When the following error `'charmap' codec can't encode characters in position... `appears, open `cmd.exe` as an administrator before running LISTER and type the following:
 
 `setx /m PYTHONUTF8 1`
 
