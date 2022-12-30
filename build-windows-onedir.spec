@@ -1,14 +1,15 @@
 # -*- mode: python ; coding: utf-8 -*-
+# windows-onedir
 
 import gooey
+
 gooey_root = os.path.dirname(gooey.__file__)
 
 block_cipher = None
 
-
 a = Analysis(
-    ['lister.py'],
-    pathex=['C:\\Users\\fatho\\Dropbox\\Code\\Python\\lister\\'],
+    ["lister.py"],
+    pathex=["C:\\Users\\fatho\\Code\\lister\\"],
     binaries=[],
     datas=[],
     hiddenimports=[],
@@ -23,13 +24,12 @@ a = Analysis(
 )
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
 exe = EXE(
     pyz,
     a.scripts,
     [],
     exclude_binaries=True,
-    name='lister',
+    name="lister",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -40,7 +40,8 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=os.path.join(gooey_root, 'images', 'program_icon.ico'))
+    icon=os.path.join(gooey_root, "images", "program_icon.ico"),
+)
 
 coll = COLLECT(
     exe,
@@ -50,8 +51,9 @@ coll = COLLECT(
     strip=False,
     upx=True,
     upx_exclude=[],
-    name='lister',
+    name="lister",
 )
 
 import shutil
-shutil.copyfile('config.json', '{0}/config.json'.format(DISTPATH))
+
+shutil.copyfile("config.json", "{0}/config.json".format(DISTPATH))
