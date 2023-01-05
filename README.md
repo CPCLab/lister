@@ -10,33 +10,37 @@ As a research group usually has its own set of experiment protocols/Materials an
 
 ### User interface
 
-![lister_experiment_tab.png](docs%2Flister_experiment_tab.png)
+<img src="docs/lister_experiment_tab.png" alt="lister_experiment_tab" width="500"/>
 
 Fig. 1: User interface for parsing an experiments.
 
-![lister_container_tab.png](docs%2Flister_container_tab.png)
+
+
+<img src="docs/lister_container_tab.png" alt="lister_container_tab" width="500"/>
 
 Fig. 2: User interface for parsing a container (e.g., Publications, Project, etc).
 
 ### eLabFTW annotations
 
-![elabftw_exp_annotation.png](docs%2Felabftw_exp_annotation.png)
+<img src="docs/elabftw_exp_annotation.png" alt="elabftw_exp_annotation" width="500"/>
 
 Fig. 3: How the annotation is done to enable parsing via LISTER. This annotated fragment can be derived from reusable, 
 and lab-curated experiment protocols/material and methods. See the Annotation Mechanism section below.
 
-![elabftw_exp_linked_items.png](docs%2Felabftw_exp_linked_items.png)
+<img src="docs/elabftw_exp_linked_items.png" alt="elabftw_exp_linked_items" width="500"/>
+
 
 Fig. 4: Linked items section of an experiment, in which the tabular content will be parsed to gather more context
 w.r.t. e.g., Study, Project, and System.
 
 ### Outputs
 
-![lister_xlsx_output.png](docs%2Flister_xlsx_output.png)
+<img src="docs/lister_xlsx_output.png" alt="lister_xlsx_output" width="400"/>
 
 Fig. 5: Metadata output in the Excel sheet, after parsing with LISTER.
 
-![lister_docx_output.png](docs%2Flister_docx_output.png)
+
+<img src="docs/lister_docx_output.png" alt="2Flister_docx_output" width="400"/>
 
 Fig. 6: Clean human-friendly output in Word document format, after parsing with LISTER.
 
