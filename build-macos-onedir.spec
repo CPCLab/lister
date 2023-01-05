@@ -1,4 +1,4 @@
-# macos-onefile
+# macos-onedir
 
 import os
 import platform
@@ -57,6 +57,12 @@ coll = COLLECT(
     upx_exclude=[],
     name="lister",
 )
+
+app = BUNDLE(coll,
+    name='lister.app',
+    icon=None,
+    bundle_identifier=None)
+
 
 if platform.system() == "Darwin":
     info_plist = {"addition_prop": "additional_value"}

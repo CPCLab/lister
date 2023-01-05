@@ -1,3 +1,5 @@
+#macos-onefile
+
 import os
 import platform
 import gooey

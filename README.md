@@ -223,11 +223,11 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 #### Packaging the app on Linux
 
-- One file version - on the root folder of the repo, run `pyinstaller .\build-linux.spec`
+- One file version - on the root folder of the repo, run `pyinstaller build-linux-onefile.spec`
 
 #### Packaging the app on macOS
 
-- One file version - on the root folder of the repo, run `pyinstaller .\build-macos.spec`
+- One file version - on the root folder of the repo, run `pyinstaller build-macos-onefile.spec`
 
 ## Troubleshooting
 
