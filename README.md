@@ -44,24 +44,23 @@ Fig. 6: Clean human-friendly output in Word document format, after parsing with 
 
 LISTER is distributed as an executable file for Windows, Linux, or macOS (with an Intel chipset). The executable file for each platform is available on the release page, along with another, platform-specific file.
 
-- **For Windows and Linux**, place the executable file (`lister.exe `on Windows or `lister` on Linux) within the same folder as the config.json file.
+- **For Windows and Linux**, place the executable file (`lister.exe `on Windows or `lister` on Linux) within the same folder as the `config.json` file.
 
-- **For macOS**, create the directory `~/Apps/lister` first and place the executable lister.app and config.json in this directory.
+- **For macOS**, create the directory `~/Apps/lister` first and place the executable `lister.app` and `config.json` in this directory.
 
 ### Adapting the config.json file
 
 Parsing an eLabFTW entry requires
 
-- the general parameters
+- general parameters
   
-  - eLabFTW API token and API endpoint, which can be obtained from the eLabFTW instance's administrator of the lab or university,
+  - eLabFTW `API token` and `API endpoint`, which can be obtained from the eLabFTW instance's administrator of the lab or university,
   
-  - Default output directory, i.e., a directory path used to store the parser output,
-    -experiment-specific parameters
+  - Default output directory, i.e., a directory path used to store the parsing outputs
     
-    - Metadata/experiment output filename,
+- spefi
   
-  - Experiment ID or Database ID for the entry to be parsed.
+  - `Experiment ID` or `Database ID` for the entry to be parsed.
 
 ## Annotation mechanism
 
@@ -73,7 +72,7 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   
   - If applicable, a KV pair is extendable with measure and unit. Therefore, there are two more variations for writing a KV pair:
     
-    - `{measure|unit|key} `the measure and unit will be mapped into value and unit.
+    - `{measure|unit|key}` the measure and unit will be mapped into value and unit.
     - `{measure|unit|value|key}` the measure and unit will be taken as given.
   
   - For example, “*Two* *{100|mL|LB Kan|expression media}* *cultures in* *{unbaffled Erlenmeyer|flasks}*” consists of two patterns of pair:
