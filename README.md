@@ -58,7 +58,7 @@ Parsing an eLabFTW entry requires
   
   - Default output directory, i.e., a directory path used to store the parsing outputs
     
-- spefi
+- specific parameter
   
   - `Experiment ID` or `Database ID` for the entry to be parsed.
 
@@ -164,15 +164,15 @@ A logical operator is used to decide whether a particular condition is met in an
 
 An iteration operator is used to change the value of a variable in a loop. It is available for while and for. The following iteration operators are supported:
 
-- +: iteration using addition
+- `+`: iteration using addition
 
-- -: iteration using subtraction
+- `-`: iteration using subtraction
 
-- %: iteration using modulo
+- `%`: iteration using modulo
 
-- *: iteration using multiplication
+- `*`: iteration using multiplication
 
-- /: iteration using division
+- `/`: iteration using division
 
 ## Document validation
 
