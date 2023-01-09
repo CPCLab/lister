@@ -57,7 +57,7 @@ Parsing an eLabFTW entry requires
   - eLabFTW `API token` and `API endpoint`, which can be obtained from the eLabFTW instance's administrator of the lab or university,
   
   - Default output directory, i.e., a directory path used to store the parsing outputs
-    
+
 - specific parameter
   
   - `Experiment ID` or `Database ID` for the entry to be parsed.
@@ -249,3 +249,13 @@ The error `win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'Th
 ### macOS: dependencies not included
 
 Please consider using environment management system such as anaconda to package the app. Install conda locally along with the dependencies stated in the `requirements.txt`. In the release, python 3.9.15 was used. LISTER runs fine on macOS v13.0.1 and macOS v10.12.4 within intel machines.
+
+### macOS: unable to get into GUI
+
+Running `lister.py` directly from your IDE on macOS may lead to the following message:
+
+`This program needs access to the screen. Please run with a
+Framework build of python, and only when you are logged in
+on the main display of your Mac.`
+
+Run the script from terminal using `pythonw lister.py`instead.
