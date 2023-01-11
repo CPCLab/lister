@@ -1425,7 +1425,7 @@ def process_experiment(exp_no, endpoint, token, path):
 
     manager, exp = get_elab_exp(exp_no, endpoint, token)
     links = exp['links']
-    excluded_item_types = ["MM", "Publication"] # may need to configure this in the json file in the future
+    excluded_item_types = ["MM", "Publication", "Protocols", "Protocol"] # may need to configure this in the json file in the future
     filtered_links = []
 
     for link in links:
@@ -1434,8 +1434,9 @@ def process_experiment(exp_no, endpoint, token, path):
 
     overall_nkvmu = []
     for filtered_link in filtered_links:
-        db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
-        overall_nkvmu.extend(db_item_nkvmu_metadata)
+        if len(filtered_link['itemid']) > 0:
+            db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
+            overall_nkvmu.extend(db_item_nkvmu_metadata)
 
     exp_nkvmu_info = get_exp_info(exp)
     overall_nkvmu.extend(exp_nkvmu_info)
