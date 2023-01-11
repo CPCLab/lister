@@ -8,6 +8,8 @@ conda/
 output/
 dist/
 build/
+conda-compact/
+venv/
 config.json
 .idea/
 desktop.ini
