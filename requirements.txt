@@ -1,13 +1,10 @@
 certifi>=2022.12.07
 charset-normalizer==2.0.6
-docopt==0.6.2
 idna==3.2
 lxml>=4.9.1
-pipreqs==0.4.10
 python-docx==0.8.11
 requests==2.26.0
 urllib3~=1.23 # the latest urllib3 (1.26.x) yields to SSL error. see https://stackoverflow.com/questions/64960430/python-requests-with-proxy-results-in-sslerror-wrong-version-number
-yarg==0.1.9
 XlsxWriter==3.0.1
 elabapy~=0.8.2
 beautifulsoup4~=4.11.1
@@ -15,9 +12,5 @@ html5lib
 gooey~=1.0.8.1
 pyinstaller~=5.1
 pandas~=1.5.2
-docx~=0.2.4
-bs4~=0.0.1
-Markdown~=3.3.7
-pypandoc~=1.8.1
 pillow>=9.2.0
 latex2mathml
