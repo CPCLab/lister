@@ -214,6 +214,20 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 - The resulting packaged app will be available under the dist directory, which is created automatically during the build process.
 
+- It is recommended to use virtual environments using python's venv or anaconda.
+  
+  - Using venv
+    
+    - create venv virtual environment inside lister directory named `venv` which will use python3.9 as the interpreter: `python3.9 -m venv venv` 
+    
+    - set IDE to use the created `venv` environment as python interpreter to use - in pycharm it is in the *Settings* - *Project: lister* - *Python Interpreter* - *Add Interpreter* which is set to `/lister/venv/bin/python`
+    
+    - activate the venv environment: `source venv/bin/activate`
+    
+    - install required libraries: `pip install xlsxwriter gooey python-docx elabapy beautifulsoup4 pyinstaller pandas latex2mathml`
+    
+    - build using the build scripts mentioned below
+
 #### Packaging the app on Windows
 
 - One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
