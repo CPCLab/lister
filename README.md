@@ -230,17 +230,17 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 #### Packaging the app on Windows
 
-- One directory version - on the root folder of the repo, run `pyinstaller .\build-windows-onedir.spec`
+- One directory version - on the root folder of the repo, run `pyinstaller .\build-scripts\build-windows-onedir.spec`
 
-- One file version - on the root folder of the repo, run `pyinstaller  .\build-windows-onefile.spec`
+- One file version - on the root folder of the repo, run `pyinstaller  .\build-scripts\build-windows-onefile.spec`
 
 #### Packaging the app on Linux
 
-- One file version - on the root folder of the repo, run `pyinstaller build-linux-onefile.spec`
+- One file version - on the root folder of the repo, run `pyinstaller build-scripts/build-linux-onefile.spec`
 
 #### Packaging the app on macOS
 
-- One file version - on the root folder of the repo, run `pyinstaller build-macos-onefile.spec`
+- One file version - on the root folder of the repo, run `pyinstaller build-scripts/build-macos-onefile.spec `
 
 ## Troubleshooting
 
