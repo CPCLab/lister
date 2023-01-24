@@ -8,7 +8,7 @@ gooey_root = os.path.dirname(gooey.__file__)
 block_cipher = None
 
 a = Analysis(
-    ["lister.py"],
+    ["../lister.py"],
     pathex=["C:\\Users\\fatho\\Code\\lister\\"],
     binaries=[],
     datas=[],

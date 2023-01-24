@@ -4,6 +4,7 @@ venv/
 etcs/
 venv/
 conda-compact/
+venv-compact/
 conda/
 output/
 dist/
