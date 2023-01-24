@@ -18,7 +18,7 @@ from PyInstaller.building.osx import BUNDLE
 block_cipher = None
 
 a = Analysis(
-    ["lister.py"],  # replace me with your path
+    ["../lister.py"],  # replace me with your path
     pathex=["/Users/fathoni/Code/lister/"],
     hiddenimports=[],
     hookspath=None,
