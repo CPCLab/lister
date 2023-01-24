@@ -43,30 +43,29 @@ class Bracket_pair_error(Enum):
 
 class Misc_error_and_warning_msg(Enum):
     ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected. " \
-                        "Check the value '%s' in the following set of values: %s."
+                        "Check the value ''{0}'' in the following set of values: '{1}'."
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
-                            "Please check the operator '%s' in the following set of values: %s. " \
+                            "Please check the operator ''{0}'' in the following set of values: '{1}'. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     UNRECOGNIZED_FLOW_TYPE = "ERROR: The flow type is not recognized. " \
-                             "Please check the flow type '%s' in the following set of values: %s."
+                             "Please check the flow type ''{0}'' in the following set of values: '{1}'."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
-                         "Please check the following set of values: %s."
+                         "Please check the following set of values: '{0}'."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
-                        "Check the following part: %s."
-    INVALID_ITERATION_OPERATOR = "ERROR: %s is not a valid iteration operators. Only +, -, *, / and %% are supported." \
-                                 "Check the following part: %s."
-    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the %s statement is %s, but %s was found." \
-                     "Check the following part: %s"
-    SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, %s. Please " \
+                        "Check the following part: '{0}'."
+    INVALID_ITERATION_OPERATOR = "ERROR: '{0}' is not a valid iteration operators. Only +, -, *, / and %% are supported." \
+                                 "Check the following part: '{1}'."
+    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the '{0}' statement is '{1}', but '{2}' was found." \
+                     "Check the following part: '{3}'"
+    SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
-    INACCESSIBLE_ATTACHMENT = "WARNING: File with name %s and ID %s is not accessible, with the exception: " \
-                              "\n %s. \n Try contacting eLabFTW administrator reporting the exception mentioned." \
-                              "Check the following part: %s"
+    INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' and ID '{1}' is not accessible, with the exception: " \
+                              "\n '{2}'. \n Try contacting eLabFTW administrator reporting the exception mentioned."
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
-                                "(key-value-measure-unit). There are %s element(s) found in this key-value set: %s."
+                                "(key-value-measure-unit). There are '{0}' element(s) found in this key-value set: '{1}'."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
-                            "Otherwise please check this pair: %s ."
+                            "Otherwise please check this pair: '{0}' ."
     MISSING_MML2OMML = "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires " \
                        "MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. " \
                        "It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, " \
@@ -223,11 +222,11 @@ def validate_foreach(cf_split):
         if is_num(cf_split[1]):  # or
             # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
-            cf_split) + "\n"
+            cf_split)  + "\n"
         is_error = True
     return log, is_error
 
@@ -240,12 +239,12 @@ def validate_while(cf_split):
     if elements == Arg_num.ARG_NUM_WHILE.value:
         if is_num(cf_split[1]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1],cf_split) + "\n"
         if not is_valid_comparative_operator(cf_split[2]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -261,12 +260,12 @@ def validate_if(cf_split):
     if elements == Arg_num.ARG_NUM_IF.value:
         if is_num(cf_split[1]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         if not is_valid_comparative_operator(cf_split[2]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -285,12 +284,12 @@ def validate_elseif(cf_split):
     if elements == Arg_num.ARG_NUM_ELSEIF.value:
         if is_num(cf_split[1]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         if not is_valid_comparative_operator(cf_split[2]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value % (cf_split[2], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
     else:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -304,7 +303,7 @@ def validate_else(cf_split):
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_ELSE.value:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -319,10 +318,10 @@ def validate_range(flow_range):
     if len(range_values) == 2:
         if not (is_num(range_values[0]) and is_num(range_values[0])):
             is_error = True
-            log = log + Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value % (flow_range) + "\n"
+            log = log + Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
     else:
         is_error = True
-        log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value % (flow_range) + "\n"
+        log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
     return log, is_error
 
 
@@ -334,16 +333,16 @@ def validate_for(cf_split):
     if elements == Arg_num.ARG_NUM_FOR.value:  # validating number of arguments in FOR
         if is_num(cf_split[1]):  # in case 2nd argument is number, throw an error
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         range_error_log, is_range_error = validate_range(cf_split[2])
         if is_range_error == True:  # check whether it is a valid range
             is_error = True
             log = log + range_error_log + "\n"
         if not is_valid_iteration_operator(cf_split[3]):  # check whether it is a valid operator
             is_error = True
-            log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[3], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value.format(cf_split[3], cf_split) + "\n"
     else:  # if number of argument is invalid
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -358,9 +357,9 @@ def validate_iterate(cf_split):
     if elements == Arg_num.ARG_NUM_ITERATE.value:
         if not is_valid_iteration_operator(cf_split[1]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value % (cf_split[1], cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1], cf_split) + "\n"
     else:  # if number of argument is invalid
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
             cf_split) + "\n"
         is_error = True
@@ -373,7 +372,7 @@ def validate_section(cf_split):
     is_error = False
     elements = len(cf_split)
     if elements != Arg_num.ARG_NUM_SECTION.value:
-        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value % (
+        log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
             elements, cf_split) + "\n"
         is_error = True
@@ -723,10 +722,10 @@ def conv_bracketedstring_to_kvmu(kvmu):
         val = ""
         measure = ""
         unit = ""
-        print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value % kvmu)
-        log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value % kvmu
+        print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(kvmu))
+        log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(kvmu)
     else:
-        log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value % (len(kv_split), str(source_kvmu))
+        log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value.format(len(kv_split), str(source_kvmu))
         raise SystemExit(log)
     key = key.strip()
     val = val.strip()
@@ -776,7 +775,7 @@ def extract_flow_type(par_no, flow_control_pair):
         key_val, flow_log, is_error = process_iterate(par_no, cf_split)
     else:
         is_error = True
-        flow_log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value % (cf_split[0].upper(), cf_split) + "\n"
+        flow_log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
     return key_val, flow_log, is_error
 
 
@@ -1004,8 +1003,8 @@ def add_img_to_doc(manager, document, upl_id, real_name, path):
                     img_file.write(manager.get_upload(upl_id))
                 document.add_picture(img_saving_path + real_name, width=Mm(get_text_width(document)))
             except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
-                    real_name, upl_id, str(e))
+                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(upl_id), str(e))
+
                 pass
     else:
         print("Image found in the experiment, but not attached. Parsing this image is disabled for security reason."
@@ -1244,7 +1243,7 @@ def parse_lines_to_kv(lines):
                         unit = kvmu_set[3]
                     nk_pair = [par_no, key]
                     if (nk_pair in nk_pairs):
-                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value % (nk_pair) + "\n"
+                        log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value.format(nk_pair) + "\n"
                     if is_explicit_key(key):
                         key = strip_colon(key)
                     nkvmu_pair = [par_no, key, val, measure, unit]
@@ -1389,8 +1388,7 @@ def get_and_save_attachments(manager, uploads, path):
             try:
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value % (
-                upload["real_name"], upload["id"], str(e))
+                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
                 pass
 
 
@@ -1408,7 +1406,6 @@ def process_linked_db_item(manager, id):
     return db_item_nkvmu_metadata
 
 def get_exp_info(exp):
-   #print(exp)
     nkvmu_pairs = []
     nkvmu_pairs.append(["","metadata section","Experiment Info","",""])
     nkvmu_pairs.append(["","title",exp['title'],"",""])
@@ -1419,22 +1416,27 @@ def get_exp_info(exp):
     return nkvmu_pairs
 
 
-
-
 def process_experiment(exp_no, endpoint, token, path):
 
     manager, exp = get_elab_exp(exp_no, endpoint, token)
-    links = exp['links']
+    # links = exp['links']
+    # changed to reflect eLabFTW 4.4.3 dictionary keys name
+    links = exp['items_links']
     excluded_item_types = ["MM", "Publication", "Protocols", "Protocol"] # may need to configure this in the json file in the future
     filtered_links = []
 
     for link in links:
-        if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
+       # if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
+       # changed to reflect eLabFTW 4.4.3 dictionary keys name
+        if link['category'].casefold() not in (item.casefold() for item in excluded_item_types):
             filtered_links.append(link)
 
     overall_nkvmu = []
     for filtered_link in filtered_links:
-        if len(filtered_link['itemid']) > 0:
+        print(filtered_link)
+        # changed to reflect eLabFTW 4.4.3 dictionary keys name
+        # if len(filtered_link['itemid']) > 0:
+        if filtered_link['itemid']:
             db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
             overall_nkvmu.extend(db_item_nkvmu_metadata)
 
