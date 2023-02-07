@@ -1360,6 +1360,7 @@ def conv_html_to_nkvmu(html_content):
             [-, section level, section name, '', ''],
         str log is a string log returned from the respectively-executed functions.
     '''
+    global log
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
     clean_lines = process_nbsp(soup)
@@ -1376,6 +1377,7 @@ def get_and_save_attachments(manager, uploads, path):
                     (e.g., file_size, real_name, long_name, hash, etc).
     :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
     '''
+    global log
     upload_saving_path = path + '/' + 'attachments' + '/'
 
     if not os.path.isdir(upload_saving_path):
@@ -1388,7 +1390,10 @@ def get_and_save_attachments(manager, uploads, path):
             try:
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                if not log:
+                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                else:
+                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
                 pass
 
 
@@ -1737,9 +1742,12 @@ def main():
     global output_fname  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
+    global log
 
     # sys.stdin.reconfigure(encoding='utf-8')
     # sys.stdout.reconfigure(encoding='utf-8')
+
+    log = ""
 
     args = parse_gooey_args()
     base_output_path = args.base_output_dir
