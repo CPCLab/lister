@@ -1074,6 +1074,8 @@ def write_tag_to_doc(document, tag_item):
     all_references = []
     p = document.add_paragraph()
     if isinstance(tag_item, Tag):
+        section_toggle = False
+        subsection_level = 0
         for subcontent in tag_item.contents:
             # strip_markup_and_explicit_keys()
             if isinstance(subcontent, Tag):
@@ -1099,7 +1101,7 @@ def write_tag_to_doc(document, tag_item):
             # check if the line is either goal, procedure, or result - but only limit that to one word
             if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
                 document.add_heading(line, level=1)
-            # check if the line is a section
+            # check if the line is a section with following characters
             elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
                 section_title = get_section_title(line)
                 subsection_level = line.count("sub")
@@ -1109,7 +1111,6 @@ def write_tag_to_doc(document, tag_item):
                     document.add_heading(section_title, level=3)
                 else:
                     document.add_heading(section_title, level=4)
-
             elif subcontent.name == "sub":
                 sub_text = p.add_run(line + " ")
                 sub_text.font.subscript = True
@@ -1118,7 +1119,22 @@ def write_tag_to_doc(document, tag_item):
                 italic_text.font.italic = True
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
-                if attr == "color":
+                # check if the line is a section without being followed by other characters, hence it needs the following
+                # chars from the next line as its section title. This case tends to happen when a section in a line is
+                # not covered within the same span tag hierarchy as its label.
+                if re.match(Regex_patterns.SUBSECTION.value, line, re.IGNORECASE):
+                    section_toggle = True
+                    subsection_level = line.count("sub")
+                elif(section_toggle):
+                    section_title = get_section_title(line)
+                    if subsection_level == 0:
+                        document.add_heading(section_title, level=2)
+                    elif subsection_level == 1:
+                        document.add_heading(section_title, level=3)
+                    else:
+                        document.add_heading(section_title, level=4)
+                    section_toggle = False
+                elif attr == "color":
                     color_text = p.add_run(line)
                     color_text.font.color.rgb = RGBColor.from_string(val[1:])
                 elif attr == "font-style" and attr == "italic":
