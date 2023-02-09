@@ -82,11 +82,13 @@ class Regex_patterns(Enum):
     COMMENT = "\(.+?\)"  # define regex for parsing comment
     FORMULA = "\$.*\$"  # define regex for parsing comment
     COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
-    COMMENT_VISIBLE = "\(:.+?:\)"
+    COMMENT_VISIBLE = "\(:(.+?):\)"
+    # COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = "\(_.+?_\)"
     SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KV pairs (the key, tolerating trailing spaces)
     BRACKET_MARKUPS = r"([{}<>])"  # catch KV/section bracket annotations
-    SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator annotation
+    SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator and colon annotation
+    SEPARATOR_MARKUP = r"([|])"  # catch separator annotation
     PRE_PERIOD_SPACES = '\s+\.'
     PRE_COMMA_SPACES = '\s+,'
     SUBSECTION = '(sub)*section'
@@ -858,7 +860,12 @@ def process_reg_bracket(line):
                 processed_element = ""
             # visible comment - strip brackets and colons, keep the content
             elif re.search(Regex_patterns.COMMENT_VISIBLE.value, element):
-                processed_element = element[2:-2]
+                element = re.sub(Regex_patterns.SEPARATOR_MARKUP.value, '', element)
+                visible_comments = re.split(Regex_patterns.COMMENT_VISIBLE.value, element)
+                concatenated_string = ""
+                for visible_comment in visible_comments:
+                    concatenated_string = concatenated_string + visible_comment
+                processed_element = concatenated_string
             # comment that refer to DOI - strip all for now
             elif found_doi_length > 0:
                 processed_element = ""
