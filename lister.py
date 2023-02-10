@@ -1133,13 +1133,14 @@ def write_tag_to_doc(document, tag_item):
                     section_toggle = True
                     subsection_level = line.count("sub")
                 elif(section_toggle):
-                    section_title = get_section_title(line)
+                    # do not use get_section_title() here as it will remove the first word of the line.
+                    # the 'section' part have already been removed in this span section.
                     if subsection_level == 0:
-                        document.add_heading(section_title, level=2)
+                        document.add_heading(line, level=2)
                     elif subsection_level == 1:
-                        document.add_heading(section_title, level=3)
+                        document.add_heading(line, level=3)
                     else:
-                        document.add_heading(section_title, level=4)
+                        document.add_heading(line, level=4)
                     section_toggle = False
                 elif attr == "color":
                     color_text = p.add_run(line)
@@ -1477,7 +1478,7 @@ def process_experiment(exp_no, endpoint, token, path):
     get_and_save_attachments(manager, exp["uploads"], path)
     write_to_docx(manager, exp, path)
 
-    # may not work yet on eLabFTW v 3.6.7 - test later once HHU eLabFTW instance is updated
+    # consult first with involved AGs whether uploading the parsing result makes sense
     # if args.uploadToggle == True:
     #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
     #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
