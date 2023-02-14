@@ -43,33 +43,36 @@ class Bracket_pair_error(Enum):
 
 class Misc_error_and_warning_msg(Enum):
     ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected. " \
-                        "Check the value ''{0}'' in the following set of values: '{1}'."
+                        "Check the value '{0}' in the following set of values: '{1}'."
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
-                            "Please check the operator ''{0}'' in the following set of values: '{1}'. " \
+                            "Please check the operator '{0}' in the following set of values: {1}. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     UNRECOGNIZED_FLOW_TYPE = "ERROR: The flow type is not recognized. " \
-                             "Please check the flow type ''{0}'' in the following set of values: '{1}'."
+                             "Please check the flow type {0} in the following set of values: {1}."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
-                         "Please check the following set of values: '{0}'."
+                         "Please check the following set of values: {0}."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
-                        "Check the following part: '{0}'."
-    INVALID_ITERATION_OPERATOR = "ERROR: '{0}' is not a valid iteration operators. Only +, -, *, / and %% are supported." \
-                                 "Check the following part: '{1}'."
-    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the '{0}' statement is '{1}', but '{2}' was found." \
+                        "Check the following part: {0}."
+    INVALID_ITERATION_OPERATOR = "ERROR: {0} is not a valid iteration operators. Only +, -, *, / and %% are supported." \
+                                 "Check the following part: {1}."
+    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the '{0}' statement is {1}, but {2} was found." \
                      "Check the following part: '{3}'"
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' and ID '{1}' is not accessible, with the exception: " \
-                              "\n '{2}'. \n Try contacting eLabFTW administrator reporting the exception mentioned."
+                              "\n {2}. \n Try contacting eLabFTW administrator reporting the exception mentioned."
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
-                                "(key-value-measure-unit). There are '{0}' element(s) found in this key-value set: '{1}'."
+                                "(key-value-measure-unit). There are {0} element(s) found in this key-value set: {1}."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
-                            "Otherwise please check this pair: '{0}' ."
+                            "Otherwise please check this pair: {0}."
     MISSING_MML2OMML = "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires " \
                        "MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. " \
                        "It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, " \
                        "formula parsing is disabled."
+    NON_TWO_COLS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
+                                "This linked item is skipped. Please recheck and consider using two columns to " \
+                                "allow key-value format."
 
 
 class Regex_patterns(Enum):
@@ -1427,12 +1430,20 @@ def process_linked_db_item(manager, id):
     category = linked_item["category"]
     dfs = pd.read_html(html_body)
     df = pd.concat(dfs)
-    df.columns = ["metadata section", category]
-    df.insert(loc=0, column="", value="")
-    df = df.reindex(df.columns.tolist() + ['',''], axis=1)
-    filtered_df = df.fillna('')
-    db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
-    return db_item_nkvmu_metadata
+    df_col_no = df.shape[1]
+    log = ""
+    if df_col_no != 2:
+        log = Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format(category,df_col_no)  + "\n"
+        print(log)
+        db_item_nkvmu_metadata = ""
+        pass
+    else:
+        df.columns = ["metadata section", category]
+        df.insert(loc=0, column="", value="")
+        df = df.reindex(df.columns.tolist() + ['',''], axis=1)
+        filtered_df = df.fillna('')
+        db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
+    return db_item_nkvmu_metadata, log
 
 def get_exp_info(exp):
     nkvmu_pairs = []
@@ -1462,11 +1473,11 @@ def process_experiment(exp_no, endpoint, token, path):
 
     overall_nkvmu = []
     for filtered_link in filtered_links:
-        print(filtered_link)
+        # print(filtered_link)
         # changed to reflect eLabFTW 4.4.3 dictionary keys name
         # if len(filtered_link['itemid']) > 0:
         if filtered_link['itemid']:
-            db_item_nkvmu_metadata = process_linked_db_item(manager, filtered_link['itemid'])
+            db_item_nkvmu_metadata, log = process_linked_db_item(manager, filtered_link['itemid'])
             overall_nkvmu.extend(db_item_nkvmu_metadata)
 
     exp_nkvmu_info = get_exp_info(exp)
