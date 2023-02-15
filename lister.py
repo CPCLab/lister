@@ -17,6 +17,7 @@ from docx.shared import Mm, RGBColor
 from lxml import etree
 import latex2mathml.converter
 import unicodedata
+import elabapi_python
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -1424,6 +1425,57 @@ def get_and_save_attachments(manager, uploads, path):
                 pass
 
 
+def get_api_v2endpoint(v1endpoint):
+    return 0
+    v2endpoint = re.sub(r'http://', 'https://', v1endpoint)
+    v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
+    return v2endpoint
+
+
+def create_apiv2_client(endpoint, token):
+    endpoint_v2 = get_api_v2endpoint(endpoint)
+    apiv2config = elabapi_python.Configuration()
+    apiv2config.api_key['api_key'] = token
+    apiv2config.api_key_prefix['api_key'] = 'Authorization'
+    apiv2config.host = endpoint_v2
+    apiv2config.debug = False
+    apiv2config.verify_ssl = False
+    apiv2_client = elabapi_python.ApiClient(apiv2config)
+    apiv2_client.set_default_header(header_name='Authorization', header_value=token)
+    return apiv2_client
+
+
+def get_and_save_attachments_v2(manager, uploads, path, apiv2_client):
+    '''
+    Get a list of attachments in the experiment entry and download these attachments.
+
+    :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
+    :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
+                    (e.g., file_size, real_name, long_name, hash, etc).
+    :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
+    '''
+
+    global log
+    upload_saving_path = path + '/' + 'attachments' + '/'
+
+    if not os.path.isdir(upload_saving_path):
+        print("Output path %s is not available, creating the path directory..." % (upload_saving_path))
+        os.makedirs(upload_saving_path)
+
+    for upload in uploads:
+        with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
+            print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
+            try:
+                attachment.write(manager.get_upload(upload["id"]))
+            except Exception as e:
+                if not log:
+                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                else:
+                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                pass
+
+
+
 def process_linked_db_item(manager, id):
     linked_item = manager.get_item(id)
     html_body = linked_item["body"]
@@ -1456,6 +1508,8 @@ def get_exp_info(exp):
     return nkvmu_pairs
 
 
+
+
 def process_experiment(exp_no, endpoint, token, path):
 
     manager, exp = get_elab_exp(exp_no, endpoint, token)
@@ -1485,8 +1539,9 @@ def process_experiment(exp_no, endpoint, token, path):
     exp_nkvmu, log = conv_html_to_nkvmu(exp["body"])
     overall_nkvmu.extend(exp_nkvmu)
 
-
-    get_and_save_attachments(manager, exp["uploads"], path)
+    apiv2_client = create_apiv2_client(endpoint, token)
+    # get_and_save_attachments(manager, exp["uploads"], path)
+    get_and_save_attachments_v2(manager, exp["uploads"], path, apiv2_client)
     write_to_docx(manager, exp, path)
 
     # consult first with involved AGs whether uploading the parsing result makes sense
