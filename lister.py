@@ -1426,9 +1426,10 @@ def get_and_save_attachments(manager, uploads, path):
 
 
 def get_api_v2endpoint(v1endpoint):
-    return 0
     v2endpoint = re.sub(r'http://', 'https://', v1endpoint)
     v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
+    print("v2endpoint: ")
+    print(v2endpoint)
     return v2endpoint
 
 
@@ -1445,7 +1446,10 @@ def create_apiv2_client(endpoint, token):
     return apiv2_client
 
 
-def get_and_save_attachments_v2(manager, uploads, path, apiv2_client):
+# note: there is still a problem with serializing the uploads.
+# some uploads are rewritten with 0-bytes, rendering the files corrupted.
+# TODO: fix this problem
+def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1455,25 +1459,46 @@ def get_and_save_attachments_v2(manager, uploads, path, apiv2_client):
     :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
     '''
 
-    global log
-    upload_saving_path = path + '/' + 'attachments' + '/'
+    log = ""
+
+    initial_active_dir = os.getcwd()
+
+    experimentsApi = elabapi_python.ExperimentsApi(apiv2_client)
+    uploadsApi = elabapi_python.UploadsApi(apiv2_client)
+    exp = experimentsApi.get_experiment(int(exp_id))
+    # uploads = uploadsApi.read_uploads('experiments', exp.id)
+
+    # upload_saving_path = path + '/' + 'attachments' + '/'
+    upload_saving_path = path + 'attachments' + '/'
+    # print("CWD : " + os.getcwd())
+    # print("upload_saving_path : " + upload_saving_path)
 
     if not os.path.isdir(upload_saving_path):
         print("Output path %s is not available, creating the path directory..." % (upload_saving_path))
         os.makedirs(upload_saving_path)
 
-    for upload in uploads:
-        with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
-            print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
-            try:
-                attachment.write(manager.get_upload(upload["id"]))
-            except Exception as e:
-                if not log:
-                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
-                else:
-                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
-                pass
+    os.chdir(upload_saving_path)
 
+    for upload in uploadsApi.read_uploads('experiments', exp.id):
+        print(upload.id, upload.real_name, upload.comment)
+        # get and save file
+        # with open(upload_saving_path + upload.real_name, 'wb') as file:
+        with open(upload.real_name, 'wb') as file:
+            print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name, upload_saving_path + upload.real_name))
+            file.write(
+                uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
+            # try:
+                # the _preload_content flag is necessary so the api_client doesn't try and deserialize the response
+            #    file.write(uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
+            # except Exception as e:
+            #    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+            #    print(log)
+            #    pass
+            file.flush()
+
+    os.chdir(initial_active_dir)
+    print("Directory active after: " + os.getcwd())
+    return log
 
 
 def process_linked_db_item(manager, id):
@@ -1541,7 +1566,7 @@ def process_experiment(exp_no, endpoint, token, path):
 
     apiv2_client = create_apiv2_client(endpoint, token)
     # get_and_save_attachments(manager, exp["uploads"], path)
-    get_and_save_attachments_v2(manager, exp["uploads"], path, apiv2_client)
+    log = get_and_save_attachments_v2(path, apiv2_client, int(exp_no))
     write_to_docx(manager, exp, path)
 
     # consult first with involved AGs whether uploading the parsing result makes sense
