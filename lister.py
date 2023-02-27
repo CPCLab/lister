@@ -1468,8 +1468,8 @@ def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
     exp = experimentsApi.get_experiment(int(exp_id))
     # uploads = uploadsApi.read_uploads('experiments', exp.id)
 
-    # upload_saving_path = path + '/' + 'attachments' + '/'
-    upload_saving_path = path + 'attachments' + '/'
+    upload_saving_path = path + '/' + 'attachments' + '/'
+    # upload_saving_path = path + 'attachments' + '/'
     # print("CWD : " + os.getcwd())
     # print("upload_saving_path : " + upload_saving_path)
 
@@ -1541,7 +1541,9 @@ def process_experiment(exp_no, endpoint, token, path):
     # links = exp['links']
     # changed to reflect eLabFTW 4.4.3 dictionary keys name
     links = exp['items_links']
-    excluded_item_types = ["MM", "Publication", "Protocols", "Protocol"] # may need to configure this in the json file in the future
+    # TODO: collect list of item types that are not supposed to be parsed, configure this here.
+    # may need to configure this in the json file in the future
+    excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method"]
     filtered_links = []
 
     for link in links:
@@ -1611,6 +1613,7 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     # get db item
     manager = create_elab_manager(endpoint, token)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    #TODO: clarify the differences between linked exp vs related exp, and implement the linked items here
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
 
     for exp_id in exp_ids:
