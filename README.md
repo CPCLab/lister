@@ -2,6 +2,8 @@
 
 This repository contains a set of files to parse documentation of experiments in eLabFTW.
 
+A more detailed explanation regarding LISTER is provided in the following preprint: https://www.biorxiv.org/content/10.1101/2023.02.20.529231v1
+
 ## Motivation
 
 As a research group usually has its own set of experiment protocols/Materials and Methods (MM) to conduct experiments, a tool to extract metadata from protocols/MMs-adapted experiment documentation helps support research data publication according to FAIR (Findable, Accessible, Interoperable, and Reusable) principles. Research data published under FAIR principles is expected to improve the reproducibility of research. To enable metadata extraction, the experiment documentation follows annotation rules described below and is in an HTML format stored as an experiment/database entry in eLabFTW.
@@ -273,3 +275,8 @@ Framework build of python, and only when you are logged in
 on the main display of your Mac.`
 
 Run the script from terminal using `pythonw lister.py`instead.
+
+
+### All platform: contrast problem with GUI text
+
+LISTER only supports the default OS' light theme, a custom/dark user theme is therefore not supported.
