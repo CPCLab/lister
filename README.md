@@ -176,6 +176,17 @@ An iteration operator is used to change the value of a variable in a loop. It is
 
 - `/`: iteration using division
 
+## Parsable entries comparison
+
+
+|                                      | Instance example                         | Can the table be parsed as metadata?                                                   | Can annotated text be parsed?                                        | Should the the metadata specified before (be it table OR annotated text) be parsed?                              |
+| ------------------------------------ | ---------------------------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| Experiment entries                   | -                                        | No, we still need to define how heterogenous table can be extracted to key-value pairs | Yes                                                                  | Yes                                                                                                              |
+| Management-instance database entries | Project, System, Study                   | Yes, as long as it is in a  two-column structure                                       | No, it is deemed to be unnecessary as KV are already in tabular form | Yes                                                                                                              |
+| SOP-instance database entries        | MM, Method, Methods, Protocol, Protocols | No                                                                                     | Yes                                                                  | No, it should have already been inserted into the experiment instead, and the parameter should have been adapted |
+| Container-instance database entries  | Publication                              | Yes                                                                                    | No, it is deemed to be unnecessary as KV are already in tabular form | Yes                                                                                                              |
+
+
 ## Document validation
 
 LISTER checks and reports the following syntax issues upon parsing:
