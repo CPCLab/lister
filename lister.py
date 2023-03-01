@@ -18,8 +18,7 @@ from lxml import etree
 import latex2mathml.converter
 import unicodedata
 import elabapi_python
-
-
+from pathvalidate import sanitize_filepath
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
@@ -60,8 +59,8 @@ class Misc_error_and_warning_msg(Enum):
                      "Check the following part: '{3}'"
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
-    INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' and ID '{1}' is not accessible, with the exception: " \
-                              "\n {2}. \n Try contacting eLabFTW administrator reporting the exception mentioned."
+    INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
+                              "\n {1}. \n Try contacting eLabFTW administrator reporting the exception mentioned."
     INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
                                 "(key-value-measure-unit). There are {0} element(s) found in this key-value set: {1}."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
@@ -989,7 +988,7 @@ def get_text_width(document):
     return (section.page_width - section.left_margin - section.right_margin) / 36000
 
 
-def add_img_to_doc(manager, document, upl_id, real_name, path):
+def add_img_to_doc(document, real_name, path):
     '''
     Add image to the document file, based on upload id and image name when it was uploaded.
     
@@ -1001,25 +1000,13 @@ def add_img_to_doc(manager, document, upl_id, real_name, path):
     log = ""
     if real_name:
         img_saving_path = path + '/attachments/'
-        if not os.path.isdir(img_saving_path):
-            print("Output path %s is not available, creating the path directory..." % (img_saving_path))
-            os.makedirs(img_saving_path)
-        with open(img_saving_path + real_name, 'wb') as img_file:
-            try:
-                if real_name == "":
-                    # ‚img_file.write(manager.get_upload(upl_id))
-                    print("IMAGE INACCESSIBLE")  # need to discuss wuth elabftw dev
-                    pass
-                else:
-                    img_file.write(manager.get_upload(upl_id))
-                document.add_picture(img_saving_path + real_name, width=Mm(get_text_width(document)))
-            except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(upl_id), str(e))
-
-                pass
-    else:
-        print("Image found in the experiment, but not attached. Parsing this image is disabled for security reason."
-              "See https://github.com/elabftw/elabftw/issues/3764. Fix pending until eLabFTW API V2 is released.")
+        sanitized_img_saving_path = sanitize_filepath(img_saving_path,platform="auto")
+        try:
+            document.add_picture(sanitized_img_saving_path + "/" + real_name, width=Mm(get_text_width(document)))
+        except Exception as e:
+            log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
+            pass
+        print(log)
 
 
 # helper function to print dataframe, used for development and debugging
@@ -1193,7 +1180,7 @@ def write_to_docx(manager, exp, path):
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
                 upl_id, real_name = get_attachment_id(exp, content)
-                add_img_to_doc(manager, document, upl_id, real_name,path)
+                add_img_to_doc(document, real_name,path)
             elif any(x in content.name for x in watched_tags):
                 references = write_tag_to_doc(document, content)
                 if len(references) > 0:
@@ -1446,9 +1433,6 @@ def create_apiv2_client(endpoint, token):
     return apiv2_client
 
 
-# note: there is still a problem with serializing the uploads.
-# some uploads are rewritten with 0-bytes, rendering the files corrupted.
-# TODO: fix this problem
 def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
@@ -1461,43 +1445,23 @@ def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
 
     log = ""
 
-    initial_active_dir = os.getcwd()
-
     experimentsApi = elabapi_python.ExperimentsApi(apiv2_client)
     uploadsApi = elabapi_python.UploadsApi(apiv2_client)
     exp = experimentsApi.get_experiment(int(exp_id))
-    # uploads = uploadsApi.read_uploads('experiments', exp.id)
 
-    upload_saving_path = path + '/' + 'attachments' + '/'
-    # upload_saving_path = path + 'attachments' + '/'
-    # print("CWD : " + os.getcwd())
-    # print("upload_saving_path : " + upload_saving_path)
+    upload_saving_path = path + '/' + 'attachments'
+    sanitized_upload_saving_path = sanitize_filepath(upload_saving_path, platform='auto')
 
-    if not os.path.isdir(upload_saving_path):
-        print("Output path %s is not available, creating the path directory..." % (upload_saving_path))
-        os.makedirs(upload_saving_path)
-
-    os.chdir(upload_saving_path)
+    if not os.path.isdir(sanitized_upload_saving_path):
+        print("Output path %s is not available, creating the path directory..." % (sanitized_upload_saving_path))
+        os.makedirs(sanitized_upload_saving_path)
 
     for upload in uploadsApi.read_uploads('experiments', exp.id):
         print(upload.id, upload.real_name, upload.comment)
-        # get and save file
-        # with open(upload_saving_path + upload.real_name, 'wb') as file:
-        with open(upload.real_name, 'wb') as file:
-            print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name, upload_saving_path + upload.real_name))
-            file.write(
-                uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
-            # try:
-                # the _preload_content flag is necessary so the api_client doesn't try and deserialize the response
-            #    file.write(uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
-            # except Exception as e:
-            #    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
-            #    print(log)
-            #    pass
+        with open(sanitized_upload_saving_path + "/" + upload.real_name, 'wb') as file:
+            print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name, upload_saving_path + "/"+ upload.real_name))
+            file.write(uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
             file.flush()
-
-    os.chdir(initial_active_dir)
-    print("Directory active after: " + os.getcwd())
     return log
 
 
