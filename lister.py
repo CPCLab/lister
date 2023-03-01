@@ -1575,13 +1575,18 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     # Process reference database item, using the initial database ID for that container item (e.g., publication)
 
     # get db item
+    print("DIAGNOSTICS")
+    print(db_item_no, endpoint, token, id, title)
     manager = create_elab_manager(endpoint, token)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    print(related_experiments)
     #TODO: clarify the differences between linked exp vs related exp, and implement the linked items here
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
 
     for exp_id in exp_ids:
+
         exp_title = get_exp_title(endpoint, token, exp_id)
+        print(exp_title)
         exp_path = output_path + slugify(exp_title)
         process_experiment(exp_id, endpoint, token, exp_path)
 
