@@ -1685,7 +1685,7 @@ def get_default_output_path(file_name):
     else:  # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         current_path = pathlib.Path().resolve()
         if platform.system() == "Windows":
-            output_path = str(current_path) + "\output"  # + "\\"
+            output_path = str(current_path) + "\output"
         else:
             output_path = str(current_path) + "/output/"
     return output_path

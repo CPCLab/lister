@@ -285,9 +285,9 @@ Running `lister.py` directly from your IDE on macOS may lead to the following me
 Framework build of python, and only when you are logged in
 on the main display of your Mac.`
 
-Run the script from terminal using `pythonw lister.py`instead.
+Run the script from terminal using `pythonw lister.py` instead.
 
 
 ### All platform: contrast problem with GUI text
 
-LISTER only supports the default OS' light theme, a custom/dark user theme is therefore not supported.
+LISTER only supports the default OS' light theme, a custom user/dark theme is therefore not supported.

@@ -7,3 +7,4 @@ python-docx
 gooey
 xlsxwriter
 elabapi_python
+pathvalidate
