@@ -1375,7 +1375,7 @@ def conv_html_to_nkvmu(html_content):
             [-, section level, section name, '', ''],
         str log is a string log returned from the respectively-executed functions.
     '''
-    global log
+    # global log
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
     clean_lines = process_nbsp(soup)
@@ -1392,7 +1392,7 @@ def get_and_save_attachments(manager, uploads, path):
                     (e.g., file_size, real_name, long_name, hash, etc).
     :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
     '''
-    global log
+    # global log
     upload_saving_path = path + '/' + 'attachments' + '/'
 
     if not os.path.isdir(upload_saving_path):
@@ -1829,7 +1829,7 @@ def main():
     global output_fname  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
-    global log
+    # global log
 
     # sys.stdin.reconfigure(encoding='utf-8')
     # sys.stdout.reconfigure(encoding='utf-8')
