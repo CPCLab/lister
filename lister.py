@@ -1580,6 +1580,14 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     manager = create_elab_manager(endpoint, token)
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
     print(related_experiments)
+    print("*"*20)
+    linked_experiments = manager.send_req("items/" + str(db_item_no) + "/experiment_links", verb='GET')
+    linked_rel_exp=linked_experiments['experiments_links']
+    print(linked_rel_exp)
+    linked_exp_ids = [x['itemid'] for x in linked_rel_exp if 'itemid' in x]
+    print("-" * 20)
+    print(linked_exp_ids)
+
     #TODO: clarify the differences between linked exp vs related exp, and implement the linked items here
     exp_ids = [d['id'] for d in related_experiments if 'id' in d]
 
