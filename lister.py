@@ -1415,8 +1415,6 @@ def get_and_save_attachments(manager, uploads, path):
 def get_api_v2endpoint(v1endpoint):
     v2endpoint = re.sub(r'http://', 'https://', v1endpoint)
     v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
-    print("v2endpoint: ")
-    print(v2endpoint)
     return v2endpoint
 
 
@@ -1457,7 +1455,6 @@ def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
         os.makedirs(sanitized_upload_saving_path)
 
     for upload in uploadsApi.read_uploads('experiments', exp.id):
-        print(upload.id, upload.real_name, upload.comment)
         with open(sanitized_upload_saving_path + "/" + upload.real_name, 'wb') as file:
             print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name, upload_saving_path + "/"+ upload.real_name))
             file.write(uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
@@ -1505,7 +1502,6 @@ def process_experiment(exp_no, endpoint, token, path):
     # links = exp['links']
     # changed to reflect eLabFTW 4.4.3 dictionary keys name
     links = exp['items_links']
-    # TODO: collect list of item types that are not supposed to be parsed, configure this here.
     # may need to configure this in the json file in the future
     excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method"]
     filtered_links = []
@@ -1518,7 +1514,6 @@ def process_experiment(exp_no, endpoint, token, path):
 
     overall_nkvmu = []
     for filtered_link in filtered_links:
-        # print(filtered_link)
         # changed to reflect eLabFTW 4.4.3 dictionary keys name
         # if len(filtered_link['itemid']) > 0:
         if filtered_link['itemid']:
