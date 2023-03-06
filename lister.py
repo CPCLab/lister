@@ -1574,27 +1574,22 @@ def slugify(value, allow_unicode=False):
 def process_ref_db_item(db_item_no, endpoint, token, id, title):
     # Process reference database item, using the initial database ID for that container item (e.g., publication)
 
-    # get db item
-    print("DIAGNOSTICS")
-    print(db_item_no, endpoint, token, id, title)
     manager = create_elab_manager(endpoint, token)
+
+    # get the list of related experiments
     related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
-    print(related_experiments)
-    print("*"*20)
+    rel_exp_ids = [d['id'] for d in related_experiments if 'id' in d]
+
+    # get the list of linked experiment IDs
     linked_experiments = manager.send_req("items/" + str(db_item_no) + "/experiment_links", verb='GET')
     linked_rel_exp=linked_experiments['experiments_links']
-    print(linked_rel_exp)
     linked_exp_ids = [x['itemid'] for x in linked_rel_exp if 'itemid' in x]
-    print("-" * 20)
-    print(linked_exp_ids)
 
-    #TODO: clarify the differences between linked exp vs related exp, and implement the linked items here
-    exp_ids = [d['id'] for d in related_experiments if 'id' in d]
+    # combine related experiment and linked experiment unique IDs into a new list
+    exp_ids = list(set(rel_exp_ids + linked_exp_ids))
 
     for exp_id in exp_ids:
-
         exp_title = get_exp_title(endpoint, token, exp_id)
-        print(exp_title)
         exp_path = output_path + slugify(exp_title)
         process_experiment(exp_id, endpoint, token, exp_path)
 

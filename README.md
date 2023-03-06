@@ -291,3 +291,8 @@ Run the script from terminal using `pythonw lister.py` instead.
 ### All platform: contrast problem with GUI text
 
 LISTER only supports the default OS' light theme, a custom user/dark theme is therefore not supported.
+
+### "Client Error: Forbidden for url: ..."
+
+The `requests.exceptions.HTTPError: 403 Client Error: Forbidden for url:...` happens because the specified API token/key does not have access rights to an entry (or its unbderlying entries). 
+Check that the user with specified token has access to the entries directly linked to the experiments/database items/containers.
