@@ -296,3 +296,9 @@ LISTER only supports the default OS' light theme, a custom user/dark theme is th
 
 The `requests.exceptions.HTTPError: 403 Client Error: Forbidden for url:...` happens because the specified API token/key does not have access rights to an entry (or its unbderlying entries). 
 Check that the user with specified token has access to the entries directly linked to the experiments/database items/containers.
+
+### "requests.exceptions.ConnectionError: ..."
+
+If the following error: 
+`requests.exceptions.ConnectionError: HTTPConnectionPool(host='..., port=80): Max retries exceeded with url: ... (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at ...>: Failed to establish a new connection: [Errno 61] Connection refused'))`
+occurs, use `https` instead of `http` as an API endpoint. 
