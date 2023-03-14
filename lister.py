@@ -905,7 +905,7 @@ def strip_markup_and_explicit_keys(line):
     # strip unnecessary whitespaces
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
     stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',', stripped_from_trailing_spaces)
-    stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split())  # strip from trailing whitespaces
+    # stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split())  # strip from trailing whitespaces
     return stripped_from_trailing_spaces, references
 
 
@@ -1061,7 +1061,9 @@ def get_span_attr_val(c):
     attr, val = found[0]
     return attr, val
 
-
+# TODO: check double spacing issues on word, line level prior to docx being written.
+#  Or check why previous double space removal regex also remove single space.
+# TODO: check why some invisible key elements passed the invisibility checks.
 def write_tag_to_doc(document, tag_item):
     '''
     writes and format html tag content to docx document.
