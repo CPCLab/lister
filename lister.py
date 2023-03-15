@@ -1061,8 +1061,9 @@ def get_span_attr_val(c):
     attr, val = found[0]
     return attr, val
 
-# TODO: check double spacing issues on word, line level prior to docx being written.
-#  Or check why previous double space removal regex also remove single space.
+def remove_extra_spaces(line):
+    return re.sub(' +', ' ', line)
+
 # TODO: check why some invisible key elements passed the invisibility checks.
 def write_tag_to_doc(document, tag_item):
     '''
@@ -1092,7 +1093,7 @@ def write_tag_to_doc(document, tag_item):
                         docx_formula = latex_formula_to_docx(stripped_formula)
                         if docx_formula != None:
                             p._element.append(docx_formula)
-                            p.add_run(processed_subcontent)
+                            p.add_run(remove_extra_spaces(processed_subcontent))
                 else:
                     line, references = strip_markup_and_explicit_keys(subcontent.string)
 
@@ -1112,10 +1113,12 @@ def write_tag_to_doc(document, tag_item):
                 else:
                     document.add_heading(section_title, level=4)
             elif subcontent.name == "sub":
-                sub_text = p.add_run(line + " ")
+                #sub_text = p.add_run(line + " ")
+                sub_text = p.add_run(remove_extra_spaces(line))
                 sub_text.font.subscript = True
             elif subcontent.name == "em":
-                italic_text = p.add_run(" " + line + " ")
+                italic_text = p.add_run(remove_extra_spaces(line))
+                # italic_text = p.add_run(" " + line + " ")
                 italic_text.font.italic = True
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
@@ -1136,26 +1139,27 @@ def write_tag_to_doc(document, tag_item):
                         document.add_heading(line, level=4)
                     section_toggle = False
                 elif attr == "color":
-                    color_text = p.add_run(line)
+                    color_text = p.add_run(remove_extra_spaces(line))
                     color_text.font.color.rgb = RGBColor.from_string(val[1:])
                 elif attr == "font-style" and attr == "italic":
-                    styled_text = p.add_run(line)
+                    styled_text = p.add_run(remove_extra_spaces(line))
                     styled_text.italic = True
                 else:
-                    p.add_run(line)
+                    p.add_run(remove_extra_spaces(line))
             elif subcontent.name == "strong":
-                bold_text = p.add_run(line)
+                bold_text = p.add_run(remove_extra_spaces(line))
                 bold_text.bold = True
             elif subcontent.name == "sup":
-                super_text = p.add_run(line + " ")
+                # super_text = p.add_run(line + " ")
+                super_text = p.add_run(remove_extra_spaces(line))
                 super_text.font.superscript = True
             else:
-                p.add_run(line)
+                p.add_run(remove_extra_spaces(line))
     else:
         line, references = strip_markup_and_explicit_keys(tag_item.string)
         if len(references) > 0:
             all_references.extend(references)
-        p.add_run(line)
+        p.add_run(remove_extra_spaces(line))
     return all_references
 
 
