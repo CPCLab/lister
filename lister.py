@@ -1080,7 +1080,10 @@ def write_tag_to_doc(document, tag_item):
         for subcontent in tag_item.contents:
             # strip_markup_and_explicit_keys()
             if isinstance(subcontent, Tag):
+                print("ORIGINAL CONTENT OF SUBCONTENT.GETTEXT() WITHIN A TAG INSTACE : " + subcontent.get_text())
                 line, references = strip_markup_and_explicit_keys(subcontent.get_text())
+                # print("LINE - TAG : " + line)
+                print("LINE FROM TAG INSTANCE: " + line)
             else:
                 if re.match(Regex_patterns.FORMULA.value, subcontent):
                     references = []
@@ -1096,9 +1099,12 @@ def write_tag_to_doc(document, tag_item):
                             p.add_run(remove_extra_spaces(processed_subcontent))
                 else:
                     line, references = strip_markup_and_explicit_keys(subcontent.string)
+                    print("LINE FROM NON-TAG INSTANCE: " + line)
+                    # print(line) # escaped invisible key is not caused here
 
             if len(references) > 0:
                 all_references.extend(references)
+
             # check if the line is either goal, procedure, or result - but only limit that to one word
             if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
                 document.add_heading(line, level=1)
@@ -1112,14 +1118,19 @@ def write_tag_to_doc(document, tag_item):
                     document.add_heading(section_title, level=3)
                 else:
                     document.add_heading(section_title, level=4)
+            # check if it is a subscript text
             elif subcontent.name == "sub":
                 #sub_text = p.add_run(line + " ")
+                print("SUB : " + line)
                 sub_text = p.add_run(remove_extra_spaces(line))
                 sub_text.font.subscript = True
+            # check if it is an italic-formatted text
             elif subcontent.name == "em":
+                print("EM : " + line)
                 italic_text = p.add_run(remove_extra_spaces(line))
                 # italic_text = p.add_run(" " + line + " ")
                 italic_text.font.italic = True
+            # # check if it is a span tag
             elif subcontent.name == "span":
                 attr, val = get_span_attr_val(subcontent)
                 # check if the line is a section without being followed by other characters, hence it needs the following
@@ -1139,27 +1150,40 @@ def write_tag_to_doc(document, tag_item):
                         document.add_heading(line, level=4)
                     section_toggle = False
                 elif attr == "color":
+                    print("COLOR : " + line)
                     color_text = p.add_run(remove_extra_spaces(line))
                     color_text.font.color.rgb = RGBColor.from_string(val[1:])
                 elif attr == "font-style" and attr == "italic":
+                    print("FONT STYLE AND ITALIC : " + line)
                     styled_text = p.add_run(remove_extra_spaces(line))
                     styled_text.italic = True
                 else:
+                    print("NON SUBSECT/HEADING/COLOR/FSTYLE : " + line)
+                    # print(line)
                     p.add_run(remove_extra_spaces(line))
+            # check if it is bold format
             elif subcontent.name == "strong":
+                print("STRONG : " + line)
                 bold_text = p.add_run(remove_extra_spaces(line))
                 bold_text.bold = True
+            # check if it is superscript format
             elif subcontent.name == "sup":
+                print("SUP : " + line)
                 # super_text = p.add_run(line + " ")
                 super_text = p.add_run(remove_extra_spaces(line))
                 super_text.font.superscript = True
             else:
+                print("NON SUP/STRONG/SPAN/EM/SUB/SECT/SUBSECT : " + line)
                 p.add_run(remove_extra_spaces(line))
+                # print(line) - not above
     else:
         line, references = strip_markup_and_explicit_keys(tag_item.string)
         if len(references) > 0:
             all_references.extend(references)
+        print("NON-TAG INSTANCE : " + line)
         p.add_run(remove_extra_spaces(line))
+        # print(line) - not above
+        print("*"*50)
     return all_references
 
 
