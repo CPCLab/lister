@@ -964,15 +964,17 @@ def get_attachment_id(exp, content):
     upl_long_name = get_attachment_long_name(img_path)
     uploads = exp['uploads']
     if len(uploads) > 0:
-        # get upload that match specified "long_name", in elabftw, the long_name is used as a filename hence will be
-        # used in the image url e.g. long_name:
-        # '21/21e1e300442a68bcbc5dc743f7b3f129b6ab4224859be14c9c7e365ceac7b835a4f00064764b16fe195
-        # problem: experiment that imports image from database entry does not have upload id
-        # unfortunately there is no fix planned for this on eLabFTW API V1, see:
-        # https://github.com/elabftw/elabftw/issues/3764
-        matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
-        upl_id = matched_upl['id']
-        real_name = matched_upl['real_name']
+        try:
+            matched_upl = next(upload for upload in uploads if upload['long_name'] == upl_long_name)
+            upl_id = matched_upl['id']
+            real_name = matched_upl['real_name']
+        except Exception as e:
+            log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
+            upl_id = ""
+            real_name = ""
+            print(log)
+            print("SKIPPING ATTACHMENT DOWNLOAD...")
+            pass
     else:
         upl_id = ""
         real_name = ""
