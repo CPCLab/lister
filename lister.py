@@ -1084,7 +1084,6 @@ def write_tag_to_doc(document, tag_item):
             if isinstance(subcontent, Tag):
                 print("ORIGINAL CONTENT OF SUBCONTENT.GETTEXT() WITHIN A TAG INSTACE : " + subcontent.get_text())
                 line, references = strip_markup_and_explicit_keys(subcontent.get_text())
-                # print("LINE - TAG : " + line)
                 print("LINE FROM TAG INSTANCE: " + line)
             else:
                 if re.match(Regex_patterns.FORMULA.value, subcontent):
@@ -1102,7 +1101,6 @@ def write_tag_to_doc(document, tag_item):
                 else:
                     line, references = strip_markup_and_explicit_keys(subcontent.string)
                     print("LINE FROM NON-TAG INSTANCE: " + line)
-                    # print(line) # escaped invisible key is not caused here
 
             if len(references) > 0:
                 all_references.extend(references)
@@ -1161,7 +1159,6 @@ def write_tag_to_doc(document, tag_item):
                     styled_text.italic = True
                 else:
                     print("NON SUBSECT/HEADING/COLOR/FSTYLE : " + line)
-                    # print(line)
                     p.add_run(remove_extra_spaces(line))
             # check if it is bold format
             elif subcontent.name == "strong":
@@ -1177,15 +1174,14 @@ def write_tag_to_doc(document, tag_item):
             else:
                 print("NON SUP/STRONG/SPAN/EM/SUB/SECT/SUBSECT : " + line)
                 p.add_run(remove_extra_spaces(line))
-                # print(line) - not above
+
     else:
         line, references = strip_markup_and_explicit_keys(tag_item.string)
         if len(references) > 0:
             all_references.extend(references)
         print("NON-TAG INSTANCE : " + line)
         p.add_run(remove_extra_spaces(line))
-        # print(line) - not above
-        print("*"*50)
+        # print("*"*50)
     return all_references
 
 
