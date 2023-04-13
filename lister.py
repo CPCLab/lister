@@ -1303,24 +1303,30 @@ def parse_lines_to_kv(lines):
 
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
-
 # Used to serialize extracted metadata to json file.
-# def write_to_json(list, full_path=output_path_and_fname):
-def write_to_json(list, exp, path):
-    #     :param str path: the path for writing the json file, typically named based on experiment title or ID.
-    json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
+def write_to_json(lst, exp, path):
+    """
+    Write a list to a JSON file.
+    :param lst: The list to write to the JSON file.
+    :param exp: The experiment title or ID.
+    :param path: The path for writing the JSON file.
+    """
+    filename = f"{derive_fname_from_exp(exp)}.json"
+    with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
+        json.dump(lst, f, ensure_ascii=False)
 
 
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
-def write_log(log, path):
-    # :param str path: the path for writing the log file, typically named based on experiment title or ID.
-    log = log.strip()
-    print("Writing logs...")
-    print(log)
-    with open(path + '/' +"lister-report.log", 'w', encoding="utf-8") as f:
-        f.write(log)
-
+def write_log(log_text, path):
+    """
+    Write the log to a file.
+    :param log_text: The log to be written to the file.
+    :param path: The path for writing the log file.
+    """
+    log_text = log_text.strip()
+    with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
+        f.write(log_text)
 
 def write_to_xlsx(nkvmu, exp, path):
     '''
