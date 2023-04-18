@@ -19,6 +19,7 @@ import latex2mathml.converter
 import unicodedata
 import elabapi_python
 from pathvalidate import sanitize_filepath
+from typing import Any, Tuple
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
@@ -1704,16 +1705,15 @@ def parse_cfg():
     return token, endpoint, output_file_name, exp_no, db_item_no
 
 
-def get_default_output_path(file_name):
+def get_default_output_path(file_name: str)-> int:
     '''
     Create an output path based on the home path (OS-dependent) and output file name.
-
     The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
     On macOS, it is in the users' Apps/lister/output/ directory.
 
     :param str file_name: file name for the output.
     :returns: str output_path is the output path created from appending lister's output home directory and
-        output file name.
+    output file name.
     '''
     if platform.system() == "Darwin":  # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         home = str(Path.home())
@@ -1726,6 +1726,7 @@ def get_default_output_path(file_name):
         else:
             output_path = str(current_path) + "/output/"
     return output_path
+
 
 
 @Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
@@ -1841,14 +1842,22 @@ def parse_gooey_args():
     return args
 
 
-def get_db_cat_and_title(endpoint, token, db_item_no):
+def get_db_cat_and_title(endpoint: str, token: str, db_item_no: int) -> Tuple[str, str]:
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
-    return db_item["category"], db_item["title"]
+    if db_item is None:
+        raise ValueError("Failed to retrieve database item")
+    category = db_item.get("category")
+    title = db_item.get("title")
+    if category is None or title is None:
+        raise ValueError("Invalid database category/title format")
+    return category, title
 
 
-def get_exp_title(endpoint, token, exp_item_no):
+def get_exp_title(endpoint: str, token: str, exp_item_no: int) -> str:
     exp = get_elab_exp(exp_item_no, endpoint, token)
+    if exp is None:
+        raise ValueError("Failed to retrieve experiment entry")
     exp_title = exp[1]["title"]
     return exp_title
 
