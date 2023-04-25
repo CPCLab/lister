@@ -1317,6 +1317,12 @@ def write_to_json(lst, exp, path):
         json.dump(lst, f, ensure_ascii=False)
 
 
+def check_and_create_path(path):
+    if not os.path.isdir(path):
+        print("Output path %s is not available, creating the path directory..." % (path))
+        os.makedirs(path)
+
+
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
 def write_log(log_text, path):
@@ -1326,6 +1332,7 @@ def write_log(log_text, path):
     :param path: The path for writing the log file.
     """
     log_text = log_text.strip()
+    check_and_create_path(path)
     with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
         f.write(log_text)
 
@@ -1338,6 +1345,7 @@ def write_to_xlsx(nkvmu, exp, path):
     :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
     '''
 
+    check_and_create_path(path)
     header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
     # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
     # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
@@ -1429,10 +1437,7 @@ def get_and_save_attachments(manager, uploads, path):
     '''
     # global log
     upload_saving_path = path + '/' + 'attachments' + '/'
-
-    if not os.path.isdir(upload_saving_path):
-        print("Output path %s is not available, creating the path directory..." % (upload_saving_path))
-        os.makedirs(upload_saving_path)
+    check_and_create_path(upload_saving_path)
 
     for upload in uploads:
         with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
@@ -1484,10 +1489,7 @@ def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
 
     upload_saving_path = path + '/' + 'attachments'
     sanitized_upload_saving_path = sanitize_filepath(upload_saving_path, platform='auto')
-
-    if not os.path.isdir(sanitized_upload_saving_path):
-        print("Output path %s is not available, creating the path directory..." % (sanitized_upload_saving_path))
-        os.makedirs(sanitized_upload_saving_path)
+    check_and_create_path(sanitized_upload_saving_path)
 
     for upload in uploadsApi.read_uploads('experiments', exp.id):
         with open(sanitized_upload_saving_path + "/" + upload.real_name, 'wb') as file:
@@ -1894,9 +1896,7 @@ def main():
     print("The output is written to %s directory" % (output_fname))
 
     output_path = manage_output_path(args.base_output_dir, output_fname)
-    if not os.path.isdir(output_path):
-        print("Output path %s is not available, creating the path directory..." % (output_path))
-        os.makedirs(output_path)
+    check_and_create_path(output_path)
 
     print("base_output_dir: ", (base_output_path))
     print("output_fname: ", (output_fname))
