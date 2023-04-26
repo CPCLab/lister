@@ -48,7 +48,7 @@ class Misc_error_and_warning_msg(Enum):
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
                             "Please check the operator '{0}' in the following set of values: {1}. " \
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
-    UNRECOGNIZED_FLOW_TYPE = "ERROR: The flow type is not recognized. " \
+    UNRECOGNIZED_FLOW_TYPE = "WARNING: The flow type is not recognized. " \
                              "Please check the flow type {0} in the following set of values: {1}."
     RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
                          "Please check the following set of values: {0}."
@@ -401,9 +401,9 @@ def process_foreach(par_no, cf_split):
     key_val = []
     log, is_error = validate_foreach(cf_split)
     if is_error:
-        write_log(log, output_path+output_fname)
-        # print(log)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -428,9 +428,9 @@ def process_while(par_no, cf_split):
     key_val = []
     log, is_error = validate_while(cf_split)
     if is_error:
-        write_log(log, output_path+output_fname)
-        # print(log)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -459,9 +459,9 @@ def process_if(par_no, cf_split):
     key_val = []
     log, is_error = validate_if(cf_split)
     if is_error:
-        write_log(log, output_path+output_fname)
-        # print(log)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -490,9 +490,9 @@ def process_elseif(par_no, cf_split):
     key_val = []
     log, is_error = validate_elseif(cf_split)
     if is_error:
-        write_log(log, output_path+output_fname)
-        # print(log)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -526,12 +526,12 @@ def process_else(par_no, cf_split):
     '''
     print(cf_split)
     key_val = []
-    log = ""
     is_error = False
     log, is_error = validate_else(cf_split)
     if is_error:
-        write_log(log, output_path+output_fname)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -554,8 +554,9 @@ def process_range(flow_range):
     log, is_error = "", False
     log, is_error = validate_range(flow_range)
     if is_error:
-        write_log(log, output_path+output_fname)
-        exit()
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     else:
         range_values = re.split("-", flow_range[1:-1])
     return float(range_values[0]), float(range_values[1]), log, is_error
@@ -574,10 +575,15 @@ def process_for(par_no, cf_split):
         bool is_error: flag that indicates whether an error occured.
     '''
     key_val = []
-    log, is_error = validate_for(cf_split)
-    if is_error:
-        write_log(log, output_path+output_fname)
-        exit()
+    for_log = ""
+    is_error = False
+    for_validation_log, is_for_error = validate_for(cf_split)
+    if is_for_error:
+        # write_log(log, output_path+output_fname)
+        for_log = for_log + "\n" + for_validation_log
+        is_error = True
+        print(for_validation_log)
+        return
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -586,14 +592,18 @@ def process_for(par_no, cf_split):
     key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
     flow_range = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_range])
-    start, end, log, is_error = process_range(flow_range)
+    start, end, range_log, is_range_error = process_range(flow_range)
+    if is_range_error:
+        for_log = for_log + "\n" + range_log
+        print(range_log)
+        is_error = True
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
     flow_operation = cf_split[3]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
     flow_magnitude = cf_split[4]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
-    return key_val, log, is_error
+    return key_val, for_log, is_error
 
 
 # should happen only after having 'while' iterations to provide additional steps on the iterator
@@ -610,20 +620,21 @@ def process_iterate(par_no, cf_split):
         bool is_error: flag that indicates whether an error occured.
     '''
     key_val = []
-    log = ""
+    iterate_log = ""
     is_error = False
-    pw_log, pw_is_error = validate_iterate(cf_split)
-    if pw_is_error:
-        log = log + pw_log + "\n"
-        write_log(log, output_path+output_fname)
-        exit()
+    log, is_error = validate_iterate(cf_split)
+    if is_error:
+        iterate_log = iterate_log + "\n" + log
+        # write_log(log, output_path+output_fname)
+        print(log)
+        return
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
     flow_operation = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
     flow_magnitude = cf_split[2]
     key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
-    return key_val, log, is_error
+    return key_val, iterate_log, is_error
 
 
 def strip_unwanted_mvu_colons(word):
@@ -676,17 +687,18 @@ def process_section(cf_split):
         bool is_error: flag that indicates whether an error occured.
     '''
     key_val = []
-    log = ""
+    section_log = ""
     is_error = False
-    sect_log, sect_is_error = validate_section(cf_split)
-    if sect_is_error:
+    log, is_sect_error = validate_section(cf_split)
+    if is_sect_error:
         is_error = True
-        log = log + sect_log + "\n"
+        section_log = section_log + "\n" + log
+        return
     else:
         section_keyword = cf_split[0].lower()
         section_level = section_keyword.count("sub")
         key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], "", ""])
-    return key_val, log, is_error
+    return key_val, section_log, is_error
 
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
@@ -763,25 +775,43 @@ def extract_flow_type(par_no, flow_control_pair):
     flow_type = flow_type.strip()
     flow_type = flow_type.lower()
     if flow_type == "for each":
-        key_val, flow_log, is_error = process_foreach(par_no, cf_split)
+        key_val, log, is_error = process_foreach(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "while":
-        key_val, flow_log, is_error = process_while(par_no, cf_split)
+        key_val, log, is_error = process_while(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "if":
-        key_val, flow_log, is_error = process_if(par_no, cf_split)
+        key_val, log, is_error = process_if(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "else if" or flow_type == "elif":
-        key_val, flow_log, is_error = process_elseif(par_no, cf_split)
+        key_val, log, is_error = process_elseif(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "else":
-        key_val, flow_log, is_error = process_else(par_no, cf_split)
+        key_val, log, is_error = process_else(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "for":
-        key_val, flow_log, is_error = process_for(par_no, cf_split)
+        key_val, log, is_error = process_for(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     # elif flow_type.casefold() == "section".casefold():
     elif re.match(Regex_patterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
-        key_val, flow_log, is_error = process_section(cf_split)
+        key_val, log, is_error = process_section(cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     elif flow_type == "iterate":
-        key_val, flow_log, is_error = process_iterate(par_no, cf_split)
+        key_val, log, is_error = process_iterate(par_no, cf_split)
+        if log != "":
+            flow_log = flow_log + "\n" + log
     else:
         is_error = True
-        flow_log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
+        log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
+        flow_log = flow_log + "\n" + log
+        print(flow_log)
     return key_val, flow_log, is_error
 
 
@@ -832,7 +862,7 @@ def latex_formula_to_docx(latex_formula):
         log = log + Misc_error_and_warning_msg.MISSING_MML2OMML.value
         print(log)
         pass
-    return docx_formula
+    return docx_formula, log
 
 
 def process_reg_bracket(line):
@@ -1095,7 +1125,7 @@ def write_tag_to_doc(document, tag_item):
                     for formula in formulas:
                         stripped_formula = formula[1:-1]
                         processed_subcontent = processed_subcontent.replace(formula, '')
-                        docx_formula = latex_formula_to_docx(stripped_formula)
+                        docx_formula, docx_formula_log = latex_formula_to_docx(stripped_formula)
                         if docx_formula != None:
                             p._element.append(docx_formula)
                             p.add_run(remove_extra_spaces(processed_subcontent))
@@ -1252,7 +1282,7 @@ def parse_lines_to_kv(lines):
         bracketing_log, is_bracket_error = check_bracket_num(par_no, line)
         log = log + bracketing_log  # + "\n"
         if is_bracket_error:
-            write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_fname)
             break
 
         # Extract KV and flow metadata
@@ -1264,6 +1294,8 @@ def parse_lines_to_kv(lines):
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
                 kvmu_set = conv_bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
+                if kvmu_set[4] != "":
+                    log = log + "\n" + kvmu_set[4]
                 if kvmu_set[0] != "" and kvmu_set[1] != "":
                     if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
                         key, comment = process_internal_comment(kvmu_set[0])
@@ -1297,8 +1329,8 @@ def parse_lines_to_kv(lines):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log  # + "\n"
                 if is_flow_error:
-                    write_log(log, output_path+output_fname)
-                    break
+                   # write_log(log, output_path+output_fname)
+                   break
                 nkvmu_pairs.extend(flow_metadata)
     return nkvmu_pairs, internal_comments, log
 
@@ -1535,6 +1567,8 @@ def get_exp_info(exp):
 
 def process_experiment(exp_no, endpoint, token, path):
 
+    overall_log = ""
+
     manager, exp = get_elab_exp(exp_no, endpoint, token)
     # links = exp['links']
     # changed to reflect eLabFTW 4.4.3 dictionary keys name
@@ -1555,11 +1589,13 @@ def process_experiment(exp_no, endpoint, token, path):
         # if len(filtered_link['itemid']) > 0:
         if filtered_link['itemid']:
             db_item_nkvmu_metadata, log = process_linked_db_item(manager, filtered_link['itemid'])
+            overall_log = overall_log + "\n" + log
             overall_nkvmu.extend(db_item_nkvmu_metadata)
 
     exp_nkvmu_info = get_exp_info(exp)
     overall_nkvmu.extend(exp_nkvmu_info)
     exp_nkvmu, log = conv_html_to_nkvmu(exp["body"])
+    overall_log = overall_log + "\n" + log
     overall_nkvmu.extend(exp_nkvmu)
 
     apiv2_client = create_apiv2_client(endpoint, token)
@@ -1576,7 +1612,7 @@ def process_experiment(exp_no, endpoint, token, path):
     write_to_json(overall_nkvmu, exp, path)
     # write_to_linear_json(nkvmu)
     write_to_xlsx(overall_nkvmu, exp, path)
-    write_log(log, path)
+    write_log(overall_log, path)
 
 
 def create_elab_manager(current_endpoint, current_token):
