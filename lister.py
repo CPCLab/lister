@@ -20,6 +20,8 @@ import unicodedata
 import elabapi_python
 from pathvalidate import sanitize_filepath
 from typing import Any, Tuple
+
+
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
 class Ctrl_metadata(Enum):
     STEP_TYPE = "step type"
@@ -232,7 +234,7 @@ def validate_foreach(cf_split):
     else:
         log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
-            cf_split)  + "\n"
+            cf_split) + "\n"
         is_error = True
     return log, is_error
 
@@ -245,7 +247,7 @@ def validate_while(cf_split):
     if elements == Arg_num.ARG_NUM_WHILE.value:
         if is_num(cf_split[1]):
             is_error = True
-            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1],cf_split) + "\n"
+            log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         if not is_valid_comparative_operator(cf_split[2]):
             is_error = True
             log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
@@ -403,7 +405,7 @@ def process_foreach(par_no, cf_split):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -430,7 +432,7 @@ def process_while(par_no, cf_split):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -461,7 +463,7 @@ def process_if(par_no, cf_split):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -492,7 +494,7 @@ def process_elseif(par_no, cf_split):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -531,7 +533,7 @@ def process_else(par_no, cf_split):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     step_type = "conditional"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -556,7 +558,7 @@ def process_range(flow_range):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     else:
         range_values = re.split("-", flow_range[1:-1])
     return float(range_values[0]), float(range_values[1]), log, is_error
@@ -583,7 +585,7 @@ def process_for(par_no, cf_split):
         for_log = for_log + "\n" + for_validation_log
         is_error = True
         print(for_validation_log)
-        return
+        exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
     flow_type = cf_split[0]
@@ -627,7 +629,7 @@ def process_iterate(par_no, cf_split):
         iterate_log = iterate_log + "\n" + log
         # write_log(log, output_path+output_fname)
         print(log)
-        return
+        exit()
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
     flow_operation = cf_split[1]
@@ -693,7 +695,7 @@ def process_section(cf_split):
     if is_sect_error:
         is_error = True
         section_log = section_log + "\n" + log
-        return
+        exit()
     else:
         section_keyword = cf_split[0].lower()
         section_level = section_keyword.count("sub")
@@ -1024,7 +1026,7 @@ def get_text_width(document):
 def add_img_to_doc(document, real_name, path):
     '''
     Add image to the document file, based on upload id and image name when it was uploaded.
-    
+
     :param str elabapy.Manager manager: manager object to get access to the eLabFTW API.
     :param str document: the document object that is being modified.
     :param str upl_id: upload id of the image/attachment that is going to be inserted to the document file.
@@ -1033,7 +1035,7 @@ def add_img_to_doc(document, real_name, path):
     log = ""
     if real_name:
         img_saving_path = path + '/attachments/'
-        sanitized_img_saving_path = sanitize_filepath(img_saving_path,platform="auto")
+        sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
         try:
             document.add_picture(sanitized_img_saving_path + "/" + real_name, width=Mm(get_text_width(document)))
         except Exception as e:
@@ -1094,8 +1096,10 @@ def get_span_attr_val(c):
     attr, val = found[0]
     return attr, val
 
+
 def remove_extra_spaces(line):
     return re.sub(' +', ' ', line)
+
 
 # TODO: check why some invisible key elements passed the invisibility checks.
 def write_tag_to_doc(document, tag_item):
@@ -1151,7 +1155,7 @@ def write_tag_to_doc(document, tag_item):
                     document.add_heading(section_title, level=4)
             # check if it is a subscript text
             elif subcontent.name == "sub":
-                #sub_text = p.add_run(line + " ")
+                # sub_text = p.add_run(line + " ")
                 # print("SUB : " + line)
                 sub_text = p.add_run(remove_extra_spaces(line))
                 sub_text.font.subscript = True
@@ -1239,7 +1243,7 @@ def write_to_docx(manager, exp, path):
         if isinstance(content, Tag):
             if len(content.select("img")) > 0:
                 upl_id, real_name = get_attachment_id(exp, content)
-                add_img_to_doc(document, real_name,path)
+                add_img_to_doc(document, real_name, path)
             elif any(x in content.name for x in watched_tags):
                 references = write_tag_to_doc(document, content)
                 if len(references) > 0:
@@ -1271,7 +1275,7 @@ def parse_lines_to_kv(lines):
     '''
     par_no = 0
     nkvmu_pairs = []
-    nkvmu_header = ["","metadata section","Experiment Context","",""]
+    nkvmu_header = ["", "metadata section", "Experiment Context", "", ""]
     nkvmu_pairs.append(nkvmu_header)
     nk_pairs = []
     log = ""
@@ -1292,7 +1296,8 @@ def parse_lines_to_kv(lines):
             par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
         for kv_and_flow_pair in kv_and_flow_pairs:
             if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
-                kvmu_set = conv_bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+                kvmu_set = conv_bracketedstring_to_kvmu(
+                    kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                 # measure, unit, log could be empty
                 if kvmu_set[4] != "":
                     log = log + "\n" + kvmu_set[4]
@@ -1329,8 +1334,8 @@ def parse_lines_to_kv(lines):
                 flow_metadata, flow_log, is_flow_error = extract_flow_type(par_no, kv_and_flow_pair)
                 log = log + flow_log  # + "\n"
                 if is_flow_error:
-                   # write_log(log, output_path+output_fname)
-                   break
+                    # write_log(log, output_path+output_fname)
+                    break
                 nkvmu_pairs.extend(flow_metadata)
     return nkvmu_pairs, internal_comments, log
 
@@ -1367,6 +1372,7 @@ def write_log(log_text, path):
     check_and_create_path(path)
     with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
         f.write(log_text)
+
 
 def write_to_xlsx(nkvmu, exp, path):
     '''
@@ -1454,7 +1460,8 @@ def conv_html_to_nkvmu(html_content):
     soup = BeautifulSoup(html_content, "html.parser")
     soup = remove_table_tag(soup)
     clean_lines = process_nbsp(soup)
-    multi_nkvmu_pair, internal_comments, log = parse_lines_to_kv(clean_lines)
+    if clean_lines is not None:
+        multi_nkvmu_pair, internal_comments, log = parse_lines_to_kv(clean_lines)
     return multi_nkvmu_pair, log
 
 
@@ -1478,9 +1485,12 @@ def get_and_save_attachments(manager, uploads, path):
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
                 if not log:
-                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
+                                                                                          str(upload["id"]), str(e))
                 else:
-                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"], str(upload["id"]), str(e))
+                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
+                                                                                                str(upload["id"]),
+                                                                                                str(e))
                 pass
 
 
@@ -1503,7 +1513,7 @@ def create_apiv2_client(endpoint, token):
     return apiv2_client
 
 
-def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
+def get_and_save_attachments_v2(path, apiv2_client, exp_id):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1525,8 +1535,10 @@ def  get_and_save_attachments_v2(path, apiv2_client, exp_id):
 
     for upload in uploadsApi.read_uploads('experiments', exp.id):
         with open(sanitized_upload_saving_path + "/" + upload.real_name, 'wb') as file:
-            print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name, upload_saving_path + "/"+ upload.real_name))
-            file.write(uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
+            print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name,
+                                                                                     upload_saving_path + "/" + upload.real_name))
+            file.write(
+                uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
             file.flush()
     return log
 
@@ -1540,33 +1552,31 @@ def process_linked_db_item(manager, id):
     df_col_no = df.shape[1]
     log = ""
     if df_col_no != 2:
-        log = Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format(category,df_col_no)  + "\n"
+        log = Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
         print(log)
         db_item_nkvmu_metadata = ""
         pass
     else:
         df.columns = ["metadata section", category]
         df.insert(loc=0, column="", value="")
-        df = df.reindex(df.columns.tolist() + ['',''], axis=1)
+        df = df.reindex(df.columns.tolist() + ['', ''], axis=1)
         filtered_df = df.fillna('')
         db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
     return db_item_nkvmu_metadata, log
 
+
 def get_exp_info(exp):
     nkvmu_pairs = []
-    nkvmu_pairs.append(["","metadata section","Experiment Info","",""])
-    nkvmu_pairs.append(["","title",exp['title'],"",""])
-    nkvmu_pairs.append(["","creation date",exp['date'],"",""])
-    nkvmu_pairs.append(["","category",exp['category'],"",""])
-    nkvmu_pairs.append(["","author",exp['fullname'],"",""])
-    nkvmu_pairs.append(["","tags",exp['tags'],"",""])
+    nkvmu_pairs.append(["", "metadata section", "Experiment Info", "", ""])
+    nkvmu_pairs.append(["", "title", exp['title'], "", ""])
+    nkvmu_pairs.append(["", "creation date", exp['date'], "", ""])
+    nkvmu_pairs.append(["", "category", exp['category'], "", ""])
+    nkvmu_pairs.append(["", "author", exp['fullname'], "", ""])
+    nkvmu_pairs.append(["", "tags", exp['tags'], "", ""])
     return nkvmu_pairs
 
 
-
-
 def process_experiment(exp_no, endpoint, token, path):
-
     overall_log = ""
 
     manager, exp = get_elab_exp(exp_no, endpoint, token)
@@ -1578,8 +1588,8 @@ def process_experiment(exp_no, endpoint, token, path):
     filtered_links = []
 
     for link in links:
-       # if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
-       # changed to reflect eLabFTW 4.4.3 dictionary keys name
+        # if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
+        # changed to reflect eLabFTW 4.4.3 dictionary keys name
         if link['category'].casefold() not in (item.casefold() for item in excluded_item_types):
             filtered_links.append(link)
 
@@ -1650,7 +1660,7 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
 
     # get the list of linked experiment IDs
     linked_experiments = manager.send_req("items/" + str(db_item_no) + "/experiment_links", verb='GET')
-    linked_rel_exp=linked_experiments['experiments_links']
+    linked_rel_exp = linked_experiments['experiments_links']
     linked_exp_ids = [x['itemid'] for x in linked_rel_exp if 'itemid' in x]
 
     # combine related experiment and linked experiment unique IDs into a new list
@@ -1743,7 +1753,7 @@ def parse_cfg():
     return token, endpoint, output_file_name, exp_no, db_item_no
 
 
-def get_default_output_path(file_name: str)-> int:
+def get_default_output_path(file_name: str) -> int:
     '''
     Create an output path based on the home path (OS-dependent) and output file name.
     The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
@@ -1764,7 +1774,6 @@ def get_default_output_path(file_name: str)-> int:
         else:
             output_path = str(current_path) + "/output/"
     return output_path
-
 
 
 @Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
@@ -1807,12 +1816,12 @@ def parse_gooey_args():
     # radio_group.add_argument("-t", "--custom", metavar="Custom name", action="store_true",
     #                         help='Name output file using your input here:')
     # io_args.add_argument('output_file_name',
-                         # metavar='Output file name',
-                         # help='[FILENAME] for your metadata and log outputs, without extension',
-                         # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-                         # [FILENAME].log files in the specified output folder
-                         # default=output_file_name,
-                         # type=str)
+    # metavar='Output file name',
+    # help='[FILENAME] for your metadata and log outputs, without extension',
+    # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
+    # [FILENAME].log files in the specified output folder
+    # default=output_file_name,
+    # type=str)
     io_args.add_argument('base_output_dir',
                          metavar='Base output directory',
                          help='Local directory generally used to save your outputs',
@@ -1925,7 +1934,7 @@ def main():
             output_fname = slugify(cat) + "_" + slugify(title)
     elif args.command == 'parse_experiment':
         if args.id:
-            output_fname = slugify("experiment") + "_" +str(args.exp_no)
+            output_fname = slugify("experiment") + "_" + str(args.exp_no)
         elif args.title:
             title = get_exp_title(args.endpoint, args.token, args.exp_no)
             output_fname = slugify("experiment") + "_" + slugify(title)
