@@ -1337,6 +1337,7 @@ def parse_lines_to_kv(lines):
                     # write_log(log, output_path+output_fname)
                     break
                 nkvmu_pairs.extend(flow_metadata)
+    print(log)
     return nkvmu_pairs, internal_comments, log
 
 
