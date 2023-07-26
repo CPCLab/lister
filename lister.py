@@ -1585,7 +1585,7 @@ def process_experiment(exp_no, endpoint, token, path):
     # changed to reflect eLabFTW 4.4.3 dictionary keys name
     links = exp['items_links']
     # may need to configure this in the json file in the future
-    excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method"]
+    excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
     filtered_links = []
 
     for link in links:

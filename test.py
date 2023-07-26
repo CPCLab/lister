@@ -178,19 +178,20 @@ class Test_lister(unittest.TestCase):
         processed_list = [[2, 'step type', 'conditional'], [2, 'flow type', 'elif'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'false']]
         self.assertListEqual(lister.process_elseif(par_no, list1)[0], processed_list)
 
-    def test_process_comment(self):
+
+    def test_process_internal_comment(self):
         str1 = "molecular dynamics (MD)"
-        comment = 'MD'
+        comment = '(MD)'
         remain  = 'molecular dynamics'
-        self.assertEqual(lister.process_comment(str1)[0], remain)
-        self.assertEqual(lister.process_comment(str1)[1], comment)
+        self.assertEqual(lister.process_internal_comment(str1)[0], remain)
+        self.assertEqual(lister.process_internal_comment(str1)[1], comment)
 
     def test_process_section(self):
         list1 = ['Section', 'Preparation and Environment']
         processed_list = [['-', 'section', 'Preparation and Environment']]
         self.assertListEqual(lister.process_section(list1)[0], processed_list)
 
-    def test_extract_kv(self):
+    def test_conv_bracketedstring_to_kvmu(self):
         str1 = '{8 Å|cut}'
         key = 'cut'
         val = '8 Å'
