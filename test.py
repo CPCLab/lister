@@ -267,6 +267,16 @@ class Test_lister(unittest.TestCase):
     def test_get_docx_content(self):
         pass # not applicable
 
+    def test_slugify(self):
+        self.assertEqual(lister.slugify('Test String'), 'test-string')
+        self.assertEqual(lister.slugify('Another_Test_String'), 'another_test_string')
+        self.assertEqual(lister.slugify('More-Test_String'), 'more-test_string')
+        self.assertEqual(lister.slugify('Test@String'), 'teststring')
+
+   # def test_manage_output_path(self):
+   #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'output'), '/Users/testuser/output/')
+   #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'another_output'), '/Users/testuser/another_output/')
+
 
 if __name__ == '__main__':
     unittest.main()

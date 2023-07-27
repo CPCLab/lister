@@ -4,6 +4,12 @@ This repository contains a set of files to parse documentation of experiments in
 
 A more detailed explanation regarding LISTER is provided in the following preprint: https://www.biorxiv.org/content/10.1101/2023.02.20.529231v1
 
+Additional resources are avaible to try out LISTER on your own:
+
+- Demo server for eLabFTW, with contents that can be parsed with LISTER: https://elabftw.pharm.hhu.de/login.php. Please use anonymous login to browse the content.
+- eLabFTW-importable Structure and comments to see how we implement our eLabFTW structure: https://github.com/CPCLab/lister-container.
+- eLabFTW-importable Materials and methods examples, annotated with LISTER annotation rules: https://github.com/CPCLab/materials-and-methods.
+
 ## Motivation
 
 As a research group usually has its own set of experiment protocols/Materials and Methods (MM) to conduct experiments, a tool to extract metadata from protocols/MMs-adapted experiment documentation helps support research data publication according to FAIR (Findable, Accessible, Interoperable, and Reusable) principles. Research data published under FAIR principles is expected to improve the reproducibility of research. To enable metadata extraction, the experiment documentation follows annotation rules described below and is in an HTML format stored as an experiment/database entry in eLabFTW.
