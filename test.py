@@ -362,5 +362,20 @@ class Test_lister(unittest.TestCase):
     #         lister.conv_bracketedstring_to_kvmu(kvmu)
 
 
+    # def test_parse_lines_to_kv(self):
+    #     lines = ["metadata section: Experiment Context"]
+    #     result, internal_comments, log = lister.parse_lines_to_kv(lines)
+    #
+    #     # The expected result is based on the assumption of how the dependent functions work
+    #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
+    #
+    #     self.assertEqual(result, expected_result)
+
+
+# TODO: Continue with lister.process_experiment()
+# NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
+# or require interactions with GUI components. These functions are tested manually. Try exploring Unit Test Mock:
+# https://docs.python.org/3/library/unittest.mock.html
+
 if __name__ == '__main__':
     unittest.main()
