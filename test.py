@@ -1,5 +1,6 @@
 import unittest
 import lister
+from bs4 import BeautifulSoup
 
 
 class Test_lister(unittest.TestCase):
@@ -188,7 +189,7 @@ class Test_lister(unittest.TestCase):
 
     def test_process_section(self):
         list1 = ['Section', 'Preparation and Environment']
-        processed_list = [['-', 'section', 'Preparation and Environment']]
+        processed_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
         self.assertListEqual(lister.process_section(list1)[0], processed_list)
 
     def test_conv_bracketedstring_to_kvmu(self):
@@ -276,6 +277,89 @@ class Test_lister(unittest.TestCase):
    # def test_manage_output_path(self):
    #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'output'), '/Users/testuser/output/')
    #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'another_output'), '/Users/testuser/another_output/')
+
+    def test_remove_table_tag(self):
+        html_content = "<html><body><p>Hello</p><table><tr><td>world!</td></tr></table></body></html>"
+        soup = BeautifulSoup(html_content, 'html.parser')
+        result = lister.remove_table_tag(soup)
+
+        # Check that the resulting HTML does not contain any '<table>', '<tr>', or '<td>' tags
+        self.assertNotIn('<table>', str(result))
+        self.assertNotIn('<tr>', str(result))
+        self.assertNotIn('<td>', str(result))
+
+        # Also check that the content of the table tag ("world!") has been removed
+        self.assertNotIn('world!', str(result))
+
+        # Check that content outside of the table tag ("Hello") is still present
+        self.assertIn('Hello', str(result))
+
+    # def test_process_nbsp(self):
+    #     html_content = "<html><body><p>Hello&nbsp;world!</p><p>How are&nbsp;you?</p></body></html>"
+    #     soup = BeautifulSoup(html_content, 'html.parser')
+    #     result = lister.process_nbsp(soup)
+    #
+    #     # Check that the resulting list of lines does not contain any non-breaking spaces
+    #     for line in result:
+    #         self.assertNotIn('\xa0', line)
+    #
+    #     # Check that the non-breaking spaces have been replaced with regular spaces
+    #     self.assertEqual(result, ["Hello world!", "How are you?"])
+
+    # def test_conv_html_to_nkvmu(self):
+    #     html_content = "<html><body><p>metadata section: Experiment Context</p></body></html>"
+    #     result, log = lister.conv_html_to_nkvmu(html_content)
+    #
+    #     # The expected result is based on the assumption of how the dependent functions work
+    #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
+    #
+    #     self.assertEqual(result, expected_result)
+
+    def test_strip_unwanted_mvu_colons(self):
+        # Test a word with surrounding colons
+        word = ":Hello:"
+        result = lister.strip_unwanted_mvu_colons(word)
+        self.assertEqual(result, "Hello")
+
+        # Test a word without surrounding colons
+        word = "World"
+        result = lister.strip_unwanted_mvu_colons(word)
+        self.assertEqual(result, "World")
+
+        # Test a word with only one surrounding colon
+        word = ":Hello"
+        result = lister.strip_unwanted_mvu_colons(word)
+        self.assertEqual(result, ":Hello")
+        word = "Hello:"
+        result = lister.strip_unwanted_mvu_colons(word)
+        self.assertEqual(result, "Hello:")
+
+    # def test_conv_bracketedstring_to_kvmu(self):
+    #     # Test a string with key and value
+    #     kvmu = "{value|key}"
+    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
+    #     self.assertEqual(result, ("key", "value", "", "", ""))
+    #
+    #     # Test a string with value, unit, and key
+    #     kvmu = "{value|unit|key}"
+    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
+    #     self.assertEqual(result, ("key", "value", "", "unit", ""))
+    #
+    #     # Test a string with measure, unit, value, and key
+    #     kvmu = "{measure|unit|value|key}"
+    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
+    #     self.assertEqual(result, ("key", "value", "measure", "unit", ""))
+    #
+    #     # Test a string with no separators
+    #     kvmu = "{value}"
+    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
+    #     expected_log = "SINGLE-PAIRED BRACKET: only contains 'value'"
+    #     self.assertEqual(result, ("", "", "", "", expected_log))
+    #
+    #     # Test a string with too many separators
+    #     with self.assertRaises(SystemExit):
+    #         kvmu = "{measure|unit|value|key|extra}"
+    #         lister.conv_bracketedstring_to_kvmu(kvmu)
 
 
 if __name__ == '__main__':
