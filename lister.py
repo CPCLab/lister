@@ -407,11 +407,11 @@ def process_foreach(par_no, cf_split):
         print(log)
         exit()
     step_type = "iteration"
-    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
     flow_type = cf_split[0]
-    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
     flow_param = cf_split[1]
-    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
     return key_val, log, is_error
 
 
@@ -465,15 +465,15 @@ def process_if(par_no, cf_split):
         print(log)
         exit()
     step_type = "conditional"
-    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
     flow_type = cf_split[0]
-    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
     flow_param = cf_split[1]
-    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
     flow_logical_operator = cf_split[2]
-    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
+    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
     flow_compared_value = cf_split[3]
-    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+    key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
     return key_val, log, is_error
 
 
@@ -699,7 +699,7 @@ def process_section(cf_split):
     else:
         section_keyword = cf_split[0].lower()
         section_level = section_keyword.count("sub")
-        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], "", ""])
+        key_val.append(["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], '', ''])
     return key_val, section_log, is_error
 
 
@@ -769,6 +769,7 @@ def extract_flow_type(par_no, flow_control_pair):
     '''
 
     flow_log = ""
+    print("flow_control_pair: "+ str(flow_control_pair))
     is_error = False
     key_val = []
     cf = flow_control_pair[1:-1]
@@ -814,6 +815,7 @@ def extract_flow_type(par_no, flow_control_pair):
         log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
         flow_log = flow_log + "\n" + log
         print(flow_log)
+    print("key_val: " + str(key_val) + "\n\n")
     return key_val, flow_log, is_error
 
 

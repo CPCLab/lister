@@ -204,10 +204,39 @@ class Test_lister(unittest.TestCase):
  #       self.assertListEqual(lister.parse_list(lines)[0], processed_lines)
 
     def test_extract_flow_type(self):
-        str1 = '<if|membrane simulation|e|true>'
-        processed_list = [[2, 'step type', 'conditional'], [2, 'flow type', 'if'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'true']]
         par_no = 2
-        self.assertListEqual(lister.extract_flow_type(par_no, str1)[0],processed_list)
+
+        if_str1 = '<if|membrane simulation|e|true>'
+        processed_if_list = [[2, 'step type', 'conditional', '', ''], [2, 'flow type', 'if', '', ''],
+                             [2, 'flow parameter', 'membrane simulation', '', ''],
+                             [2, 'flow logical parameter', 'e', '', ''],
+                             [2, 'flow compared value', 'true', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, if_str1)[0],processed_if_list)
+
+        # SECTION TEST HERE COULD USE REGEX INSTEAD OF MANUALLY INPUTTING THE SECTION LEVEL AS DONE HERE
+        sect_str0 = '<Section|Preparation and Environment>'
+        processed_sect0_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, sect_str0)[0], processed_sect0_list)
+
+        sect_str1 = '<Subsection|Preparation and Environment>'
+        processed_sect0_list = [['-', 'section level 1', 'Preparation and Environment', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, sect_str1)[0], processed_sect0_list)
+
+        sect_str2 = '<Subsubsection|Preparation and Environment>'
+        processed_sect0_list = [['-', 'section level 2', 'Preparation and Environment', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, sect_str2)[0], processed_sect0_list)
+
+        sect_str3 = '<Subsubsubsection|Preparation and Environment>'
+        processed_sect0_list = [['-', 'section level 3', 'Preparation and Environment', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, sect_str3)[0], processed_sect0_list)
+
+        foreach_str1 = '<for each|cycles of minimization>'
+        processed_foreach_list = [[par_no, 'step type', 'iteration', '', ''],
+                                  [par_no, 'flow type', 'for each', '', ''],
+                                  [par_no, 'flow parameter', 'cycles of minimization', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, foreach_str1)[0], processed_foreach_list)
+
+
         # list of cases to be considered:
         # < Section | Preparation and Environment >
         # [['-', 'section', 'Preparation and Environment']]
