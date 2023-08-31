@@ -207,6 +207,7 @@ class Test_lister(unittest.TestCase):
     def test_extract_flow_type(self):
         par_no = 2
 
+        # TEST IF STATEMENT PARSING
         if_str1 = '<if|membrane simulation|e|true>'
         processed_if_list = [[2, 'step type', 'conditional', '', ''], [2, 'flow type', 'if', '', ''],
                              [2, 'flow parameter', 'membrane simulation', '', ''],
@@ -214,6 +215,7 @@ class Test_lister(unittest.TestCase):
                              [2, 'flow compared value', 'true', '', '']]
         self.assertListEqual(lister.extract_flow_type(par_no, if_str1)[0],processed_if_list)
 
+        # TEST SECTION PARSING
         # SECTION TEST HERE COULD USE REGEX INSTEAD OF MANUALLY INPUTTING THE SECTION LEVEL AS DONE HERE
         sect_str0 = '<Section|Preparation and Environment>'
         processed_sect0_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
@@ -231,12 +233,33 @@ class Test_lister(unittest.TestCase):
         processed_sect0_list = [['-', 'section level 3', 'Preparation and Environment', '', '']]
         self.assertListEqual(lister.extract_flow_type(par_no, sect_str3)[0], processed_sect0_list)
 
+        # TEST FOREACH PARSING
         foreach_str1 = '<for each|cycles of minimization>'
         processed_foreach_list = [[par_no, 'step type', 'iteration', '', ''],
                                   [par_no, 'flow type', 'for each', '', ''],
                                   [par_no, 'flow parameter', 'cycles of minimization', '', '']]
         self.assertListEqual(lister.extract_flow_type(par_no, foreach_str1)[0], processed_foreach_list)
 
+        # TEST WHILE PARSING
+        while_str1 = '<while|ph|lte|7>'
+        processed_while_list = [[par_no, 'step type', 'iteration', '', ''],
+                                [par_no, 'flow type', 'while', '', ''],
+                                [par_no, 'flow parameter', 'ph', '', ''],
+                                [par_no, 'flow logical parameter', 'lte', '', ''],
+                                [par_no, 'flow compared value', '7', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, while_str1)[0], processed_while_list)
+
+        # TEST FOR PARSING
+        for_str1 = '<for|pH|[1-7]|+|1>'
+        processed_for_list = [[par_no, 'step type', 'iteration', '', ''],
+                              [par_no, 'flow type', 'for', '', ''],
+                              [par_no, 'flow parameter', 'pH', '', ''],
+                              [par_no, 'flow range', '[1-7]', '', ''],
+                              [par_no, 'start iteration value', 1.0, '', ''],
+                              [par_no, 'end iteration value', 7.0, '', ''],
+                              [par_no, 'flow operation', '+', '', ''],
+                              [par_no, 'flow magnitude', '1', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, for_str1)[0], processed_for_list)
 
         # list of cases to be considered:
         # < Section | Preparation and Environment >
