@@ -1,3 +1,4 @@
+import re
 import unittest
 import lister
 from bs4 import BeautifulSoup
@@ -217,21 +218,25 @@ class Test_lister(unittest.TestCase):
 
         # TEST SECTION PARSING
         # SECTION TEST HERE COULD USE REGEX INSTEAD OF MANUALLY INPUTTING THE SECTION LEVEL AS DONE HERE
+
+
         sect_str0 = '<Section|Preparation and Environment>'
-        processed_sect0_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
-        self.assertListEqual(lister.extract_flow_type(par_no, sect_str0)[0], processed_sect0_list)
-
         sect_str1 = '<Subsection|Preparation and Environment>'
-        processed_sect0_list = [['-', 'section level 1', 'Preparation and Environment', '', '']]
-        self.assertListEqual(lister.extract_flow_type(par_no, sect_str1)[0], processed_sect0_list)
-
         sect_str2 = '<Subsubsection|Preparation and Environment>'
-        processed_sect0_list = [['-', 'section level 2', 'Preparation and Environment', '', '']]
-        self.assertListEqual(lister.extract_flow_type(par_no, sect_str2)[0], processed_sect0_list)
-
         sect_str3 = '<Subsubsubsection|Preparation and Environment>'
-        processed_sect0_list = [['-', 'section level 3', 'Preparation and Environment', '', '']]
-        self.assertListEqual(lister.extract_flow_type(par_no, sect_str3)[0], processed_sect0_list)
+        sect_list = [sect_str0, sect_str1, sect_str2, sect_str3]
+        pattern = r'<(.*?)\|'
+
+        for sect_str in sect_list:
+            match = re.findall(pattern, sect_str)
+            if match:
+                subsection_level = match[0].lower().count("sub")
+                processed_sect_list = \
+                    [['-', 'section level '+str(subsection_level), 'Preparation and Environment', '', '']]
+                self.assertListEqual(lister.extract_flow_type(par_no, sect_str)[0], processed_sect_list)
+            else:
+                "Test: no (sub)section found."
+            print("SUB COUNT: " + str(subsection_level))
 
         # TEST FOREACH PARSING
         foreach_str1 = '<for each|cycles of minimization>'
