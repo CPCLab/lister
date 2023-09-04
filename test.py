@@ -162,7 +162,9 @@ class Test_lister(unittest.TestCase):
     def test_process_foreach(self):
         list1 = ['for each', 'cycles of minimization']
         par_no = 8
-        processed_list = [[8, 'step type', 'iteration'], [8, 'flow type', 'for each'], [8, 'flow parameter', 'cycles of minimization']]
+        processed_list = [[8, 'step type', 'iteration', '', ''],
+                          [8, 'flow type', 'for each', '', ''],
+                          [8, 'flow parameter', 'cycles of minimization', '', '']]
         self.assertListEqual(lister.process_foreach(par_no, list1)[0], processed_list)
 
     def test_process_while(self):
@@ -171,13 +173,21 @@ class Test_lister(unittest.TestCase):
     def test_process_if(self):
         list1 = ['if', 'membrane simulation', 'e', 'true']
         par_no = 2
-        processed_list = [[2, 'step type', 'conditional'], [2, 'flow type', 'if'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'true']]
+        processed_list = [[2, 'step type', 'conditional', '', ''],
+                          [2, 'flow type', 'if', '', ''],
+                          [2, 'flow parameter', 'membrane simulation', '', ''],
+                          [2, 'flow logical parameter', 'e', '', ''],
+                          [2, 'flow compared value', 'true', '', '']]
         self.assertListEqual(lister.process_if(par_no, list1)[0], processed_list)
 
     def test_process_elseif(self):
         list1 = ['elif', 'membrane simulation', 'e', 'false']
         par_no = 2
-        processed_list = [[2, 'step type', 'conditional'], [2, 'flow type', 'elif'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'false']]
+        processed_list = [[2, 'step type', 'conditional', '', ''],
+                          [2, 'flow type', 'elif', '', ''],
+                          [2, 'flow parameter', 'membrane simulation', '', ''],
+                          [2, 'flow logical parameter', 'e', '', ''],
+                          [2, 'flow compared value', 'false', '', '']]
         self.assertListEqual(lister.process_elseif(par_no, list1)[0], processed_list)
 
 
@@ -218,8 +228,6 @@ class Test_lister(unittest.TestCase):
 
         # TEST SECTION PARSING
         # SECTION TEST HERE COULD USE REGEX INSTEAD OF MANUALLY INPUTTING THE SECTION LEVEL AS DONE HERE
-
-
         sect_str0 = '<Section|Preparation and Environment>'
         sect_str1 = '<Subsection|Preparation and Environment>'
         sect_str2 = '<Subsubsection|Preparation and Environment>'
@@ -377,6 +385,54 @@ class Test_lister(unittest.TestCase):
         word = "Hello:"
         result = lister.strip_unwanted_mvu_colons(word)
         self.assertEqual(result, "Hello:")
+
+    def test_strip_colon(self):
+        self.assertEqual(lister.strip_colon("key:value"), "keyvalue")
+        self.assertEqual(lister.strip_colon("key::value"), "keyvalue")
+        self.assertEqual(lister.strip_colon("key"), "key")
+        self.assertEqual(lister.strip_colon(":key:"), "key")
+        self.assertEqual(lister.strip_colon(":"), "")
+
+
+    def test_process_reg_bracket(self):
+        # Test case 1: No comments or DOIs
+        line = "This is a test line without comments or DOIs."
+        expected_output = (line, [])
+        self.assertEqual(lister.process_reg_bracket(line), expected_output)
+
+        # Test case 2: Invisible comment
+        line = "This is a test line with an (_invisible comment_)."
+        expected_output = ("This is a test line with an .", [])
+        self.assertEqual(lister.process_reg_bracket(line), expected_output)
+
+        # Test case 3: Visible comment
+        line = "This is a test line with a (:(visible comment):)."
+        expected_output = ("This is a test line with a (visible comment).", [])
+        self.assertEqual(lister.process_reg_bracket(line), expected_output)
+
+        # Test case 4: DOI
+        line = "This is a test line with a DOI (10.1234/abcd)."
+        expected_output = ("This is a test line with a DOI  [1].", ["10.1234/abcd"])
+        self.assertEqual(lister.process_reg_bracket(line), expected_output)
+
+
+
+    def test_strip_markup_and_explicit_keys(self):
+        # Test case 1: No markup or explicit keys
+        line = "This is a test line without markup or explicit keys."
+        expected_output = (line, [])
+        self.assertEqual(lister.strip_markup_and_explicit_keys(line), expected_output)
+
+        # Test case 2: Explicit keys
+        line = "This is a test line with :explicit_key:."
+        expected_output = ("This is a test line with  explicit_key.", [])
+        self.assertEqual(lister.strip_markup_and_explicit_keys(line), expected_output)
+
+        # Test case 3: Markup and DOI
+        line = "This is a test line with {markup} and a DOI (10.1234/abcd)."
+        expected_output = ("This is a test line with markup and a DOI  [1].", ["10.1234/abcd"])
+        self.assertEqual(lister.strip_markup_and_explicit_keys(line), expected_output)
+
 
     # def test_conv_bracketedstring_to_kvmu(self):
     #     # Test a string with key and value
