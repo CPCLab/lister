@@ -227,7 +227,6 @@ class Test_lister(unittest.TestCase):
         self.assertListEqual(lister.extract_flow_type(par_no, if_str1)[0],processed_if_list)
 
         # TEST SECTION PARSING
-        # SECTION TEST HERE COULD USE REGEX INSTEAD OF MANUALLY INPUTTING THE SECTION LEVEL AS DONE HERE
         sect_str0 = '<Section|Preparation and Environment>'
         sect_str1 = '<Subsection|Preparation and Environment>'
         sect_str2 = '<Subsubsection|Preparation and Environment>'
@@ -322,6 +321,48 @@ class Test_lister(unittest.TestCase):
         separators = [","]
         expected_output = ["word1 word2 word3"]
         self.assertEqual(lister.split(text, separators), expected_output)
+
+    def test_remove_table_tag(self):
+        # Test case 1: HTML with no tables
+        html_content = "<p>This is a test paragraph without tables.</p>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = soup
+        self.assertEqual(lister.remove_table_tag(soup), expected_output)
+
+        # Test case 2: HTML with one table
+        html_content = "<p>This is a test paragraph with a table.</p><table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = BeautifulSoup("<p>This is a test paragraph with a table.</p>", "html.parser")
+        self.assertEqual(lister.remove_table_tag(soup), expected_output)
+
+        # Test case 3: HTML with multiple tables
+        html_content = "<p>Paragraph with multiple tables.</p><table><tr><td>Table 1</td></tr></table><table><tr><td>Table 2</td></tr></table>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = BeautifulSoup("<p>Paragraph with multiple tables.</p>", "html.parser")
+        self.assertEqual(lister.remove_table_tag(soup), expected_output)
+
+    def test_conv_html_to_nkvmu(self):
+        # Test case 1: HTML with no tables
+        html_content = "<p>This is a test paragraph without tables.</p>"
+        expected_output = ([
+            ["", "section", "This is a test paragraph without tables.", "", ""]
+        ], "")
+        self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
+
+        # Test case 2: HTML with one table
+        html_content = "<p>This is a test paragraph with a table.</p><table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>"
+        expected_output = ([
+            ["", "section", "This is a test paragraph with a table.", "", ""]
+        ], "")
+        self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
+
+        # Test case 3: HTML with multiple tables
+        html_content = "<p>Paragraph with multiple tables.</p><table><tr><td>Table 1</td></tr></table><table><tr><td>Table 2</td></tr></table>"
+        expected_output = ([
+            ["", "section", "Paragraph with multiple tables.", "", ""]
+        ], "")
+        self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
+
 
     def test_get_elab_exp_lines(self):
         pass #  not applicable
