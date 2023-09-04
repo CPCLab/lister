@@ -970,6 +970,22 @@ def get_nonempty_body_tags(exp):
 
 # Used in get_attachment_long_name()
 def split(text, separators):
+    """
+    Split a given text using multiple separators.
+
+    This function replaces all occurrences of the separators in the input
+    string with the first separator in the list. Then, it splits the input
+    string into a list of substrings based on the first separator. Finally,
+    it returns the list of substrings after removing any leading or trailing
+    whitespaces from each substring.
+
+    :param text: The input string to be split.
+    :type text: str
+    :param separators: A list of separators to be used for splitting the input string.
+    :type separators: list
+    :return: A list of substrings obtained by splitting the input string using the specified separators.
+    :rtype: list
+    """
     default_sep = separators[0]
     for sep in separators[1:]:
         text = text.replace(sep, default_sep)

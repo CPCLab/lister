@@ -292,6 +292,37 @@ class Test_lister(unittest.TestCase):
                                [par_no, 'flow type', 'else', '', '']]
         self.assertListEqual(lister.extract_flow_type(par_no, else_str1)[0], processed_else_list)
 
+
+    def test_strip_unwanted_mvu_colons(self):
+        # Test case 1: No surrounding colons
+        word = "word_without_colons"
+        expected_output = word
+        self.assertEqual(lister.strip_unwanted_mvu_colons(word), expected_output)
+
+        # Test case 2: Surrounding colons
+        word = ":word_with_colons:"
+        expected_output = "word_with_colons"
+        self.assertEqual(lister.strip_unwanted_mvu_colons(word), expected_output)
+
+    def test_split(self):
+        # Test case 1: Single separator
+        text = "word1, word2, word3"
+        separators = [","]
+        expected_output = ["word1", "word2", "word3"]
+        self.assertEqual(lister.split(text, separators), expected_output)
+
+        # Test case 2: Multiple separators
+        text = "word1, word2; word3"
+        separators = [",", ";"]
+        expected_output = ["word1", "word2", "word3"]
+        self.assertEqual(lister.split(text, separators), expected_output)
+
+        # Test case 3: No separators
+        text = "word1 word2 word3"
+        separators = [","]
+        expected_output = ["word1 word2 word3"]
+        self.assertEqual(lister.split(text, separators), expected_output)
+
     def test_get_elab_exp_lines(self):
         pass #  not applicable
 
