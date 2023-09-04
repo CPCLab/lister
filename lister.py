@@ -496,21 +496,21 @@ def process_elseif(par_no, cf_split):
         print(log)
         exit()
     step_type = "conditional"
-    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
     flow_type = cf_split[0]
-    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
     flow_param = cf_split[1]
-    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param])
+    key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
     flow_logical_operator = cf_split[2]
-    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator])
+    key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
     flow_compared_value = cf_split[3]
     if re.search("\[.*?\]", flow_compared_value):
-        key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value])
+        key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value, '', ''])
         start, end, range_log, range_is_error = process_range(flow_compared_value)
-        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start])
-        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end])
+        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start, '', ''])
+        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end, '', ''])
     else:
-        key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value])
+        key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
     return key_val, log, is_error
 
 
@@ -535,9 +535,9 @@ def process_else(par_no, cf_split):
         print(log)
         exit()
     step_type = "conditional"
-    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type])
+    key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
     flow_type = cf_split[0]
-    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type])
+    key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
     return key_val, log, is_error
 
 

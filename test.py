@@ -261,36 +261,23 @@ class Test_lister(unittest.TestCase):
                               [par_no, 'flow magnitude', '1', '', '']]
         self.assertListEqual(lister.extract_flow_type(par_no, for_str1)[0], processed_for_list)
 
-        # list of cases to be considered:
-        # < Section | Preparation and Environment >
-        # [['-', 'section', 'Preparation and Environment']]
-        # < if | membrane simulation | e | true >
-        # [[2, 'step type', 'conditional'], [2, 'flow type', 'if'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'true']]
-        # < elif | membrane
-        # simulation | e | false >
-        # [[2, 'step type', 'conditional'], [2, 'flow type', 'elif'], [2, 'flow parameter', 'membrane simulation'], [2, 'flow logical parameter', 'e'], [2, 'flow compared value', 'false']]
-        # < if | water type | e | TIP3P >
-        # [[4, 'step type', 'conditional'], [4, 'flow type', 'if'], [4, 'flow parameter', 'water type'], [4, 'flow logical parameter', 'e'], [4, 'flow compared value', 'TIP3P']]
-        # < elif | water
-        # type | e | OPC >
-        # [[4, 'step type', 'conditional'], [4, 'flow type', 'elif'], [4, 'flow parameter', 'water type'], [4, 'flow logical parameter', 'e'], [4, 'flow compared value', 'OPC']]
-        # < if | membrane simulation | e | true >
-        # [[4, 'step type', 'conditional'], [4, 'flow type', 'if'], [4, 'flow parameter', 'membrane simulation'], [4, 'flow logical parameter', 'e'], [4, 'flow compared value', 'true']]
-        # < if | membrane simulation | e | true >
-        # [[5, 'step type', 'conditional'], [5, 'flow type', 'if'], [5, 'flow parameter', 'membrane simulation'], [5, 'flow logical parameter', 'e'], [5, 'flow compared value', 'true']]
-        # < elif | membrane
-        # simulation | e | false >
-        # [[5, 'step type', 'conditional'], [5, 'flow type', 'elif'], [5, 'flow parameter', 'membrane simulation'], [5, 'flow logical parameter', 'e'], [5, 'flow compared value', 'false']]
-        # < Section | Minimization >
-        # [['-', 'section', 'Minimization']]
-        # < for each | cycles of minimization >
-        # [[8, 'step type', 'iteration'], [8, 'flow type', 'for each'], [8, 'flow parameter', 'cycles of minimization']]
-        # < for each | cycles of minimization >
-        # [[9, 'step type', 'iteration'], [9, 'flow type', 'for each'], [9, 'flow parameter', 'cycles of minimization']]
-        # < Section | Thermalization >
-        # [['-', 'section', 'Thermalization']]
-        # < Section | Production >
-        # [['-', 'section', 'Production']]
+        # TEST ELSE-IF PARSING
+        elif_str1 = '<else if|pH|between|[8-12]>'
+        processed_elif_list = [[par_no, 'step type', 'conditional', '', ''],
+                               [par_no, 'flow type', 'else if', '', ''],
+                               [par_no, 'flow parameter', 'pH', '', ''],
+                               [par_no, 'flow logical parameter', 'between', '', ''],
+                               [par_no, 'flow range', '[8-12]', '', ''],
+                               [par_no, 'start iteration value', 8.0, '', ''],
+                               [par_no, 'end iteration value', 12.0, '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, elif_str1)[0], processed_elif_list)
+
+
+        # TEST ELSE PARSING
+        else_str1 = '<else>'
+        processed_else_list = [[par_no, 'step type', 'conditional', '', ''],
+                               [par_no, 'flow type', 'else', '', '']]
+        self.assertListEqual(lister.extract_flow_type(par_no, else_str1)[0], processed_else_list)
 
     def test_get_elab_exp_lines(self):
         pass #  not applicable
