@@ -3,6 +3,7 @@ import unittest
 import lister
 from bs4 import BeautifulSoup
 
+#TODO: find more details about those parsing results that yield double spaces. Decide how to handle them.
 
 class Test_lister(unittest.TestCase):
 
@@ -506,32 +507,34 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(lister.strip_markup_and_explicit_keys(line), expected_output)
 
 
-    # def test_conv_bracketedstring_to_kvmu(self):
-    #     # Test a string with key and value
-    #     kvmu = "{value|key}"
-    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
-    #     self.assertEqual(result, ("key", "value", "", "", ""))
-    #
-    #     # Test a string with value, unit, and key
-    #     kvmu = "{value|unit|key}"
-    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
-    #     self.assertEqual(result, ("key", "value", "", "unit", ""))
-    #
-    #     # Test a string with measure, unit, value, and key
-    #     kvmu = "{measure|unit|value|key}"
-    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
-    #     self.assertEqual(result, ("key", "value", "measure", "unit", ""))
-    #
-    #     # Test a string with no separators
-    #     kvmu = "{value}"
-    #     result = lister.conv_bracketedstring_to_kvmu(kvmu)
-    #     expected_log = "SINGLE-PAIRED BRACKET: only contains 'value'"
-    #     self.assertEqual(result, ("", "", "", "", expected_log))
-    #
-    #     # Test a string with too many separators
-    #     with self.assertRaises(SystemExit):
-    #         kvmu = "{measure|unit|value|key|extra}"
-    #         lister.conv_bracketedstring_to_kvmu(kvmu)
+    def test_conv_bracketedstring_to_kvmu(self):
+        # Test a string with key and value
+        kvmu = "{value|key}"
+        result = lister.conv_bracketedstring_to_kvmu(kvmu)
+        self.assertEqual(result, ("key", "value", "", "", ""))
+
+        # Test a string with value, unit, and key
+        kvmu = "{value|unit|key}"
+        result = lister.conv_bracketedstring_to_kvmu(kvmu)
+        self.assertEqual(result, ("key", "value", "", "unit", ""))
+
+        # Test a string with measure, unit, value, and key
+        kvmu = "{measure|unit|value|key}"
+        result = lister.conv_bracketedstring_to_kvmu(kvmu)
+        self.assertEqual(result, ("key", "value", "measure", "unit", ""))
+
+        # Test a string with no separators
+        kvmu = "{value}"
+        result = lister.conv_bracketedstring_to_kvmu(kvmu)
+        expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
+                            "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
+                            "Otherwise please check this pair: {0}."
+        self.assertEqual(result, ("", "", "", "", expected_log.format(kvmu)))
+
+        # Test a string with too many separators
+        with self.assertRaises(SystemExit):
+            kvmu = "{measure|unit|value|key|extra}"
+            lister.conv_bracketedstring_to_kvmu(kvmu)
 
 
     # def test_parse_lines_to_kv(self):

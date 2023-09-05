@@ -742,8 +742,8 @@ def conv_bracketedstring_to_kvmu(kvmu):
         val = ""
         measure = ""
         unit = ""
-        print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(kvmu))
-        log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(kvmu)
+        print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu))
+        log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu)
     else:
         log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value.format(len(kv_split), str(source_kvmu))
         raise SystemExit(log)
