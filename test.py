@@ -2,8 +2,87 @@ import re
 import unittest
 import lister
 from bs4 import BeautifulSoup
+import elabapi_python
+import elabapy
+import os
+from unittest.mock import MagicMock, patch
 
 class Test_lister(unittest.TestCase):
+
+
+    def test_get_api_v2endpoint(self):
+        v1endpoint = 'http://example.com/v1'
+        expected_v2endpoint = 'https://example.com/v2'
+        self.assertEqual(lister.get_api_v2endpoint(v1endpoint), expected_v2endpoint)
+
+
+    def test_create_apiv2_client(self):
+        endpoint = 'http://example.com/v1'
+        token = 'test_token'
+        apiv2_client = lister.create_apiv2_client(endpoint, token)
+
+        self.assertIsInstance(apiv2_client, elabapi_python.ApiClient)
+        self.assertEqual(apiv2_client.configuration.host, 'https://example.com/v2')
+        self.assertEqual(apiv2_client.configuration.api_key['api_key'], token)
+        self.assertEqual(apiv2_client.configuration.api_key_prefix['api_key'], 'Authorization')
+        self.assertFalse(apiv2_client.configuration.debug)
+        self.assertFalse(apiv2_client.configuration.verify_ssl)
+
+
+    def test_derive_fname_from_exp(self):
+        exp = {"title": "Example Experiment Title"}
+        expected_fname = "example-experiment-title"
+        self.assertEqual(lister.derive_fname_from_exp(exp), expected_fname)
+
+
+    def test_create_elab_manager(self):
+        current_endpoint = 'http://example.com'
+        current_token = 'test_token'
+        manager = lister.create_elab_manager(current_endpoint, current_token)
+        self.assertIsInstance(manager, elabapy.Manager)
+
+
+    @patch('os.path.isdir')
+    @patch('os.makedirs')
+    def test_check_and_create_path(self, mock_makedirs, mock_isdir):
+        # Test when the directory exists
+        mock_isdir.return_value = True
+        path = '/path/to/directory'
+        lister.check_and_create_path(path)
+        mock_isdir.assert_called_with(path)
+        mock_makedirs.assert_not_called()
+
+        # Test when the directory does not exist
+        mock_isdir.return_value = False
+        lister.check_and_create_path(path)
+        mock_isdir.assert_called_with(path)
+        mock_makedirs.assert_called_with(path)
+
+
+    @patch('lister.check_and_create_path')
+    @patch('os.path.isdir')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open)
+    def test_get_and_save_attachments(self, mock_open, mock_isdir, mock_check_and_create_path):
+        manager = MagicMock()
+        uploads = [
+            {"id": "1", "real_name": "attachment1.txt"},
+            {"id": "2", "real_name": "attachment2.txt"}
+        ]
+        path = '/path/to/directory'
+
+        mock_isdir.return_value = True
+        manager.get_upload.side_effect = [b'content1', b'content2']
+
+        lister.get_and_save_attachments(manager, uploads, path)
+
+        mock_check_and_create_path.assert_called_with(path + '/attachments/')
+        manager.get_upload.assert_any_call("1")
+        manager.get_upload.assert_any_call("2")
+        mock_open.assert_any_call(path + '/attachments/attachment1.txt', 'wb')
+        mock_open.assert_any_call(path + '/attachments/attachment2.txt', 'wb')
+        mock_open().write.assert_any_call(b'content1')
+        mock_open().write.assert_any_call(b'content2')
+
 
     def test_split_into_sentences(self):
         content = (' <if|membrane simulation|e|true>, The variants were embedded in a membrane consisting of '
