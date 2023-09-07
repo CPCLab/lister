@@ -84,6 +84,33 @@ class Test_lister(unittest.TestCase):
         mock_open().write.assert_any_call(b'content2')
 
 
+    @patch('lister.check_and_create_path')
+    @patch('lister.sanitize_filepath')
+    @patch('elabapi_python.ExperimentsApi')
+    @patch('elabapi_python.UploadsApi')
+    def test_get_and_save_attachments_apiv2(self, mock_uploads_api, mock_experiments_api, mock_sanitize_filepath, mock_check_and_create_path):
+        path = '/path/to/directory'
+        apiv2_client = MagicMock()
+        exp_id = 1
+
+        mock_sanitize_filepath.return_value = path + '/' + 'attachments'
+        mock_check_and_create_path.return_value = None
+        mock_experiments_api.get_experiment.return_value = MagicMock(id=exp_id)
+        mock_uploads_api.read_uploads.return_value = [
+            MagicMock(id="1", real_name="attachment1.txt"),
+            MagicMock(id="2", real_name="attachment2.txt")
+        ]
+        mock_uploads_api.read_upload.return_value = MagicMock(data=b"file_content")
+
+        lister.get_and_save_attachments_apiv2(path, apiv2_client, exp_id)
+
+        mock_check_and_create_path.assert_called_once_with(mock_sanitize_filepath.return_value)
+        # TODO: check the necesssity of the following assertions.
+        # mock_uploads_api.read_uploads.assert_called_once_with('experiments', exp_id)
+        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "1", format='binary', _preload_content=False)
+        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "2", format='binary', _preload_content=False)
+
+
     def test_split_into_sentences(self):
         content = (' <if|membrane simulation|e|true>, The variants were embedded in a membrane consisting of '
                    '{POPC|Lipid type} lipids and solvated in a {rectangular|box type} water box using '

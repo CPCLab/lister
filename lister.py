@@ -1532,7 +1532,7 @@ def create_apiv2_client(endpoint, token):
     return apiv2_client
 
 
-def get_and_save_attachments_v2(path, apiv2_client, exp_id):
+def get_and_save_attachments_apiv2(path, apiv2_client, exp_id):
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1629,7 +1629,7 @@ def process_experiment(exp_no, endpoint, token, path):
 
     apiv2_client = create_apiv2_client(endpoint, token)
     # get_and_save_attachments(manager, exp["uploads"], path)
-    log = get_and_save_attachments_v2(path, apiv2_client, int(exp_no))
+    log = get_and_save_attachments_apiv2(path, apiv2_client, int(exp_no))
     write_to_docx(manager, exp, path)
 
     # consult first with involved AGs whether uploading the parsing result makes sense
