@@ -35,13 +35,6 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(lister.derive_fname_from_exp(exp), expected_fname)
 
 
-    def test_create_elab_manager(self):
-        current_endpoint = 'http://example.com'
-        current_token = 'test_token'
-        manager = lister.create_elab_manager(current_endpoint, current_token)
-        self.assertIsInstance(manager, elabapy.Manager)
-
-
     @patch('os.path.isdir')
     @patch('os.makedirs')
     def test_check_and_create_path(self, mock_makedirs, mock_isdir):
@@ -392,6 +385,61 @@ class Test_lister(unittest.TestCase):
         soup = BeautifulSoup(html_content, "html.parser")
         expected_output = BeautifulSoup("<p>Paragraph with multiple tables.</p>", "html.parser")
         self.assertEqual(lister.remove_table_tag(soup), expected_output)
+
+
+    def test_get_attachment_long_name(self):
+        img_path = "some_url?file=long_name_value"
+        expected_long_name = "long_name_value"
+        self.assertEqual(lister.get_attachment_long_name(img_path), expected_long_name)
+
+
+    def test_get_attachment_id(self):
+        exp = {
+            "uploads": [
+                {"id": "1", "real_name": "attachment1.txt", "long_name": "long_name_1"},
+                {"id": "2", "real_name": "attachment2.txt", "long_name": "long_name_2"}
+            ]
+        }
+        content = MagicMock()
+        content.img = {"src": "some_url?file=long_name_1"}
+
+        expected_upl_id = "1"
+        expected_real_name = "attachment1.txt"
+
+        upl_id, real_name = lister.get_attachment_id(exp, content)
+
+        self.assertEqual(upl_id, expected_upl_id)
+        self.assertEqual(real_name, expected_real_name)
+
+
+    def test_create_elab_manager(self):
+        current_endpoint = 'http://example.com'
+        current_token = 'test_token'
+        manager = lister.create_elab_manager(current_endpoint, current_token)
+
+        self.assertIsInstance(manager, elabapy.Manager)
+        self.assertEqual(manager.endpoint, current_endpoint)
+        self.assertEqual(manager.token, current_token)
+        self.assertFalse(manager.verify)
+
+
+
+    def test_get_db_cat_and_title(self):
+        endpoint = 'http://example.com'
+        token = 'test_token'
+        db_item_no = 1
+        expected_category = 'Sample Category'
+        expected_title = 'Sample Title'
+
+        manager = MagicMock()
+        manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
+
+        with unittest.mock.patch('lister.create_elab_manager', return_value=manager):
+            category, title = lister.get_db_cat_and_title(endpoint, token, db_item_no)
+
+        self.assertEqual(category, expected_category)
+        self.assertEqual(title, expected_title)
+
 
     def test_conv_html_to_nkvmu(self):
 
