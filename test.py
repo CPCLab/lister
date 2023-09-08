@@ -1,5 +1,4 @@
 import re
-import unittest
 import lister
 from bs4 import BeautifulSoup
 import elabapi_python
@@ -7,6 +6,11 @@ import elabapy
 import os
 from unittest.mock import MagicMock, patch
 from pathlib import Path
+import unittest
+from unittest.mock import MagicMock, patch
+#  from lxml import etree
+# import latex2mathml.converter
+# from lister import latex_formula_to_docx, Misc_error_and_warning_msg
 
 class Test_lister(unittest.TestCase):
 
@@ -481,6 +485,7 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(result_manager, manager)
         self.assertEqual(result_exp, expected_exp)
 
+
     def test_get_exp_info(self):
         exp = {
             'title': 'Sample Experiment',
@@ -536,6 +541,71 @@ class Test_lister(unittest.TestCase):
         expected_title = "Introduction"
         result_title = lister.get_section_title(line)
         self.assertEqual(result_title, expected_title)
+
+
+    # def test_get_span_attr_val(self):
+    #     c = MagicMock()
+    #     c.get.return_value = "color: red;"
+    #     expected_attr, expected_val = "color", "red"
+    #     print(c.call_args)
+    #     attr, val = lister.get_span_attr_val(c)
+    #     print("attr, val")
+    #     print(attr, val)
+    #     self.assertEqual(attr, expected_attr)
+    #     self.assertEqual(val, expected_val)
+
+
+    # def test_get_span_attr_val_no_match(self):
+    #     c = MagicMock()
+    #     c.get.return_value = "font-size: 12px;"
+    #     with self.assertRaises(IndexError):
+    #         lister.get_span_attr_val(c)
+
+
+    def test_is_explicit_key_true(self):
+        key = ":example_key:"
+        self.assertTrue(lister.is_explicit_key(key))
+
+
+    def test_is_explicit_key_false(self):
+        key = "not_explicit_key"
+        self.assertFalse(lister.is_explicit_key(key))
+
+
+    # def test_latex_formula_to_docx(self):
+    #     latex_formula = r'\frac{1}{2}'
+    #
+    #     with patch('latex2mathml.converter.convert') as mock_convert, \
+    #          patch('etree.parse') as mock_etree_parse, \
+    #          patch('etree.XSLT') as mock_etree_xslt:
+    #
+    #         mock_convert.return_value = '<mathml></mathml>'
+    #         mock_etree_parse.return_value = MagicMock()
+    #         mock_etree_xslt.return_value = MagicMock()
+    #
+    #         docx_formula, log = latex_formula_to_docx(latex_formula)
+    #
+    #         mock_convert.assert_called_once_with(latex_formula)
+    #         mock_etree_parse.assert_called_once_with('MML2OMML.XSL')
+    #         mock_etree_xslt.assert_called_once_with(mock_etree_parse.return_value)
+    #
+    #         self.assertIsNotNone(docx_formula)
+    #         self.assertEqual(log, "")
+
+
+    # def test_latex_formula_to_docx_missing_mml2omml(self):
+    #     latex_formula = r'\frac{1}{2}'
+    #
+    #     with patch('latex2mathml.converter.convert') as mock_convert, \
+    #          patch('etree.parse', side_effect=Exception()):
+    #
+    #         mock_convert.return_value = '<mathml></mathml>'
+    #
+    #         docx_formula, log = latex_formula_to_docx(latex_formula)
+    #
+    #         mock_convert.assert_called_once_with(latex_formula)
+    #         self.assertIsNone(docx_formula)
+    #         self.assertEqual(log, Misc_error_and_warning_msg.MISSING_MML2OMML.value)
 
 
     def test_get_section_title_empty(self):

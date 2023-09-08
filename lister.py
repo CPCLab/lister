@@ -836,7 +836,7 @@ def is_explicit_key(key):
     :param str key: checked string.
     :return: bool stating whether the key is a LISTER explicit key.
 
-'''
+    '''
     if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
         return True
     else:
