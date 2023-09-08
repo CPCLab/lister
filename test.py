@@ -504,6 +504,47 @@ class Test_lister(unittest.TestCase):
         #m print("result_nkvmu_pairs: " + str(result_nkvmu_pairs))
         self.assertEqual(result_nkvmu_pairs, expected_nkvmu_pairs)
 
+
+    def test_get_exp_title(self):
+        endpoint = 'http://example.com'
+        token = 'test_token'
+        exp_item_no = 1
+        exp_title = 'Sample Experiment'
+
+        mock_exp = (None, {'title': exp_title})
+
+        with patch('lister.get_elab_exp', return_value=mock_exp):
+            result_title = lister.get_exp_title(endpoint, token, exp_item_no)
+
+        self.assertEqual(result_title, exp_title)
+
+
+    def test_get_nonempty_body_tags(self):
+        exp = {'body': '<p>Some text</p><p></p><div><span>More text</span></div><div></div>'}
+        expected_tagged_contents = ['Some text', 'More text']
+
+        with unittest.mock.patch('lister.remove_empty_tags') as mock_remove_empty_tags:
+            mock_remove_empty_tags.return_value = BeautifulSoup('<p>Some text</p><div><span>More text</span></div>', 'html.parser')
+            result_tagged_contents = lister.get_nonempty_body_tags(exp)
+
+        self.assertEqual(len(result_tagged_contents), len(expected_tagged_contents))
+        self.assertEqual([tag.string for tag in result_tagged_contents], expected_tagged_contents)
+
+
+    def test_get_section_title(self):
+        line = "1. Introduction"
+        expected_title = "Introduction"
+        result_title = lister.get_section_title(line)
+        self.assertEqual(result_title, expected_title)
+
+
+    def test_get_section_title_empty(self):
+        line = "1."
+        expected_title = ""
+        result_title = lister.get_section_title(line)
+        self.assertEqual(result_title, expected_title)
+
+
     def test_conv_html_to_nkvmu(self):
 
         pass
