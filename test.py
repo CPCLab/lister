@@ -6,6 +6,7 @@ import elabapi_python
 import elabapy
 import os
 from unittest.mock import MagicMock, patch
+from pathlib import Path
 
 class Test_lister(unittest.TestCase):
 
@@ -440,6 +441,68 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(category, expected_category)
         self.assertEqual(title, expected_title)
 
+
+    def test_output_path_darwin(self):
+        with unittest.mock.patch('platform.system', return_value='Darwin'):
+            file_name = 'test_file.txt'
+            expected_output_path = str(Path.home()) + "/Apps/lister/output/" + file_name
+            output_path = lister.get_default_output_path(file_name)
+            self.assertEqual(output_path, expected_output_path)
+
+    def test_output_path_windows_linux(self):
+        with unittest.mock.patch('platform.system', return_value='Windows'):
+            file_name = 'test_file.txt'
+            current_path = Path().resolve()
+            expected_output_path = str(current_path) + "\\output"
+            output_path = lister.get_default_output_path(file_name)
+            self.assertEqual(output_path, expected_output_path)
+
+        with unittest.mock.patch('platform.system', return_value='Linux'):
+            file_name = 'test_file.txt'
+            current_path = Path().resolve()
+            expected_output_path = str(current_path) + "/output/"
+            output_path = lister.get_default_output_path(file_name)
+            self.assertEqual(output_path, expected_output_path)
+
+
+    def test_get_elab_exp(self):
+        exp_number = 1
+        current_endpoint = 'http://example.com'
+        current_token = 'test_token'
+
+        manager = MagicMock()
+        expected_exp = {'id': exp_number, 'title': 'Sample Experiment'}
+
+        manager.get_experiment.return_value = expected_exp
+
+        with patch('lister.create_elab_manager', return_value=manager):
+            result_manager, result_exp = lister.get_elab_exp(exp_number, current_endpoint, current_token)
+
+        self.assertEqual(result_manager, manager)
+        self.assertEqual(result_exp, expected_exp)
+
+    def test_get_exp_info(self):
+        exp = {
+            'title': 'Sample Experiment',
+            'date': '2021-01-01',
+            'category': 'Sample Category',
+            'fullname': 'John Doe',
+            'tags': 'tag1, tag2'
+        }
+
+        expected_nkvmu_pairs = [
+            ["", "metadata section", "Experiment Info", "", ""],
+            ["", "title", exp['title'], "", ""],
+            ["", "creation date", exp['date'], "", ""],
+            ["", "category", exp['category'], "", ""],
+            ["", "author", exp['fullname'], "", ""],
+            ["", "tags", exp['tags'], "", ""]
+        ]
+
+        # print("expected_nkvmu_pairs: " + str(expected_nkvmu_pairs))
+        result_nkvmu_pairs = lister.get_exp_info(exp)
+        #m print("result_nkvmu_pairs: " + str(result_nkvmu_pairs))
+        self.assertEqual(result_nkvmu_pairs, expected_nkvmu_pairs)
 
     def test_conv_html_to_nkvmu(self):
 
