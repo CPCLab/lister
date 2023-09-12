@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, patch
 from pathlib import Path
 import unittest
 from unittest.mock import MagicMock, patch
+import platform
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, Misc_error_and_warning_msg
@@ -614,6 +615,52 @@ class Test_lister(unittest.TestCase):
         result_title = lister.get_section_title(line)
         self.assertEqual(result_title, expected_title)
 
+
+
+    @patch('platform.system')
+    def test_manage_input_path_darwin(self, mock_system):
+        mock_system.return_value = 'Darwin'
+        input_path = lister.manage_input_path()
+        home = str(Path.home())
+        expected_input_path = home + "/Apps/lister/"
+        self.assertEqual(input_path, expected_input_path)
+
+
+    @patch('platform.system')
+    def test_manage_input_path_non_darwin(self, mock_system):
+        mock_system.return_value = 'Windows'  # or any other non-Darwin platform
+        input_path = lister.manage_input_path()
+        self.assertEqual(input_path, "")
+
+
+    @patch('platform.system')
+    def test_manage_output_path_darwin(self, mock_system):
+        mock_system.return_value = 'Darwin'
+        dir_name = 'dir/'
+        file_name = 'file'
+        output_path = lister.manage_output_path(dir_name, file_name)
+        expected_output_path = dir_name + file_name + "/"
+        self.assertEqual(output_path, expected_output_path)
+
+
+    @patch('platform.system')
+    def test_manage_output_path_non_darwin(self, mock_system):
+        mock_system.return_value = 'Windows'  # or any other non-Darwin platform
+        dir_name = 'dir/'
+        file_name = 'file'
+        output_path = lister.manage_output_path(dir_name, file_name)
+        expected_output_path = dir_name + "/" + file_name + "/"
+        self.assertEqual(output_path, expected_output_path)
+
+
+    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, "output_file_name": "test_output", "db_item_no": 2}}')
+    def test_parse_cfg(self, mock_open):
+        token, endpoint, output_file_name, exp_no, db_item_no = lister.parse_cfg()
+        self.assertEqual(token, 'test_token')
+        self.assertEqual(endpoint, 'test_endpoint')
+        self.assertEqual(output_file_name, 'test_output')
+        self.assertEqual(exp_no, 1)
+        self.assertEqual(db_item_no, 2)
 
     def test_conv_html_to_nkvmu(self):
 
