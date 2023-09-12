@@ -9,6 +9,7 @@ from pathlib import Path
 import unittest
 from unittest.mock import MagicMock, patch
 import platform
+from argparse import Namespace
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, Misc_error_and_warning_msg
@@ -653,7 +654,9 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(output_path, expected_output_path)
 
 
-    @patch('builtins.open', new_callable=unittest.mock.mock_open, read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, "output_file_name": "test_output", "db_item_no": 2}}')
+    @patch('builtins.open', new_callable=unittest.mock.mock_open,
+           read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, '
+                     '"output_file_name": "test_output", "db_item_no": 2}}')
     def test_parse_cfg(self, mock_open):
         token, endpoint, output_file_name, exp_no, db_item_no = lister.parse_cfg()
         self.assertEqual(token, 'test_token')
@@ -661,6 +664,24 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(output_file_name, 'test_output')
         self.assertEqual(exp_no, 1)
         self.assertEqual(db_item_no, 2)
+
+
+    @patch('builtins.open', new_callable=unittest.mock.mock_open,
+           read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, '
+                     '"output_file_name": "test_output", "db_item_no": 2}}')
+    @patch('lister.parse_gooey_args')
+    def test_parse_gooey_args(self, mock_parse_gooey_args, mock_open):
+        mock_parse_gooey_args.return_value = Namespace(command='parse_experiment', title=True, id=False,
+                                                       base_output_dir='output/', exp_no=1,
+                                                       endpoint='test_endpoint', token='test_token')
+        args = lister.parse_gooey_args()
+        self.assertEqual(args.command, 'parse_experiment')
+        self.assertTrue(args.title)
+        self.assertFalse(args.id)
+        self.assertEqual(args.base_output_dir, 'output/')
+        self.assertEqual(args.exp_no, 1)
+        self.assertEqual(args.endpoint, 'test_endpoint')
+        self.assertEqual(args.token, 'test_token')
 
     def test_conv_html_to_nkvmu(self):
 
