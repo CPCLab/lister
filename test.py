@@ -945,6 +945,38 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(db_item_nkvmu_metadata, "")
 
 
+    def test_validate_range_valid(self):
+        flow_range = "[1-10]"
+        log, is_error = lister.validate_range(flow_range)
+        self.assertEqual(log, "")
+        self.assertFalse(is_error)
+
+
+    def test_validate_range_invalid_not_two_args(self):
+        flow_range = "[1-5-10]"
+        log, is_error = lister.validate_range(flow_range)
+        expected_log = lister.Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
+        self.assertEqual(log, expected_log)
+        self.assertTrue(is_error)
+
+
+    def test_validate_range_invalid_not_numbers(self):
+        flow_range = "[1a-10]"
+        log, is_error = lister.validate_range(flow_range)
+        expected_log = lister.Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
+        self.assertEqual(log, expected_log)
+        self.assertTrue(is_error)
+
+
+    def test_process_range(self):
+        flow_range = "[1-10]"
+        range_start, range_end, log, is_error = lister.process_range(flow_range)
+        self.assertEqual(range_start, 1)
+        self.assertEqual(range_end, 10)
+        self.assertEqual(log, "")
+        self.assertFalse(is_error)
+
+
     # def test_parse_lines_to_kv(self):
     #     lines = ["metadata section: Experiment Context"]
     #     result, internal_comments, log = lister.parse_lines_to_kv(lines)
