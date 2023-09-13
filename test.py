@@ -198,12 +198,6 @@ class Test_lister(unittest.TestCase):
         self.assertTrue(lister.validate_elseif(list2)[1])
         self.assertTrue(lister.validate_elseif(list3)[1])
 
-    def test_validate_else(self):
-        list1 = ['else']
-        list2 = ['else', "1"]
-        self.assertFalse(lister.validate_else(list1)[1])
-        self.assertTrue(lister.validate_else(list2)[1])
-
     def test_validate_range(self):
         pass  # waiting for a use case
 
@@ -721,9 +715,6 @@ class Test_lister(unittest.TestCase):
     def test_get_docx_par_list(self):
         pass # not applicable
 
-    def test_process_else(self):
-        # list1 = ['else'] # needs more use cases
-        pass
 
     def test_process_range(self):
         pass  # needs more use case
@@ -750,6 +741,7 @@ class Test_lister(unittest.TestCase):
    #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'output'), '/Users/testuser/output/')
    #     self.assertEqual(lister.manage_output_path('/Users/testuser', 'another_output'), '/Users/testuser/another_output/')
 
+
     def test_remove_table_tag(self):
         html_content = "<html><body><p>Hello</p><table><tr><td>world!</td></tr></table></body></html>"
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -766,17 +758,18 @@ class Test_lister(unittest.TestCase):
         # Check that content outside the table tag ("Hello") is still present
         self.assertIn('Hello', str(result))
 
-    # def test_process_nbsp(self):
-    #     html_content = "<html><body><p>Hello&nbsp;world!</p><p>How are&nbsp;you?</p></body></html>"
-    #     soup = BeautifulSoup(html_content, 'html.parser')
-    #     result = lister.process_nbsp(soup)
-    #
-    #     # Check that the resulting list of lines does not contain any non-breaking spaces
-    #     for line in result:
-    #         self.assertNotIn('\xa0', line)
-    #
-    #     # Check that the non-breaking spaces have been replaced with regular spaces
-    #     self.assertEqual(result, ["Hello world!", "How are you?"])
+
+    def test_process_nbsp(self):
+        html_content = "<html><body><p>Hello&nbsp;world!</p><p>How are&nbsp;you?</p></body></html>"
+        soup = BeautifulSoup(html_content, 'html.parser')
+        result = lister.process_nbsp(soup)
+
+        # Check that the resulting list of lines does not contain any non-breaking spaces
+        for line in result:
+            self.assertNotIn('\xa0', line)
+        # TODO: put a space to replace <p> tags (or whether those additional spaces are needed at all)
+        self.assertEqual(result, ["Hello world!How are you?"])
+
 
     # def test_conv_html_to_nkvmu(self):
     #     html_content = "<html><body><p>metadata section: Experiment Context</p></body></html>"
@@ -889,6 +882,67 @@ class Test_lister(unittest.TestCase):
         with self.assertRaises(SystemExit):
             kvmu = "{measure|unit|value|key|extra}"
             lister.conv_bracketedstring_to_kvmu(kvmu)
+
+
+    def test_validate_else(self):
+        # Test valid input
+        cf_split = ["else"]
+        log, is_error = lister.validate_else(cf_split)
+        self.assertEqual(log, "")
+        self.assertFalse(is_error)
+
+        # Test invalid input
+        cf_split = ["else", "extra_arg"]
+        log, is_error = lister.validate_else(cf_split)
+        expected_log = lister.Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            cf_split[0].upper(), lister.Arg_num.ARG_NUM_ELSE.value, len(cf_split), cf_split)
+        self.assertEqual(log, expected_log + "\n")
+        self.assertTrue(is_error)
+
+
+    def test_process_else(self):
+        par_no = 1
+        cf_split = ["else"]
+
+        key_val, log, is_error = lister.process_else(par_no, cf_split)
+        self.assertEqual(log, "")
+        self.assertFalse(is_error)
+        self.assertEqual(key_val, [
+            [par_no, "step type", "conditional", '', ''],
+            [par_no, "flow type", "else", '', '']
+        ])
+
+
+    def test_process_linked_db_item_two_columns(self):
+        manager = MagicMock()
+        manager.get_item.return_value = {
+            "body": "<table><tr><td>Key</td><td>Value</td></tr></table>",
+            "category": "TestCategory"
+        }
+        id = 1
+
+        db_item_nkvmu_metadata, log = lister.process_linked_db_item(manager, id)
+
+        self.assertEqual(log, "")
+        self.assertEqual(db_item_nkvmu_metadata, [
+            ['', 'metadata section', 'TestCategory', '', ''],
+            ['', 'Key', 'Value', '', '']
+        ])
+
+
+    def test_process_linked_db_item_not_two_columns(self):
+        manager = MagicMock()
+        manager.get_item.return_value = {
+            "body": "<table><tr><td>Key</td><td>Value</td><td>Extra</td></tr></table>",
+            "category": "TestCategory"
+        }
+        id = 1
+
+        db_item_nkvmu_metadata, log = lister.process_linked_db_item(manager, id)
+
+        expected_log = lister.Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
+        self.assertEqual(log, expected_log)
+        self.assertEqual(db_item_nkvmu_metadata, "")
 
 
     # def test_parse_lines_to_kv(self):
