@@ -1888,7 +1888,7 @@ def parse_gooey_args():
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('db_item_no',
                               metavar='eLabFTW Resource/Container Item ID',
-                              help='Integer indicated in the URL of the database/container item',
+                              help='Integer indicated in the URL of the resource/container item',
                               # default=db_item_no,
                               default=db_item_no,
                               type=int)
