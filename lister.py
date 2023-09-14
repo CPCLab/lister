@@ -1869,7 +1869,7 @@ def parse_gooey_args():
     # ELABFTW DATABASE PARAMETERS
     # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
     elab_arg_parser = subs.add_parser('parse_database', prog="Parse Container",
-                                      help='Parse metadata from an eLabFTW database/container items')
+                                      help='Parse metadata from an eLabFTW resource/container items')
 
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
     radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
@@ -1887,7 +1887,7 @@ def parse_gooey_args():
 
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
     elabftw_args.add_argument('db_item_no',
-                              metavar='eLabFTW Database/Container Item ID',
+                              metavar='eLabFTW Resource/Container Item ID',
                               help='Integer indicated in the URL of the database/container item',
                               # default=db_item_no,
                               default=db_item_no,
