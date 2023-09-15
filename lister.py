@@ -944,7 +944,6 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces, references
 
 
-# Used in remove_empty_tags().
 def remove_empty_tags(soup):
     for x in soup.find_all():
         # if the text within a tag is empty, and tag name is not img/br/etc.. and it is not img within p tag:
@@ -1890,6 +1889,7 @@ def parse_gooey_args():
                               metavar='eLabFTW Resource/Container Item ID',
                               help='Integer indicated in the URL of the resource/container item',
                               # default=db_item_no,
+
                               default=db_item_no,
                               type=int)
     elabftw_args.add_argument('endpoint',

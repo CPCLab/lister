@@ -7,9 +7,9 @@ import os
 from unittest.mock import MagicMock, patch
 from pathlib import Path
 import unittest
-from unittest.mock import MagicMock, patch
 import platform
 from argparse import Namespace
+from bs4 import BeautifulSoup, Tag
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, Misc_error_and_warning_msg
@@ -985,6 +985,28 @@ class Test_lister(unittest.TestCase):
     #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
     #
     #     self.assertEqual(result, expected_result)
+
+
+    def test_remove_empty_tags(self):
+        # Test case 1: HTML with no empty tags
+        html_content = "<p>This is a test paragraph without empty tags.</p>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = soup
+        self.assertEqual(lister.remove_empty_tags(soup), expected_output)
+
+        # Test case 2: HTML with empty tags
+        html_content = "<p>This is a test paragraph with <span></span> empty tags.</p>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = BeautifulSoup("<p>This is a test paragraph with  empty tags.</p>", "html.parser")
+        # typecasting due to the fact that BeautifulSoup objects are not comparable
+        self.assertEqual(str(lister.remove_empty_tags(soup)), str(expected_output))
+
+        # Test case 3: HTML with nested empty tags
+        html_content = "<p>This is a test paragraph with <span><i></i></span> nested empty tags.</p>"
+        soup = BeautifulSoup(html_content, "html.parser")
+        expected_output = BeautifulSoup("<p>This is a test paragraph with  nested empty tags.</p>", "html.parser")
+        # typecasting due to the fact that BeautifulSoup objects are not comparable
+        self.assertEqual(str(lister.remove_empty_tags(soup)), str(expected_output))
 
 
 # TODO: Continue with lister.process_experiment()
