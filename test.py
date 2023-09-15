@@ -992,7 +992,8 @@ class Test_lister(unittest.TestCase):
         html_content = "<p>This is a test paragraph without empty tags.</p>"
         soup = BeautifulSoup(html_content, "html.parser")
         expected_output = soup
-        self.assertEqual(lister.remove_empty_tags(soup), expected_output)
+        # typecasting due to the fact that BeautifulSoup objects are not comparable
+        self.assertEqual(str(lister.remove_empty_tags(soup)), str(expected_output))
 
         # Test case 2: HTML with empty tags
         html_content = "<p>This is a test paragraph with <span></span> empty tags.</p>"
@@ -1007,6 +1008,23 @@ class Test_lister(unittest.TestCase):
         expected_output = BeautifulSoup("<p>This is a test paragraph with  nested empty tags.</p>", "html.parser")
         # typecasting due to the fact that BeautifulSoup objects are not comparable
         self.assertEqual(str(lister.remove_empty_tags(soup)), str(expected_output))
+
+
+    def test_remove_extra_spaces(self):
+        # Test case 1: String with no extra spaces
+        input_string = "This is a test string without extra spaces."
+        expected_output = "This is a test string without extra spaces."
+        self.assertEqual(lister.remove_extra_spaces(input_string), expected_output)
+
+        # Test case 2: String with extra spaces
+        input_string = "This  is  a  test  string  with  extra  spaces."
+        expected_output = "This is a test string with extra spaces."
+        self.assertEqual(lister.remove_extra_spaces(input_string), expected_output)
+
+        # Test case 3: String with leading and trailing spaces
+        input_string = "  This is a test string with leading and trailing spaces.  "
+        expected_output = " This is a test string with leading and trailing spaces. "
+        self.assertEqual(lister.remove_extra_spaces(input_string), expected_output)
 
 
 # TODO: Continue with lister.process_experiment()
