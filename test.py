@@ -10,6 +10,8 @@ import unittest
 import platform
 from argparse import Namespace
 from bs4 import BeautifulSoup, Tag
+import shutil
+
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, Misc_error_and_warning_msg
@@ -1025,6 +1027,23 @@ class Test_lister(unittest.TestCase):
         input_string = "  This is a test string with leading and trailing spaces.  "
         expected_output = " This is a test string with leading and trailing spaces. "
         self.assertEqual(lister.remove_extra_spaces(input_string), expected_output)
+
+
+    def setUp(self):
+        self.test_path = "test_path"
+        self.log_text = "This is a test log."
+
+    def tearDown(self):
+        if os.path.exists(self.test_path):
+            shutil.rmtree(self.test_path)
+
+    def test_write_log(self):
+        lister.write_log(self.log_text, self.test_path)
+        self.assertTrue(os.path.isfile(f"{self.test_path}/lister-report.log"))
+
+        with open(f"{self.test_path}/lister-report.log", "r", encoding="utf-8") as f:
+            content = f.read()
+        self.assertEqual(content, self.log_text)
 
 
 # TODO: Continue with lister.process_experiment()
