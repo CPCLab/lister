@@ -1502,13 +1502,16 @@ def get_and_save_attachments(manager, uploads, path):
             try:
                 attachment.write(manager.get_upload(upload["id"]))
             except Exception as e:
-                if not log:
-                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
+                # if not log:
+                log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
                                                                                           str(upload["id"]), str(e))
-                else:
-                    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
-                                                                                                str(upload["id"]),
-                                                                                                str(e))
+                print(log + " Attachment download is skipped as it is inaccessible through API...")
+                # TODO: check why some attachments are inaccessible through API.
+                # TODO: append the log here to the generated log file.
+                # else:
+                #    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
+                #                                                                                str(upload["id"]),
+                #                                                                                str(e))
                 pass
 
 
