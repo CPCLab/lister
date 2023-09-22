@@ -12,6 +12,7 @@ from argparse import Namespace
 from bs4 import BeautifulSoup, Tag
 import shutil
 
+
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, Misc_error_and_warning_msg
@@ -708,31 +709,6 @@ class Test_lister(unittest.TestCase):
         # self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
 
 
-    def test_get_elab_exp_lines(self):
-        pass #  not applicable
-
-    def test_extract_elab_exp_content(self):
-        pass # not applicable
-
-    def test_get_docx_par_list(self):
-        pass # not applicable
-
-
-    def test_process_range(self):
-        pass  # needs more use case
-
-    def test_process_for(self):
-        pass  # needs more use case
-
-    def test_process_iterate(self):
-        pass  # needs more use case
-
-    def test_extract_docx_content(self):
-        pass # not applicable
-
-    def test_get_docx_content(self):
-        pass # not applicable
-
     def test_slugify(self):
         self.assertEqual(lister.slugify('Test String'), 'test-string')
         self.assertEqual(lister.slugify('Another_Test_String'), 'another_test_string')
@@ -1046,10 +1022,26 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(content, self.log_text)
 
 
-# TODO: Continue with lister.process_experiment()
+    def test_process_while(self):
+        # Test case 1: valid input
+        par_no = 1
+        cf_split = ["while", "param", "lt", "10"]
+        key_val, log, is_error = lister.process_while(par_no, cf_split)
+        self.assertFalse(is_error, "Error flag should be False for valid input")
+        self.assertEqual(log, "", "Log should be empty for valid input")
+        self.assertEqual(len(key_val), 5, "There should be 5 key-value pairs for valid input")
+
+        # Test case 2: invalid input (wrong number of elements)
+        cf_split = ["while", "param", "lt"]
+        with self.assertRaises(SystemExit):
+            lister.process_while(par_no, cf_split)
+
+
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
-# or require interactions with GUI components. These functions are tested manually. Try exploring Unit Test Mock:
-# https://docs.python.org/3/library/unittest.mock.html
+# or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
+# write_to_xlsx(), parse_lines_to_kv(), get_text_width(), add_table_to_doc(), add_img_to_doc()
+# TODO: process_ref_db_item(), process_iterate(), process_foreach(), process_for(), process_experiment()
+
 
 if __name__ == '__main__':
     unittest.main()
