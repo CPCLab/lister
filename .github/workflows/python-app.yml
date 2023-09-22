@@ -25,12 +25,14 @@ jobs:
         python-version: "3.10"
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install -U -f https://extras.wxpython.org/wxPython4/extras/linux/gtk3/ubuntu-22.04 wxPython
         sudo apt-get update
         sudo apt-get install libunwind-dev
+        # the dependencies below are needed if wxPython should be built from source or if the built wxPython version is 
+        # not available in the pip repository
         # sudo apt-get install -y libgtk2.0-dev libgtk-3-dev libjpeg-dev libtiff-dev libsdl1.2-dev libgstreamer-plugins-base1.0-dev libnotify-dev freeglut3 freeglut3-dev libsm-dev libwebkit2gtk-4.0-dev libwebkit2gtk-4.0-37
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
+        pip install flake8
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
