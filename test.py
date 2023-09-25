@@ -1053,6 +1053,23 @@ class Test_lister(unittest.TestCase):
             lister.process_while(par_no, cf_split)
 
 
+    def test_process_iterate(self):
+        # Test case 1: Valid input
+        par_no = 1
+        cf_split = ["iterate", "+", "1"]
+        key_val, iterate_log, is_error = lister.process_iterate(par_no, cf_split)
+        self.assertEqual(len(key_val), 3)
+        self.assertEqual(iterate_log, "")
+        self.assertFalse(is_error)
+
+        # Test case 2: Invalid input (missing elements)
+        par_no = 1
+        cf_split = ["iterate", "+"]
+        key_val, iterate_log, is_error = lister.process_iterate(par_no, cf_split)
+        self.assertEqual(len(key_val), 2)
+        self.assertTrue(is_error)
+
+
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
 # or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
 # write_to_xlsx(), parse_lines_to_kv(), get_text_width(), add_table_to_doc(), add_img_to_doc()

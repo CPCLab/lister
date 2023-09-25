@@ -640,14 +640,19 @@ def process_iterate(par_no, cf_split):
     if is_error:
         iterate_log = iterate_log + "\n" + log
         # write_log(log, output_path+output_fname)
-        print(log)
-        exit()
+        print(iterate_log)
+        # exit()
     flow_type = cf_split[0]
     key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
     flow_operation = cf_split[1]
     key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
-    flow_magnitude = cf_split[2]
-    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
+    try:
+        flow_magnitude = cf_split[2]
+        key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
+    except:
+        is_error = True
+        print(Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
+        iterate_log = iterate_log + "\n" + Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
     return key_val, iterate_log, is_error
 
 
