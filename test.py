@@ -219,6 +219,7 @@ class Test_lister(unittest.TestCase):
         self.assertFalse(lister.validate_section(list1)[1])
         self.assertTrue(lister.validate_section(list2)[1])
 
+
     def test_process_foreach(self):
         list1 = ['for each', 'cycles of minimization']
         par_no = 8
@@ -227,8 +228,23 @@ class Test_lister(unittest.TestCase):
                           [8, 'flow parameter', 'cycles of minimization', '', '']]
         self.assertListEqual(lister.process_foreach(par_no, list1)[0], processed_list)
 
-    def test_process_while(self):
-        pass # needs more use case
+
+    def test_process_for(self):
+        # Test case 1: Valid input
+        par_no = 1
+        cf_split = ["for", "param", "[1-7]", "+", "1"]
+        key_val, for_log, is_error = lister.process_for(par_no, cf_split)
+        self.assertEqual(len(key_val), 8)
+        self.assertEqual(for_log, "")
+        self.assertFalse(is_error)
+
+        # Test case 2: Invalid input
+        par_no = 1
+        cf_split = ["for", "param", "[1-10]", "+"]
+        key_val, for_log, is_error = lister.process_for(par_no, cf_split)
+        # self.assertNotEqual(for_log, "")
+        self.assertTrue(is_error)
+
 
     def test_process_if(self):
         list1 = ['if', 'membrane simulation', 'e', 'true']

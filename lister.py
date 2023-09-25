@@ -60,6 +60,8 @@ class Misc_error_and_warning_msg(Enum):
                                  "Check the following part: {1}."
     IMPROPER_ARGNO = "ERROR: Expected number of arguments in the '{0}' statement is {1}, but {2} was found." \
                      "Check the following part: '{3}'"
+    ITRTN_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
+    MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, please check the following part: {0}."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
@@ -558,7 +560,7 @@ def process_range(flow_range):
     if is_error:
         # write_log(log, output_path+output_fname)
         print(log)
-        exit()
+        # exit()
     else:
         range_values = re.split("-", flow_range[1:-1])
     return float(range_values[0]), float(range_values[1]), log, is_error
@@ -585,7 +587,7 @@ def process_for(par_no, cf_split):
         for_log = for_log + "\n" + for_validation_log
         is_error = True
         print(for_validation_log)
-        exit()
+        # exit()
     step_type = "iteration"
     key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
     flow_type = cf_split[0]
@@ -601,10 +603,20 @@ def process_for(par_no, cf_split):
         is_error = True
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start, '', ''])
     key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end, '', ''])
-    flow_operation = cf_split[3]
-    key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation, '', ''])
-    flow_magnitude = cf_split[4]
-    key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
+    try:
+        flow_operation = cf_split[3]
+        key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation, '', ''])
+    except:
+        is_error = True
+        print(Misc_error_and_warning_msg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split))
+        for_log = for_log + "\n" + Misc_error_and_warning_msg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split)
+    try:
+        flow_magnitude = cf_split[4]
+        key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
+    except:
+        is_error = True
+        print(Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
+        for_log = for_log + "\n" + Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
     return key_val, for_log, is_error
 
 
