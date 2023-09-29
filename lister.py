@@ -1581,7 +1581,7 @@ def get_and_save_attachments_apiv2(path, apiv2_client, exp_id):
     return log
 
 
-def process_linked_db_item(manager, id):
+def process_linked_resource_item(manager, id):
     linked_item = manager.get_item(id)
     html_body = linked_item["body"]
     category = linked_item["category"]
@@ -1592,15 +1592,15 @@ def process_linked_db_item(manager, id):
     if df_col_no != 2:
         log = Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
         print(log)
-        db_item_nkvmu_metadata = ""
+        resource_item_nkvmu_metadata = ""
         pass
     else:
         df.columns = ["metadata section", category]
         df.insert(loc=0, column="", value="")
         df = df.reindex(df.columns.tolist() + ['', ''], axis=1)
         filtered_df = df.fillna('')
-        db_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
-    return db_item_nkvmu_metadata, log
+        resource_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
+    return resource_item_nkvmu_metadata, log
 
 
 def get_exp_info(exp):
@@ -1636,9 +1636,9 @@ def process_experiment(exp_no, endpoint, token, path):
         # changed to reflect eLabFTW 4.4.3 dictionary keys name
         # if len(filtered_link['itemid']) > 0:
         if filtered_link['itemid']:
-            db_item_nkvmu_metadata, log = process_linked_db_item(manager, filtered_link['itemid'])
+            resource_item_nkvmu_metadata, log = process_linked_resource_item(manager, filtered_link['itemid'])
             overall_log = overall_log + "\n" + log
-            overall_nkvmu.extend(db_item_nkvmu_metadata)
+            overall_nkvmu.extend(resource_item_nkvmu_metadata)
 
     exp_nkvmu_info = get_exp_info(exp)
     overall_nkvmu.extend(exp_nkvmu_info)
@@ -1687,11 +1687,11 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def process_ref_db_item(db_item_no, endpoint, token, id, title):
+def process_ref_resource_item(resource_item_no, endpoint, token, id, title):
     '''
     Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
-    :param int db_item_no: The ID of the reference resource item to process.
+    :param int resource_item_no: The ID of the reference resource item to process.
     :param str endpoint: The URL of the eLab API endpoint.
     :param str token: The authentication token for the eLab API.
     :param int id: The ID of the initial resource container item.
@@ -1703,11 +1703,11 @@ def process_ref_db_item(db_item_no, endpoint, token, id, title):
     manager = create_elab_manager(endpoint, token)
 
     # get the list of related experiments
-    related_experiments = manager.send_req("experiments/?related=" + str(db_item_no), verb='GET')
+    related_experiments = manager.send_req("experiments/?related=" + str(resource_item_no), verb='GET')
     rel_exp_ids = [d['id'] for d in related_experiments if 'id' in d]
 
     # get the list of linked experiment IDs
-    linked_experiments = manager.send_req("items/" + str(db_item_no) + "/experiment_links", verb='GET')
+    linked_experiments = manager.send_req("items/" + str(resource_item_no) + "/experiment_links", verb='GET')
     linked_rel_exp = linked_experiments['experiments_links']
     linked_exp_ids = [x['itemid'] for x in linked_rel_exp if 'itemid' in x]
 
@@ -1797,8 +1797,8 @@ def parse_cfg():
     endpoint = data['elabftw']['endpoint']
     exp_no = data['elabftw']['exp_no']
     output_file_name = data['elabftw']['output_file_name']
-    db_item_no = data['elabftw']['db_item_no']
-    return token, endpoint, output_file_name, exp_no, db_item_no
+    resource_item_no = data['elabftw']['resource_item_no']
+    return token, endpoint, output_file_name, exp_no, resource_item_no
 
 
 def get_default_output_path(file_name: str) -> int:
@@ -1843,7 +1843,7 @@ def parse_gooey_args():
             - str token,
             - bool uploadToggle.
     '''
-    token, endpoint, output_file_name, exp_no, db_item_no = parse_cfg()
+    token, endpoint, output_file_name, exp_no, resource_item_no = parse_cfg()
     settings_msg = 'Please ensure to enter the fields below properly, or ask your eLabFTW admin if you have questions.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
@@ -1915,12 +1915,12 @@ def parse_gooey_args():
                          widget='DirChooser')
 
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
-    elabftw_args.add_argument('db_item_no',
+    elabftw_args.add_argument('resource_item_no',
                               metavar='eLabFTW Resource/Container Item ID',
                               help='Integer indicated in the URL of the resource/container item',
-                              # default=db_item_no,
+                              # default=resource_item_no,
 
-                              default=db_item_no,
+                              default=resource_item_no,
                               type=int)
     elabftw_args.add_argument('endpoint',
                               metavar="eLabFTW API endpoint URL",
@@ -1938,13 +1938,13 @@ def parse_gooey_args():
     return args
 
 
-def get_db_cat_and_title(endpoint: str, token: str, db_item_no: int) -> Tuple[str, str]:
+def get_resource_cat_and_title(endpoint: str, token: str, resource_item_no: int) -> Tuple[str, str]:
     manager = create_elab_manager(endpoint, token)
-    db_item = manager.get_item(db_item_no)
-    if db_item is None:
+    resource_item = manager.get_item(resource_item_no)
+    if resource_item is None:
         raise ValueError("Failed to retrieve resource item")
-    category = db_item.get("category")
-    title = db_item.get("title")
+    category = resource_item.get("category")
+    title = resource_item.get("title")
     if category is None or title is None:
         raise ValueError("Invalid resource category/title format")
     return category, title
@@ -1976,9 +1976,9 @@ def main():
     args = parse_gooey_args()
     base_output_path = args.base_output_dir
     if args.command == 'parse_resource':
-        cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
+        cat, title = get_resource_cat_and_title(args.endpoint, args.token, args.resource_item_no)
         if args.id:
-            output_fname = slugify(cat) + "_" + str(args.db_item_no)
+            output_fname = slugify(cat) + "_" + str(args.resource_item_no)
         elif args.title:
             output_fname = slugify(cat) + "_" + slugify(title)
     elif args.command == 'parse_experiment':
@@ -2000,7 +2000,7 @@ def main():
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token, output_path)
     elif args.command == 'parse_resource':
-        process_ref_db_item(args.db_item_no, args.endpoint, args.token, args.id, args.title)
+        process_ref_resource_item(args.resource_item_no, args.endpoint, args.token, args.id, args.title)
 
 
 if __name__ == "__main__":

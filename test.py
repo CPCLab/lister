@@ -455,7 +455,7 @@ class Test_lister(unittest.TestCase):
         manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
 
         with unittest.mock.patch('lister.create_elab_manager', return_value=manager):
-            category, title = lister.get_db_cat_and_title(endpoint, token, db_item_no)
+            category, title = lister.get_resource_cat_and_title(endpoint, token, db_item_no)
 
         self.assertEqual(category, expected_category)
         self.assertEqual(title, expected_title)
@@ -669,7 +669,7 @@ class Test_lister(unittest.TestCase):
 
     @patch('builtins.open', new_callable=unittest.mock.mock_open,
            read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, '
-                     '"output_file_name": "test_output", "db_item_no": 2}}')
+                     '"output_file_name": "test_output", "resource_item_no": 2}}')
     def test_parse_cfg(self, mock_open):
         token, endpoint, output_file_name, exp_no, db_item_no = lister.parse_cfg()
         self.assertEqual(token, 'test_token')
@@ -681,7 +681,7 @@ class Test_lister(unittest.TestCase):
 
     @patch('builtins.open', new_callable=unittest.mock.mock_open,
            read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, '
-                     '"output_file_name": "test_output", "db_item_no": 2}}')
+                     '"output_file_name": "test_output", "resource_item_no": 2}}')
     @patch('lister.parse_gooey_args')
     def test_parse_gooey_args(self, mock_parse_gooey_args, mock_open):
         mock_parse_gooey_args.return_value = Namespace(command='parse_experiment', title=True, id=False,
@@ -915,7 +915,7 @@ class Test_lister(unittest.TestCase):
         }
         id = 1
 
-        db_item_nkvmu_metadata, log = lister.process_linked_db_item(manager, id)
+        db_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
 
         self.assertEqual(log, "")
         self.assertEqual(db_item_nkvmu_metadata, [
@@ -932,7 +932,7 @@ class Test_lister(unittest.TestCase):
         }
         id = 1
 
-        db_item_nkvmu_metadata, log = lister.process_linked_db_item(manager, id)
+        db_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
 
         expected_log = lister.Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
         self.assertEqual(log, expected_log)
@@ -1073,7 +1073,7 @@ class Test_lister(unittest.TestCase):
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
 # or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
 # write_to_xlsx(), parse_lines_to_kv(), get_text_width(), add_table_to_doc(), add_img_to_doc()
-# TODO: process_ref_db_item(), process_iterate(), process_foreach(), process_for(), process_experiment()
+# TODO: process_ref_resource_item(), process_iterate(), process_foreach(), process_for(), process_experiment()
 
 
 if __name__ == '__main__':

@@ -4,6 +4,6 @@
         "endpoint":"https://elabftw.pharm.hhu.de/api/v1/",
         "exp_no":20,
         "output_file_name":"",
-        "db_item_no":18
+        "resource_item_no":18
     }
 }
