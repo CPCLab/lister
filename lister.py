@@ -1688,7 +1688,17 @@ def slugify(value, allow_unicode=False):
 
 
 def process_ref_db_item(db_item_no, endpoint, token, id, title):
-    # Process reference database item, using the initial database ID for that container item (e.g., publication)
+    '''
+    Process reference resource item, using the initial resource ID for that container item (e.g., publication).
+
+    :param int db_item_no: The ID of the reference resource item to process.
+    :param str endpoint: The URL of the eLab API endpoint.
+    :param str token: The authentication token for the eLab API.
+    :param int id: The ID of the initial resource container item.
+    :param str title: The title of the initial resource container item.
+    :return: None
+    :rtype: None
+    '''
 
     manager = create_elab_manager(endpoint, token)
 
@@ -1885,9 +1895,9 @@ def parse_gooey_args():
                               # Ask your eLabFTW admin to instance to generate one for you
                               type=str)
 
-    # ELABFTW DATABASE PARAMETERS
+    # ELABFTW resource PARAMETERS
     # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
-    elab_arg_parser = subs.add_parser('parse_database', prog="Parse Container",
+    elab_arg_parser = subs.add_parser('parse_resource', prog="Parse Container",
                                       help='Parse metadata from an eLabFTW resource/container items')
 
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
@@ -1932,11 +1942,11 @@ def get_db_cat_and_title(endpoint: str, token: str, db_item_no: int) -> Tuple[st
     manager = create_elab_manager(endpoint, token)
     db_item = manager.get_item(db_item_no)
     if db_item is None:
-        raise ValueError("Failed to retrieve database item")
+        raise ValueError("Failed to retrieve resource item")
     category = db_item.get("category")
     title = db_item.get("title")
     if category is None or title is None:
-        raise ValueError("Invalid database category/title format")
+        raise ValueError("Invalid resource category/title format")
     return category, title
 
 
@@ -1965,7 +1975,7 @@ def main():
 
     args = parse_gooey_args()
     base_output_path = args.base_output_dir
-    if args.command == 'parse_database':
+    if args.command == 'parse_resource':
         cat, title = get_db_cat_and_title(args.endpoint, args.token, args.db_item_no)
         if args.id:
             output_fname = slugify(cat) + "_" + str(args.db_item_no)
@@ -1989,7 +1999,7 @@ def main():
     if args.command == 'parse_experiment':
         print("Processing experiment...")
         process_experiment(args.exp_no, args.endpoint, args.token, output_path)
-    elif args.command == 'parse_database':
+    elif args.command == 'parse_resource':
         process_ref_db_item(args.db_item_no, args.endpoint, args.token, args.id, args.title)
 
 
