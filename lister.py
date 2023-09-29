@@ -19,7 +19,7 @@ import latex2mathml.converter
 import unicodedata
 import elabapi_python
 from pathvalidate import sanitize_filepath
-from typing import Any, Tuple
+from typing import Any, Tuple, List, Dict
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -163,7 +163,13 @@ def split_into_sentences(content):
 
 # -------------------------------- TYPE-VALIDATOR HELPER FUNCTIONS --------------------------------
 # Used in several control flow validation functions.
-def is_valid_comparative_operator(operator):
+def is_valid_comparative_operator(operator: str) -> bool:
+    '''
+    Check if the given operator is a valid comparative operator.
+    
+    :param str operator: The operator to check.
+    :return: True if the operator is valid, False otherwise.
+    '''
     operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
     if operator.lower() in operators_list:
         return True
@@ -172,7 +178,13 @@ def is_valid_comparative_operator(operator):
 
 
 # Used in several control flow validation functions.
-def is_valid_iteration_operator(operator):
+def is_valid_iteration_operator(operator: str) -> bool:
+    '''
+    Check if the given operator is a valid iteration operator.
+    
+    :param str operator: The operator to check.
+    :return: True if the operator is valid, False otherwise.
+    '''
     operators_list = ["+", "-", "*", "/", "%"]
     if operator.lower() in operators_list:
         return True
@@ -181,7 +193,13 @@ def is_valid_iteration_operator(operator):
 
 
 # Used in several control flow validation functions.
-def is_num(s):
+def is_num(s: str) -> bool:
+    '''
+    Check if the given string represents a number (integer or float).
+    
+    :param str s: The string to check.
+    :return: True if the string represents a number, False otherwise.
+    '''
     if isinstance(s, int) or isinstance(s, float):
         return True
     else:
@@ -193,7 +211,7 @@ def is_num(s):
 
 
 # -------------------------------- CONTROL-FLOW VALIDATOR FUNCTIONS --------------------------------
-def check_bracket_num(par_no, text):
+def check_bracket_num(par_no: int, text: str) -> Tuple[str, bool]:
     '''
     Check if there is any bracketing error over the text line
 
@@ -202,7 +220,7 @@ def check_bracket_num(par_no, text):
     :return: tuple (log, is_error)
         WHERE
         str log: error log (if any)
-        bool is_error:flag if the checked line contains bracketing error
+        bool is_error: flag if the checked line contains bracketing error
     '''
     log = ""
     base_error_warning = "BRACKET ERROR: %s %s: %s"
@@ -224,7 +242,16 @@ def check_bracket_num(par_no, text):
 
 
 # Used in process_foreach()
-def validate_foreach(cf_split):
+def validate_foreach(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the foreach command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -242,7 +269,16 @@ def validate_foreach(cf_split):
 
 
 # Used in process_while().
-def validate_while(cf_split):
+def validate_while(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the while command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -1016,7 +1052,7 @@ def get_attachment_long_name(img_path):
     return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
 
-def get_attachment_id(exp, content):
+def get_attachment_id(exp: Dict, content: Tag) -> Tuple[str, str]:
     '''
     Get upload id from given experiment and content.
     :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
