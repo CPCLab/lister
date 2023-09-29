@@ -470,7 +470,7 @@ def validate_section(cf_split: List[str]) -> Tuple[str, bool]:
     return log, is_error
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
-def process_foreach(par_no, cf_split):
+def process_foreach(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Converts key-value based on foreach control-metadata entry.
 
@@ -497,7 +497,7 @@ def process_foreach(par_no, cf_split):
     return key_val, log, is_error
 
 
-def process_while(par_no, cf_split):
+def process_while(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key value based on while control-metadata entry.
 
@@ -528,7 +528,7 @@ def process_while(par_no, cf_split):
     return key_val, log, is_error
 
 
-def process_if(par_no, cf_split):
+def process_if(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key-value based on if control-metadata entry.
 
@@ -559,7 +559,7 @@ def process_if(par_no, cf_split):
     return key_val, log, is_error
 
 
-def process_elseif(par_no, cf_split):
+def process_elseif(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key-value based on else-if control-metadata entry.
 
@@ -596,7 +596,7 @@ def process_elseif(par_no, cf_split):
     return key_val, log, is_error
 
 
-def process_else(par_no, cf_split):
+def process_else(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key value based on else control-metadata entry.
 
@@ -623,7 +623,7 @@ def process_else(par_no, cf_split):
     return key_val, log, is_error
 
 
-def process_range(flow_range):
+def process_range(flow_range: str) -> Tuple[float, float, str, bool]:
     '''
     Convert key value based on range control-metadata entry. Please consult LISTER documentation on GitHub.
 
@@ -646,7 +646,7 @@ def process_range(flow_range):
     return float(range_values[0]), float(range_values[1]), log, is_error
 
 
-def process_for(par_no, cf_split):
+def process_for(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
 
@@ -701,7 +701,7 @@ def process_for(par_no, cf_split):
 
 
 # should happen only after having 'while' iterations to provide additional steps on the iterator
-def process_iterate(par_no, cf_split):
+def process_iterate(par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
 
@@ -736,7 +736,7 @@ def process_iterate(par_no, cf_split):
     return key_val, iterate_log, is_error
 
 
-def strip_unwanted_mvu_colons(word):
+def strip_unwanted_mvu_colons(word: str) -> str:
     '''
     Remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
 
@@ -751,12 +751,12 @@ def strip_unwanted_mvu_colons(word):
 
 # only process the comment that is within (key value measure unit) pairs and remove its content
 # (unless if it is begun with "!")
-def process_internal_comment(str_with_brackets):
+def process_internal_comment(str_with_brackets: str) -> Tuple[str, str]:
     '''
     Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the trailing comments.
 
     Internal comment refers to any comment that is available within a fragment of a lister bracket annotation.
-    Internal comment will     not be bypassed to the metadata output.
+    Internal comment will not be bypassed to the metadata output.
     However, internal comment is important to be provided to make the experiment clear-text readable in the docx output.
 
     :param str str_with_brackets: a lister bracket annotation fragment with a comment.
@@ -773,7 +773,7 @@ def process_internal_comment(str_with_brackets):
     return actual_fragment, internal_comment
 
 
-def process_section(cf_split):
+def process_section(cf_split: List[str]) -> Tuple[List[List], str, bool]:
     '''
     Convert key value based on section to a full section metadata entry
 
