@@ -344,7 +344,16 @@ def validate_elseif(cf_split):
 
 
 # Used in else().
-def validate_else(cf_split):
+def validate_else(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the else command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -357,7 +366,16 @@ def validate_else(cf_split):
 
 
 # Used in process_range().
-def validate_range(flow_range):
+def validate_range(flow_range: str) -> Tuple[str, bool]:
+    '''
+    Validate the range command in the given string.
+
+    :param str flow_range: String containing the range command.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     is_error = False
     log = ""
     range_values = re.split("-", flow_range[1:-1])
@@ -372,7 +390,16 @@ def validate_range(flow_range):
 
 
 # Used in process_for().
-def validate_for(cf_split):
+def validate_for(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the for command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -396,7 +423,16 @@ def validate_for(cf_split):
 
 
 # Used in process_iterate().
-def validate_iterate(cf_split):
+def validate_iterate(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the iterate command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -413,7 +449,16 @@ def validate_iterate(cf_split):
 
 
 # Used in process_section().
-def validate_section(cf_split):
+def validate_section(cf_split: List[str]) -> Tuple[str, bool]:
+    '''
+    Validate the section command in the given list of strings.
+
+    :param List[str] cf_split: List of strings containing the command and its arguments.
+    :return: tuple (log, is_error)
+        WHERE
+        str log: error log (if any)
+        bool is_error: flag if the checked line contains an error
+    '''
     log = ""
     is_error = False
     elements = len(cf_split)
@@ -423,7 +468,6 @@ def validate_section(cf_split):
             elements, cf_split) + "\n"
         is_error = True
     return log, is_error
-
 
 # --------------------------------------- CONTROL-FLOW PROCESSING FUNCTIONS -------------------------------------------
 def process_foreach(par_no, cf_split):
