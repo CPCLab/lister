@@ -765,7 +765,6 @@ def process_internal_comment(str_with_brackets: str) -> Tuple[str, str]:
         str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit,
         str internal_comment: string containing the comment part of the string fragment, with brackets retained.
     '''
-
     comment = re.search(Regex_patterns.COMMENT.value, str_with_brackets)
     comment = comment.group(0)
     remains = str_with_brackets.replace(comment, '')
@@ -802,7 +801,7 @@ def process_section(cf_split: List[str]) -> Tuple[List[List], str, bool]:
 
 # ---------------------------------------- METADATA EXTRACTION FUNCTIONS ----------------------------------------------
 # parse opened document, first draft of sop
-def conv_bracketedstring_to_kvmu(kvmu):
+def conv_bracketedstring_to_kvmu(kvmu: str) -> Tuple[str, str, str, str, str]:
     '''
     Extract lines to a tuple containing key, value, measure, and log.
 
@@ -851,7 +850,7 @@ def conv_bracketedstring_to_kvmu(kvmu):
     return key, val, measure, unit, log
 
 
-def extract_flow_type(par_no, flow_control_pair):
+def extract_flow_type(par_no: int, flow_control_pair: str) -> Tuple[List[List], str, bool]:
     '''
     Extracts the type of flow found on any annotation with angle brackets, which can be control flow or sectioning.
 
@@ -864,7 +863,6 @@ def extract_flow_type(par_no, flow_control_pair):
         str flow_log: log resulted from running this and subsequent functions,
         bool is_error: flag that indicates whether an error occured.
     '''
-
     flow_log = ""
     print("flow_control_pair: "+ str(flow_control_pair))
     is_error = False
@@ -917,7 +915,7 @@ def extract_flow_type(par_no, flow_control_pair):
 
 
 # Used in parse_lines_to_kv().
-def strip_colon(key):
+def strip_colon(key: str) -> str:
     '''
     Strip colon found on key string.
     '''
@@ -926,7 +924,7 @@ def strip_colon(key):
 
 
 # Used in parse_lines_to_kv().
-def is_explicit_key(key):
+def is_explicit_key(key: str) -> bool:
     '''
     Check whether the string is an explicit key.
 
@@ -938,7 +936,7 @@ def is_explicit_key(key):
         return True
     else:
         return False
-
+    
 
 def latex_formula_to_docx(latex_formula):
     '''
