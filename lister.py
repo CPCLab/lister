@@ -938,7 +938,7 @@ def is_explicit_key(key: str) -> bool:
         return False
     
 
-def latex_formula_to_docx(latex_formula):
+def latex_formula_to_docx(latex_formula: str) -> Tuple[str, str]:
     '''
     Convert latex formula to docx formula.
 
@@ -964,7 +964,7 @@ def latex_formula_to_docx(latex_formula):
     return docx_formula, log
 
 
-def process_reg_bracket(line):
+def process_reg_bracket(line: str) -> Tuple[str, List[str]]:
     '''
     Process strings with regular brackets (), which can be (_invisible comment_), (regular comment), or (DOI).
     Maintain and update DOI numerical index.
@@ -1015,7 +1015,7 @@ def process_reg_bracket(line):
     return processed_line, references
 
 
-def strip_markup_and_explicit_keys(line):
+def strip_markup_and_explicit_keys(line: str) -> Tuple[str, List[str]]:
     '''
     Strip keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
     pattern of DOI as reference, strip curly and angle brackets, reformat any annotation with regular bracket and fetch
@@ -1039,7 +1039,13 @@ def strip_markup_and_explicit_keys(line):
     return stripped_from_trailing_spaces, references
 
 
-def remove_empty_tags(soup):
+def remove_empty_tags(soup: BeautifulSoup) -> BeautifulSoup:
+    '''
+    Remove empty tags from a BeautifulSoup object.
+
+    :param BeautifulSoup soup: The BeautifulSoup object to be processed.
+    :return: BeautifulSoup object with empty tags removed.
+    '''
     for x in soup.find_all():
         # if the text within a tag is empty, and tag name is not img/br/etc.. and it is not img within p tag:
         if len(x.get_text(strip=True)) == 0 and x.name not in ['img', 'br', 'td', 'tr', 'table', 'h1', 'h2', 'h3',
@@ -1048,7 +1054,7 @@ def remove_empty_tags(soup):
     return soup
 
 
-def get_nonempty_body_tags(exp):
+def get_nonempty_body_tags(exp: BeautifulSoup) -> List:
     '''
     Clean up the source-html from empty-content html tags.
 
@@ -1063,7 +1069,7 @@ def get_nonempty_body_tags(exp):
 
 
 # Used in get_attachment_long_name()
-def split(text, separators):
+def split(text: str, separators: List[str]) -> List[str]:
     """
     Split a given text using multiple separators.
 
@@ -1086,7 +1092,7 @@ def split(text, separators):
     return [i.strip() for i in text.split(default_sep)]
 
 
-def get_attachment_long_name(img_path):
+def get_attachment_long_name(img_path: str) -> str:
     '''
     Get upload long name from the img path.
     '''
@@ -1127,7 +1133,7 @@ def get_attachment_id(exp: Dict, content: Tag) -> Tuple[str, str]:
 
 
 # Used in add_img_to_doc()
-def get_text_width(document):
+def get_text_width(document) -> float:
     '''
     Return the text width in mm.
     '''
@@ -1135,7 +1141,7 @@ def get_text_width(document):
     return (section.page_width - section.left_margin - section.right_margin) / 36000
 
 
-def add_img_to_doc(document, real_name, path):
+def add_img_to_doc(document: Document, real_name: str, path: str) -> None:
     '''
     Add image to the document file, based on upload id and image name when it was uploaded.
 
@@ -1157,12 +1163,15 @@ def add_img_to_doc(document, real_name, path):
 
 
 # helper function to print dataframe, used for development and debugging
-def print_whole_df(df):
+def print_whole_df(df: pd.DataFrame) -> None:
+    '''
+    Print the entire DataFrame without truncation.
+    '''
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
         print(df)
 
 
-def add_table_to_doc(doc, content):
+def add_table_to_doc(doc: Document, content: Tag) -> None:
     '''
     Add table content to docx instance.
 
@@ -1194,7 +1203,10 @@ def add_table_to_doc(doc, content):
 
 
 # Used in write_tag_to_doc()
-def get_section_title(line):
+def get_section_title(line: str) -> str:
+    '''
+    Get the section title from a given line.
+    '''
     words = line.split()
     if len(words) > 1:
         return ' '.join(words[1:])
@@ -1203,18 +1215,24 @@ def get_section_title(line):
 
 
 # Used in write_tag_to_doc()
-def get_span_attr_val(c):
+def get_span_attr_val(c: Tag) -> tuple:
+    '''
+    Get the attribute and value from the "style" attribute of a given Tag.
+    '''
     found = re.findall(Regex_patterns.SPAN_ATTR_VAL.value, c.get("style"))
     attr, val = found[0]
     return attr, val
 
 
-def remove_extra_spaces(line):
+def remove_extra_spaces(line: str) -> str:
+    '''
+    Remove extra spaces from a given line.
+    '''
     return re.sub(' +', ' ', line)
 
 
 # TODO: check why some invisible key elements passed the invisibility checks.
-def write_tag_to_doc(document, tag_item):
+def write_tag_to_doc(document: Document, tag_item: Tag) -> List[str]:
     '''
     writes and format html tag content to docx document.
     :param document: python-docx document instance.
