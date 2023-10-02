@@ -19,7 +19,7 @@ import latex2mathml.converter
 import unicodedata
 import elabapi_python
 from pathvalidate import sanitize_filepath
-from typing import Any, Tuple, List, Dict
+from typing import Any, Tuple, List, Dict, Union
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -1698,7 +1698,7 @@ def get_and_save_attachments_apiv2(path: str, apiv2_client: elabapi_python.ApiCl
     return log
 
 
-def process_linked_resource_item(manager: Manage, id: int) -> Tuple[Union[List[List[str]], str], str]:
+def process_linked_resource_item(manager: elabapy.Manager, id: int) -> Tuple[Union[List[List[str]], str], str]:
     """
     Process a linked resource item and return its metadata and log.
 
@@ -1787,7 +1787,7 @@ def process_experiment(exp_no: int, endpoint: str, token: str, path: str) -> Non
 
 
 # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
-def create_elab_manager(current_endpoint: str, current_token: str) -> Manage:
+def create_elab_manager(current_endpoint: str, current_token: str) -> elabapy.Manager:
     """
     Create an eLab manager with the given endpoint and token.
 
@@ -1796,7 +1796,7 @@ def create_elab_manager(current_endpoint: str, current_token: str) -> Manage:
     :return: An instance of the eLab manager.
     """
     ssl._create_default_https_context = ssl._create_unverified_context
-    manager = Manage(endpoint=current_endpoint, token=current_token, verify=False)
+    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
     return manager
 
 
@@ -1856,7 +1856,7 @@ def process_ref_resource_item(resource_item_no: int, endpoint: str, token: str, 
 
 
 
-def get_elab_exp(exp_number: int, current_endpoint: str, current_token: str) -> Tuple[Manage, dict]:
+def get_elab_exp(exp_number: int, current_endpoint: str, current_token: str) -> Tuple[elabapy.Manager, dict]:
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
 
