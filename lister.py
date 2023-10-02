@@ -20,6 +20,7 @@ import unicodedata
 import elabapi_python
 from pathvalidate import sanitize_filepath
 from typing import Any, Tuple, List, Dict, Union
+from argparse import Namespace
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -1910,7 +1911,7 @@ def manage_input_path() -> str:
 
 
 # ----------------------------------------------------- GUI ------------------------------------------------------------
-def parse_cfg():
+def parse_cfg() -> Tuple[str, str, str, int, int]:
     '''
     Parse JSON config file, requires existing config.json file which should be specified on certain directory.
 
@@ -1938,7 +1939,7 @@ def parse_cfg():
     return token, endpoint, output_file_name, exp_no, resource_item_no
 
 
-def get_default_output_path(file_name: str) -> int:
+def get_default_output_path(file_name: str) -> str:
     '''
     Create an output path based on the home path (OS-dependent) and output file name.
     The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
@@ -1961,121 +1962,66 @@ def get_default_output_path(file_name: str) -> int:
     return output_path
 
 
-@Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser",
-       default_size=(753, 753), navigation="TABBED")  # , image_dir='resources/')
-def parse_gooey_args():
-    '''
+@Gooey(optional_cols=0, program_name="LISTER: Life Science Experiment Metadata Parser", default_size=(753, 753), navigation="TABBED")
+def parse_gooey_args() -> Namespace:
+    """
     Get arguments from an existing JSON config to be passed to Gooey's interface.
-
     Manual debugging (i.e., printout) is necessary when Gooey is used.
 
-    :returns: args
-        WHERE
-        argparse.Namespace args is an object containing several attributes:
-            - str command (e.g., eLabFTW),
-            - str output_file_name,
-            - int exp_no,
-            - str endpoint,
-            - str base_output_dir,
-            - str token,
-            - bool uploadToggle.
-    '''
+    :returns: args WHERE argparse.Namespace args is an object containing several attributes:
+    - str command (e.g., eLabFTW),
+    - str output_file_name,
+    - int exp_no,
+    - str endpoint,
+    - str base_output_dir,
+    - str token,
+    - bool uploadToggle.
+    """
     token, endpoint, output_file_name, exp_no, resource_item_no = parse_cfg()
     settings_msg = 'Please ensure to enter the fields below properly, or ask your eLabFTW admin if you have questions.'
     parser = GooeyParser(description=settings_msg)
     subs = parser.add_subparsers(help='commands', dest='command')
-
     base_output_path = get_default_output_path(output_file_name)
 
     # ELABFTW EXPERIMENT PARAMETERS
-    elab_arg_parser = subs.add_parser('parse_experiment', prog="Parse Experiment",
-                                      help='Parse metadata from an eLabFTW experiment entry')
-
+    elab_arg_parser = subs.add_parser('parse_experiment', prog="Parse Experiment", help='Parse metadata from an eLabFTW experiment entry')
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
-    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
-        'title': "Naming method for the outputs", 'initial_selection': 0})
-    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
-                             help='Name files and folders based on experiment title')
-    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on the experiment ID')
-    # radio_group.add_argument("-t", "--custom", metavar="Custom name", action="store_true",
-    #                         help='Name output file using your input here:')
-    # io_args.add_argument('output_file_name',
-    # metavar='Output file name',
-    # help='[FILENAME] for your metadata and log outputs, without extension',
-    # This will automatically generate [FILENAME].xlsx,  [FILENAME].json, and
-    # [FILENAME].log files in the specified output folder
-    # default=output_file_name,
-    # type=str)
-    io_args.add_argument('base_output_dir',
-                         metavar='Base output directory',
-                         help='Local directory generally used to save your outputs',
-                         type=str,
-                         default=base_output_path,
-                         widget='DirChooser')
+    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={'title': "Naming method for the outputs", 'initial_selection': 0})
+    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true", help='Name files and folders based on experiment title')
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true", help='Name files and folders based on the experiment ID')
 
+    io_args.add_argument('base_output_dir', metavar='Base output directory', help='Local directory generally used to save your outputs', type=str, default=base_output_path, widget='DirChooser')
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
-    elabftw_args.add_argument('exp_no',
-                              metavar='eLabFTW experiment ID',
-                              help='Integer indicated in the URL of the experiment',
-                              default=exp_no,
-                              type=int)
-    elabftw_args.add_argument('endpoint',
-                              metavar="eLabFTW API endpoint URL",
-                              help='Ask your eLabFTW admin to provide the endpoint URL for you',
-                              default=endpoint,
-                              type=str)
-    elabftw_args.add_argument('token',
-                              metavar='eLabFTW API Token',
-                              help='Ask your eLabFTW admin to generate an API token for you',
-                              default=token,
-                              # Ask your eLabFTW admin to instance to generate one for you
-                              type=str)
+    elabftw_args.add_argument('exp_no', metavar='eLabFTW experiment ID', help='Integer indicated in the URL of the experiment', default=exp_no, type=int)
+    elabftw_args.add_argument('endpoint', metavar="eLabFTW API endpoint URL", help='Ask your eLabFTW admin to provide the endpoint URL for you', default=endpoint, type=str)
+    elabftw_args.add_argument('token', metavar='eLabFTW API Token', help='Ask your eLabFTW admin to generate an API token for you', default=token, type=str)
 
     # ELABFTW resource PARAMETERS
-    # elabftw_args = parser.add_argument_group("eLabFTW Arguments")
-    elab_arg_parser = subs.add_parser('parse_resource', prog="Parse Container",
-                                      help='Parse metadata from an eLabFTW resource/container items')
-
+    elab_arg_parser = subs.add_parser('parse_resource', prog="Parse Container", help='Parse metadata from an eLabFTW resource/container items')
     io_args = elab_arg_parser.add_argument_group("Input/Output Arguments", gooey_options={'columns': 1})
-    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={
-        'title': "Naming method for the outputs", 'initial_selection': 0})
-    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
-                             help='Name files and folders based on container type + title, including the underlying experiments')
-    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
-                             help='Name files and folders based on container type + ID, including the underlying experiments')
-    io_args.add_argument('base_output_dir',
-                         metavar='Base output directory',
-                         help='Local directory generally used to save your outputs',
-                         type=str,
-                         default=base_output_path,
-                         widget='DirChooser')
+    radio_group = io_args.add_mutually_exclusive_group(required=True, gooey_options={'title': "Naming method for the outputs", 'initial_selection': 0})
+    radio_group.add_argument("-t", "--title", metavar="Title", action="store_true", help='Name files and folders based on container type + title, including the underlying experiments')
+    radio_group.add_argument("-i", "--id", metavar="ID", action="store_true", help='Name files and folders based on container type + ID, including the underlying experiments')
 
+    io_args.add_argument('base_output_dir', metavar='Base output directory', help='Local directory generally used to save your outputs', type=str, default=base_output_path, widget='DirChooser')
     elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
-    elabftw_args.add_argument('resource_item_no',
-                              metavar='eLabFTW Resource/Container Item ID',
-                              help='Integer indicated in the URL of the resource/container item',
-                              # default=resource_item_no,
-
-                              default=resource_item_no,
-                              type=int)
-    elabftw_args.add_argument('endpoint',
-                              metavar="eLabFTW API endpoint URL",
-                              help='Ask your eLabFTW admin to provide the endpoint URL for you',
-                              default=endpoint,
-                              type=str)
-    elabftw_args.add_argument('token',
-                              metavar='eLabFTW API Token',
-                              help='Ask your eLabFTW admin to generate an API token for you',
-                              default=token,
-                              # Ask your eLabFTW admin to instance to generate one for you
-                              type=str)
+    elabftw_args.add_argument('resource_item_no', metavar='eLabFTW Resource/Container Item ID', help='Integer indicated in the URL of the resource/container item', default=resource_item_no, type=int)
+    elabftw_args.add_argument('endpoint', metavar="eLabFTW API endpoint URL", help='Ask your eLabFTW admin to provide the endpoint URL for you', default=endpoint, type=str)
+    elabftw_args.add_argument('token', metavar='eLabFTW API Token', help='Ask your eLabFTW admin to generate an API token for you', default=token, type=str)
 
     args = parser.parse_args()
     return args
 
 
 def get_resource_cat_and_title(endpoint: str, token: str, resource_item_no: int) -> Tuple[str, str]:
+    '''
+    Get the resource category and title for a given resource item number.
+
+    :param endpoint: The API endpoint.
+    :param token: The API token.
+    :param resource_item_no: The resource item number.
+    :return: A tuple containing the resource category and title.
+    '''
     manager = create_elab_manager(endpoint, token)
     resource_item = manager.get_item(resource_item_no)
     if resource_item is None:
@@ -2088,6 +2034,14 @@ def get_resource_cat_and_title(endpoint: str, token: str, resource_item_no: int)
 
 
 def get_exp_title(endpoint: str, token: str, exp_item_no: int) -> str:
+    """
+    Get the title of an experiment from eLabFTW using the experiment item number, API endpoint, and token.
+
+    :param endpoint: eLabFTW API endpoint URL
+    :param token: eLabFTW API token
+    :param exp_item_no: eLabFTW experiment item number (integer)
+    :return: Experiment title as a string
+    """
     exp = get_elab_exp(exp_item_no, endpoint, token)
     if exp is None:
         raise ValueError("Failed to retrieve experiment entry")
