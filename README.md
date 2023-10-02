@@ -2,7 +2,8 @@
 
 This repository contains a set of files to parse documentation of experiments in eLabFTW.
 
-A more detailed explanation regarding LISTER is provided in the following paper: _Semiautomatic Metadata Extraction from Annotated Experiment Documentation in eLabFTW_(https://www.biorxiv.org/content/10.1101/2023.02.20.529231v1)
+A more detailed explanation regarding LISTER is provided in the following paper: https://pubs.acs.org/doi/10.1021/acs.jcim.3c00744
+
 
 Additional resources are avaible to try out LISTER on your own:
 
