@@ -1350,13 +1350,16 @@ def write_tag_to_doc(document: Document, tag_item: Tag) -> List[str]:
     return all_references
 
 
-def derive_fname_from_exp(exp):
+def derive_fname_from_exp(exp: dict) -> str:
+    '''
+    Derive a file name from the experiment dictionary.
+    '''
     exp_title = exp["title"]
     fname_from_exp = slugify(exp_title)
     return fname_from_exp
 
 
-def write_to_docx(manager, exp, path):
+def write_to_docx(manager, exp: dict, path: str) -> None:
     '''
     fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
@@ -1393,7 +1396,7 @@ def write_to_docx(manager, exp, path):
     document.save(path + '/' + derive_fname_from_exp(exp) + '.docx')
 
 
-def parse_lines_to_kv(lines):
+def parse_lines_to_kv(lines: List[str]) -> Tuple[List, List[str], str]:
     '''
     Get a list of [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
     :param list lines: list of lines cleaned up from nbsp.
@@ -1473,7 +1476,7 @@ def parse_lines_to_kv(lines):
 
 # ----------------------------------------- SERIALIZING TO FILES ------------------------------------------------------
 # Used to serialize extracted metadata to json file.
-def write_to_json(lst, exp, path):
+def write_to_json(lst: List, exp: dict, path: str) -> None:
     """
     Write a list to a JSON file.
     :param lst: The list to write to the JSON file.
@@ -1485,7 +1488,11 @@ def write_to_json(lst, exp, path):
         json.dump(lst, f, ensure_ascii=False)
 
 
-def check_and_create_path(path):
+def check_and_create_path(path: str) -> None:
+    '''
+    Check if the given path exists, and create the directory if it doesn't.
+    :param path: The path to check and create if necessary.
+    '''
     if not os.path.isdir(path):
         print("Output path %s is not available, creating the path directory..." % (path))
         os.makedirs(path)
@@ -1493,7 +1500,7 @@ def check_and_create_path(path):
 
 # Used to write into the log file.
 # def write_log(log, full_path=output_path_and_fname):
-def write_log(log_text, path):
+def write_log(log_text: str, path: str) -> None:
     """
     Write the log to a file.
     :param log_text: The log to be written to the file.
@@ -1505,12 +1512,12 @@ def write_log(log_text, path):
         f.write(log_text)
 
 
-def write_to_xlsx(nkvmu, exp, path):
+def write_to_xlsx(nkvmu: List, exp: str, path: str) -> None:
     '''
     Write extracted order/key/value/measure/unit to an Excel file.
 
     :param list nkvmu: list containing the order/key/value/measure/unit to be written.
-    :param str log: log containing information necessary if this (and underlying) functions are not executed properly.
+    :param str exp: experiment name.
     :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
     '''
 
@@ -1540,7 +1547,7 @@ def write_to_xlsx(nkvmu, exp, path):
                 worksheet.write_row(row_no + 1, 0, data, default_format)
 
 
-def remove_table_tag(soup):
+def remove_table_tag(soup: BeautifulSoup) -> BeautifulSoup:
     '''
     Remove table tags and its content from the soup object.
 
@@ -1552,7 +1559,7 @@ def remove_table_tag(soup):
     return soup
 
 
-def process_nbsp(soup):
+def process_nbsp(soup: BeautifulSoup) -> List[str]:
     '''
     Remove non-break space (nbsp), and provide a 'clean' version of the lines.
 
@@ -1573,7 +1580,7 @@ def process_nbsp(soup):
     return clean_lines
 
 
-def conv_html_to_nkvmu(html_content):
+def conv_html_to_nkvmu(html_content: str) -> Tuple[List, str]:
     '''
     Turn html body content into extended key-value pair
             [order, key, value, measure (if applicable), unit (if applicable)] or
@@ -1596,7 +1603,7 @@ def conv_html_to_nkvmu(html_content):
     return multi_nkvmu_pair, log
 
 
-def get_and_save_attachments(manager, uploads, path):
+def get_and_save_attachments(manager, uploads: List[Dict], path: str) -> None:
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1628,13 +1635,27 @@ def get_and_save_attachments(manager, uploads, path):
                 pass
 
 
-def get_api_v2endpoint(v1endpoint):
+def get_api_v2endpoint(v1endpoint: str) -> str:
+    '''
+    Convert a version 1 API endpoint to a version 2 API endpoint.
+
+    :param str v1endpoint: version 1 API endpoint.
+    :return: str v2endpoint: version 2 API endpoint.
+    '''
     v2endpoint = re.sub(r'http://', 'https://', v1endpoint)
     v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
     return v2endpoint
 
 
-def create_apiv2_client(endpoint, token):
+
+def create_apiv2_client(endpoint: str, token: str) -> elabapi_python.ApiClient:
+    """
+    Create an API v2 client with the given endpoint and token.
+    
+    :param endpoint: The API endpoint.
+    :param token: The API token.
+    :return: The API v2 client.
+    """
     endpoint_v2 = get_api_v2endpoint(endpoint)
     apiv2config = elabapi_python.Configuration()
     apiv2config.api_key['api_key'] = token
@@ -1647,7 +1668,7 @@ def create_apiv2_client(endpoint, token):
     return apiv2_client
 
 
-def get_and_save_attachments_apiv2(path, apiv2_client, exp_id):
+def get_and_save_attachments_apiv2(path: str, apiv2_client: elabapi_python.ApiClient, exp_id: int) -> str:
     '''
     Get a list of attachments in the experiment entry and download these attachments.
 
@@ -1677,7 +1698,14 @@ def get_and_save_attachments_apiv2(path, apiv2_client, exp_id):
     return log
 
 
-def process_linked_resource_item(manager, id):
+def process_linked_resource_item(manager: Manage, id: int) -> Tuple[Union[List[List[str]], str], str]:
+    """
+    Process a linked resource item and return its metadata and log.
+
+    :param manager: An instance of the manager object, containing eLabFTW API-related information.
+    :param id: The ID of the linked resource item.
+    :return: A tuple containing the resource item metadata and log.
+    """
     linked_item = manager.get_item(id)
     html_body = linked_item["body"]
     category = linked_item["category"]
@@ -1699,7 +1727,13 @@ def process_linked_resource_item(manager, id):
     return resource_item_nkvmu_metadata, log
 
 
-def get_exp_info(exp):
+def get_exp_info(exp: dict) -> List[List[str]]:
+    """
+    Get experiment information and return it as a list of lists.
+
+    :param exp: A dictionary containing experiment information.
+    :return: A list of lists containing experiment information.
+    """
     nkvmu_pairs = []
     nkvmu_pairs.append(["", "metadata section", "Experiment Info", "", ""])
     nkvmu_pairs.append(["", "title", exp['title'], "", ""])
@@ -1710,27 +1744,28 @@ def get_exp_info(exp):
     return nkvmu_pairs
 
 
-def process_experiment(exp_no, endpoint, token, path):
+def process_experiment(exp_no: int, endpoint: str, token: str, path: str) -> None:
+    """
+    Process an experiment and save its information to various formats.
+
+    :param exp_no: The experiment number.
+    :param endpoint: The API endpoint.
+    :param token: The API token.
+    :param path: The path for saving the output files.
+    """
     overall_log = ""
 
     manager, exp = get_elab_exp(exp_no, endpoint, token)
-    # links = exp['links']
-    # changed to reflect eLabFTW 4.4.3 dictionary keys name
     links = exp['items_links']
-    # may need to configure this in the json file in the future
     excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
     filtered_links = []
 
     for link in links:
-        # if link['name'].casefold() not in (item.casefold() for item in excluded_item_types):
-        # changed to reflect eLabFTW 4.4.3 dictionary keys name
         if link['category'].casefold() not in (item.casefold() for item in excluded_item_types):
             filtered_links.append(link)
 
     overall_nkvmu = []
     for filtered_link in filtered_links:
-        # changed to reflect eLabFTW 4.4.3 dictionary keys name
-        # if len(filtered_link['itemid']) > 0:
         if filtered_link['itemid']:
             resource_item_nkvmu_metadata, log = process_linked_resource_item(manager, filtered_link['itemid'])
             overall_log = overall_log + "\n" + log
@@ -1743,36 +1778,40 @@ def process_experiment(exp_no, endpoint, token, path):
     overall_nkvmu.extend(exp_nkvmu)
 
     apiv2_client = create_apiv2_client(endpoint, token)
-    # get_and_save_attachments(manager, exp["uploads"], path)
     log = get_and_save_attachments_apiv2(path, apiv2_client, int(exp_no))
     write_to_docx(manager, exp, path)
 
-    # consult first with involved AGs whether uploading the parsing result makes sense
-    # if args.uploadToggle == True:
-    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".xlsx")
-    #    upload_to_elab_exp(exp_no, endpoint, token, output_file_prefix + ".json")
-
-    # Writing to JSON and XLSX
     write_to_json(overall_nkvmu, exp, path)
-    # write_to_linear_json(nkvmu)
     write_to_xlsx(overall_nkvmu, exp, path)
     write_log(overall_log, path)
 
 
-def create_elab_manager(current_endpoint, current_token):
-    # PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+# PLEASE CHANGE THE 'VERIFY' FLAG TO TRUE UPON DEPLOYMENT
+def create_elab_manager(current_endpoint: str, current_token: str) -> Manage:
+    """
+    Create an eLab manager with the given endpoint and token.
+
+    :param current_endpoint: The API endpoint.
+    :param current_token: The API token.
+    :return: An instance of the eLab manager.
+    """
     ssl._create_default_https_context = ssl._create_unverified_context
-    manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
+    manager = Manage(endpoint=current_endpoint, token=current_token, verify=False)
     return manager
 
 
-def slugify(value, allow_unicode=False):
+#    Taken from https://github.com/django/django/blob/master/django/utils/text.py
+#    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
+#    dashes to single dashes. Remove characters that aren't alphanumerics,
+#    underscores, or hyphens. Convert to lowercase. Also strip leading and
+#   trailing whitespace, dashes, and underscores.
+def slugify(value: Union[str, Any], allow_unicode: bool = False) -> str:
     """
-    Taken from https://github.com/django/django/blob/master/django/utils/text.py
-    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
-    dashes to single dashes. Remove characters that aren't alphanumerics,
-    underscores, or hyphens. Convert to lowercase. Also strip leading and
-    trailing whitespace, dashes, and underscores.
+    Convert a string into a URL-friendly slug.
+
+    :param value: The input string to be converted.
+    :param allow_unicode: Whether to allow Unicode characters in the slug.
+    :return: The URL-friendly slug.
     """
     value = str(value)
     if allow_unicode:
@@ -1783,7 +1822,7 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-def process_ref_resource_item(resource_item_no, endpoint, token, id, title):
+def process_ref_resource_item(resource_item_no: int, endpoint: str, token: str, id: int, title: str) -> None:
     '''
     Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
@@ -1816,7 +1855,8 @@ def process_ref_resource_item(resource_item_no, endpoint, token, id, title):
         process_experiment(exp_id, endpoint, token, exp_path)
 
 
-def get_elab_exp(exp_number, current_endpoint, current_token):
+
+def get_elab_exp(exp_number: int, current_endpoint: str, current_token: str) -> Tuple[Manage, dict]:
     '''
     Get overall experiment object from specified experiment ID, eLabFTW endpoint, and eLabFTW token.
 
@@ -1836,7 +1876,7 @@ def get_elab_exp(exp_number, current_endpoint, current_token):
     return (manager, exp)
 
 
-def manage_output_path(dir_name, file_name):
+def manage_output_path(dir_name: str, file_name: str) -> str:
     '''
     Get the output path according to respective platform.
 
@@ -1856,10 +1896,11 @@ def manage_output_path(dir_name, file_name):
     return output_path
 
 
-def manage_input_path():
+def manage_input_path() -> str:
     '''
     Enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
     from the executable file's directory).
+    :return: str input_path is the input directory for macOS.
     '''
     input_path = ""
     if platform.system() == "Darwin":  # enforce input path to be specific to ~/Apps/lister/
