@@ -444,10 +444,10 @@ class Test_lister(unittest.TestCase):
 
 
 
-    def test_get_db_cat_and_title(self):
+    def test_get_resource_cat_and_title(self):
         endpoint = 'http://example.com'
         token = 'test_token'
-        db_item_no = 1
+        resource_item_no = 1
         expected_category = 'Sample Category'
         expected_title = 'Sample Title'
 
@@ -455,7 +455,7 @@ class Test_lister(unittest.TestCase):
         manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
 
         with unittest.mock.patch('lister.create_elab_manager', return_value=manager):
-            category, title = lister.get_resource_cat_and_title(endpoint, token, db_item_no)
+            category, title = lister.get_resource_cat_and_title(endpoint, token, resource_item_no)
 
         self.assertEqual(category, expected_category)
         self.assertEqual(title, expected_title)
@@ -671,12 +671,12 @@ class Test_lister(unittest.TestCase):
            read_data='{"elabftw": {"token": "test_token", "endpoint": "test_endpoint", "exp_no": 1, '
                      '"output_file_name": "test_output", "resource_item_no": 2}}')
     def test_parse_cfg(self, mock_open):
-        token, endpoint, output_file_name, exp_no, db_item_no = lister.parse_cfg()
+        token, endpoint, output_file_name, exp_no, resource_item_no = lister.parse_cfg()
         self.assertEqual(token, 'test_token')
         self.assertEqual(endpoint, 'test_endpoint')
         self.assertEqual(output_file_name, 'test_output')
         self.assertEqual(exp_no, 1)
-        self.assertEqual(db_item_no, 2)
+        self.assertEqual(resource_item_no, 2)
 
 
     @patch('builtins.open', new_callable=unittest.mock.mock_open,
@@ -907,7 +907,7 @@ class Test_lister(unittest.TestCase):
         ])
 
 
-    def test_process_linked_db_item_two_columns(self):
+    def test_process_linked_resource_item_two_columns(self):
         manager = MagicMock()
         manager.get_item.return_value = {
             "body": "<table><tr><td>Key</td><td>Value</td></tr></table>",
@@ -915,16 +915,16 @@ class Test_lister(unittest.TestCase):
         }
         id = 1
 
-        db_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
+        resource_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
 
         self.assertEqual(log, "")
-        self.assertEqual(db_item_nkvmu_metadata, [
+        self.assertEqual(resource_item_nkvmu_metadata, [
             ['', 'metadata section', 'TestCategory', '', ''],
             ['', 'Key', 'Value', '', '']
         ])
 
 
-    def test_process_linked_db_item_not_two_columns(self):
+    def test_process_linked_resource_item_not_two_columns(self):
         manager = MagicMock()
         manager.get_item.return_value = {
             "body": "<table><tr><td>Key</td><td>Value</td><td>Extra</td></tr></table>",
@@ -932,11 +932,11 @@ class Test_lister(unittest.TestCase):
         }
         id = 1
 
-        db_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
+        resource_item_nkvmu_metadata, log = lister.process_linked_resource_item(manager, id)
 
         expected_log = lister.Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
         self.assertEqual(log, expected_log)
-        self.assertEqual(db_item_nkvmu_metadata, "")
+        self.assertEqual(resource_item_nkvmu_metadata, "")
 
 
     def test_validate_range_valid(self):
