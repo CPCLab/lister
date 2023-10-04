@@ -1604,6 +1604,7 @@ def conv_html_to_nkvmu(html_content: str) -> Tuple[List, str]:
     return multi_nkvmu_pair, log
 
 
+# Replaced by get_and_save_attachments_apiv2() as the API v1 is not functioning properly for fetching attachments.
 def get_and_save_attachments(manager, uploads: List[Dict], path: str) -> None:
     '''
     Get a list of attachments in the experiment entry and download these attachments.
@@ -1616,6 +1617,7 @@ def get_and_save_attachments(manager, uploads: List[Dict], path: str) -> None:
     # global log
     upload_saving_path = path + '/' + 'attachments' + '/'
     check_and_create_path(upload_saving_path)
+    log = ""
 
     for upload in uploads:
         with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
@@ -1627,13 +1629,8 @@ def get_and_save_attachments(manager, uploads: List[Dict], path: str) -> None:
                 log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
                                                                                           str(upload["id"]), str(e))
                 print(log + " Attachment download is skipped as it is inaccessible through API...")
-                # TODO: check why some attachments are inaccessible through API.
-                # TODO: append the log here to the generated log file.
-                # else:
-                #    log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
-                #                                                                                str(upload["id"]),
-                #                                                                                str(e))
-                pass
+                # Some attachments are inaccessible through API. This is the limitation on API v1.
+    return log
 
 
 def get_api_v2endpoint(v1endpoint: str) -> str:
@@ -1780,6 +1777,7 @@ def process_experiment(exp_no: int, endpoint: str, token: str, path: str) -> Non
 
     apiv2_client = create_apiv2_client(endpoint, token)
     log = get_and_save_attachments_apiv2(path, apiv2_client, int(exp_no))
+    overall_log = overall_log + "\n" + log
     write_to_docx(manager, exp, path)
 
     write_to_json(overall_nkvmu, exp, path)
