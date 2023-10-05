@@ -1242,6 +1242,7 @@ def write_tag_to_doc(document: Document, tag_item: Tag) -> List[str]:
     '''
     all_references = []
     p = document.add_paragraph()
+    log = ""
     if isinstance(tag_item, Tag):
         section_toggle = False
         subsection_level = 0
@@ -1261,6 +1262,7 @@ def write_tag_to_doc(document: Document, tag_item: Tag) -> List[str]:
                         stripped_formula = formula[1:-1]
                         processed_subcontent = processed_subcontent.replace(formula, '')
                         docx_formula, docx_formula_log = latex_formula_to_docx(stripped_formula)
+                        log = log + docx_formula_log
                         if docx_formula != None:
                             p._element.append(docx_formula)
                             p.add_run(remove_extra_spaces(processed_subcontent))
@@ -1348,7 +1350,7 @@ def write_tag_to_doc(document: Document, tag_item: Tag) -> List[str]:
         # print("NON-TAG INSTANCE : " + line)
         p.add_run(remove_extra_spaces(line))
         # print("*"*50)
-    return all_references
+    return all_references, log
 
 
 def derive_fname_from_exp(exp: dict) -> str:
@@ -1360,7 +1362,7 @@ def derive_fname_from_exp(exp: dict) -> str:
     return fname_from_exp
 
 
-def write_to_docx(manager, exp: dict, path: str) -> None:
+def write_to_docx(manager, exp: dict, path: str) -> str:
     '''
     fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
@@ -1379,7 +1381,7 @@ def write_to_docx(manager, exp: dict, path: str) -> None:
                 upl_id, real_name = get_attachment_id(exp, content)
                 add_img_to_doc(document, real_name, path)
             elif any(x in content.name for x in watched_tags):
-                references = write_tag_to_doc(document, content)
+                references, log = write_tag_to_doc(document, content)
                 if len(references) > 0:
                     all_references.extend(references)
             if content.name == "table":
@@ -1778,7 +1780,11 @@ def process_experiment(exp_no: int, endpoint: str, token: str, path: str) -> Non
     apiv2_client = create_apiv2_client(endpoint, token)
     log = get_and_save_attachments_apiv2(path, apiv2_client, int(exp_no))
     overall_log = overall_log + "\n" + log
-    write_to_docx(manager, exp, path)
+    docx_log = write_to_docx(manager, exp, path)
+    try:
+        overall_log = overall_log + "\n" + docx_log
+    except:
+        pass
 
     write_to_json(overall_nkvmu, exp, path)
     write_to_xlsx(overall_nkvmu, exp, path)
