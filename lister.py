@@ -1070,7 +1070,7 @@ def get_nonempty_body_tags(exp: BeautifulSoup) -> List:
 
 
 # Used in get_attachment_long_name()
-def split(text: str, separators: List[str]) -> List[str]:
+def split_by_separators(text: str, separators: List[str]) -> List[str]:
     """
     Split a given text using multiple separators.
 
@@ -1097,7 +1097,7 @@ def get_attachment_long_name(img_path: str) -> str:
     '''
     Get upload long name from the img path.
     '''
-    splitted_path = split(img_path, ('&', '='))
+    splitted_path = split_by_separators(img_path, ('&', '='))
     return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
 

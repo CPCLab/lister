@@ -368,12 +368,12 @@ class Test_lister(unittest.TestCase):
         expected_output = "word_with_colons"
         self.assertEqual(lister.strip_unwanted_mvu_colons(word), expected_output)
 
-    def test_split(self):
+    def test_split_by_separators(self):
         # Test case 1: Single separator
         text = "word1, word2, word3"
         separators = [","]
         expected_output = ["word1", "word2", "word3"]
-        self.assertEqual(lister.split(text, separators), expected_output)
+        self.assertEqual(lister.split_by_separators(text, separators), expected_output)
 
         # Test case 2: Multiple separators
         text = "word1, word2; word3"
