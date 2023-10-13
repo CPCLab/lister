@@ -379,13 +379,13 @@ class Test_lister(unittest.TestCase):
         text = "word1, word2; word3"
         separators = [",", ";"]
         expected_output = ["word1", "word2", "word3"]
-        self.assertEqual(lister.split(text, separators), expected_output)
+        self.assertEqual(lister.split_by_separators(text, separators), expected_output)
 
         # Test case 3: No separators
         text = "word1 word2 word3"
         separators = [","]
         expected_output = ["word1 word2 word3"]
-        self.assertEqual(lister.split(text, separators), expected_output)
+        self.assertEqual(lister.split_by_separators(text, separators), expected_output)
 
     def test_remove_table_tag(self):
         # Test case 1: HTML with no tables
