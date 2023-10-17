@@ -424,6 +424,7 @@ class GUIHelper:
         args = parser.parse_args()
         return args
 
+    @classmethod
     def parse_cfg(self) -> Tuple[str, str, str, int, int]:
         '''
         Parse JSON config file, requires existing config.json file which should be specified on certain directory.
@@ -1344,6 +1345,7 @@ class Validator:
 
 
     # Used in process_foreach()
+    @classmethod
     def validate_foreach(self, cf_split: List[str]) -> Tuple[str, bool]:
         '''
         Validate the foreach command in the given list of strings.
@@ -1419,7 +1421,7 @@ class Validator:
 
     # Used in else().
     @classmethod
-    def validate_else(cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_else(self, cf_split: List[str]) -> Tuple[str, bool]:
         '''
         Validate the else command in the given list of strings.
 
@@ -1456,7 +1458,7 @@ class Validator:
         log = ""
         range_values = re.split("-", flow_range[1:-1])
         if len(range_values) == 2:
-            if not (GeneralHelper.is_num(range_values[0]) and TextCleaner.is_num(range_values[0])):
+            if not (GeneralHelper.is_num(range_values[0]) and GeneralHelper.is_num(range_values[0])):
                 is_error = True
                 log = log + Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
         else:
