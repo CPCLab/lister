@@ -595,7 +595,7 @@ class MetadataExtractor:
             bool is_error: flag that indicates whether an error occured.
         '''
         flow_log = ""
-        print("flow_control_pair: " + str(flow_control_pair))
+        # print("flow_control_pair: " + str(flow_control_pair))
         is_error = False
         key_val = []
         cf = flow_control_pair[1:-1]
@@ -641,7 +641,7 @@ class MetadataExtractor:
             log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
             flow_log = flow_log + "\n" + log
             print(flow_log)
-        print("key_val: " + str(key_val) + "\n\n")
+        # print("key_val: " + str(key_val) + "\n\n")
         return key_val, flow_log, is_error
 
 

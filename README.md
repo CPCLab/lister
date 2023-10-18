@@ -263,9 +263,14 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 ## Troubleshooting
 
-### Multiplatform: slow initial execution
+### Generic platform: slow initial execution
 
 Decompressing a single-executable lister app into a temporary directory likely caused this problem. The multi-file distribution (aka one-directory version) can be used instead, although it is not as tidy as compared to the single-executable LISTER app.
+
+
+### Generic platform: contrast problem with GUI text
+
+LISTER only supports the default OS' light theme, a custom user/dark theme is therefore not supported.
 
 ### Windows: encoding error
 
@@ -293,14 +298,19 @@ on the main display of your Mac.`
 
 Run the script from terminal using `pythonw lister.py` instead.
 
+### macOS 14: Secure coding is not enabled...
 
-### All platform: contrast problem with GUI text
+The following warning appears when running `lister.py` directly in terminal:
 
-LISTER only supports the default OS' light theme, a custom user/dark theme is therefore not supported.
+`Python[67201:349757] WARNING: Secure coding is not enabled for restorable state! 
+Enable secure coding by implementing NSApplicationDelegate.applicationSupportsSecureRestorableState: and returning YES.`
+
+This warning can be ignored and does not affect the functionality of LISTER.
+
 
 ### "Client Error: Forbidden for url: ..."
 
-The `requests.exceptions.HTTPError: 403 Client Error: Forbidden for url:...` happens because the specified API token/key does not have access rights to an entry (or its unbderlying entries). 
+The `requests.exceptions.HTTPError: 403 Client Error: Forbidden for url:...` happens because the specified API token/key does not have access rights to an entry (or its underlying entries). 
 Check that the user with specified token has access to the entries directly linked to the experiments/database items/containers.
 
 ### "requests.exceptions.ConnectionError: ..."
