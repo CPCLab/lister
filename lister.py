@@ -106,7 +106,7 @@ class RegexPatterns(Enum):
     SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?);"
 
 
-class Arg_num(Enum):
+class ArgNum(Enum):
     ARG_NUM_FOREACH = 2
     ARG_NUM_IF = 4
     ARG_NUM_ELSEIF = 4
@@ -1329,7 +1329,7 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_WHILE.value:
+        if elements == ArgNum.ARG_NUM_WHILE.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
@@ -1338,7 +1338,7 @@ class Validator:
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_WHILE.value, elements,
                 cf_split) + "\n"
             is_error = True
         # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
@@ -1360,14 +1360,14 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_FOREACH.value:
+        if elements == ArgNum.ARG_NUM_FOREACH.value:
             if GeneralHelper.is_num(cf_split[1]):  # or
                 # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_FOREACH.value, elements,
                 cf_split) + "\n"
             is_error = True
         return log, is_error
@@ -1379,7 +1379,7 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_IF.value:
+        if elements == ArgNum.ARG_NUM_IF.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
@@ -1388,7 +1388,7 @@ class Validator:
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_IF.value, elements,
                 cf_split) + "\n"
             is_error = True
         # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
@@ -1404,7 +1404,7 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_ELSEIF.value:
+        if elements == ArgNum.ARG_NUM_ELSEIF.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
@@ -1413,7 +1413,7 @@ class Validator:
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_ELSEIF.value, elements,
                 cf_split) + "\n"
             is_error = True
         # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
@@ -1435,9 +1435,9 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements != Arg_num.ARG_NUM_ELSE.value:
+        if elements != ArgNum.ARG_NUM_ELSE.value:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_ELSE.value, elements,
                 cf_split) + "\n"
             is_error = True
         return log, is_error
@@ -1483,7 +1483,7 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_FOR.value:  # validating number of arguments in FOR
+        if elements == ArgNum.ARG_NUM_FOR.value:  # validating number of arguments in FOR
             if GeneralHelper.is_num(cf_split[1]):  # in case 2nd argument is number, throw an error
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
@@ -1497,7 +1497,7 @@ class Validator:
                                                                                  cf_split) + "\n"
         else:  # if number of argument is invalid
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_FOR.value, elements,
                 cf_split) + "\n"
             is_error = True
         return log, is_error
@@ -1518,14 +1518,14 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements == Arg_num.ARG_NUM_ITERATE.value:
+        if elements == ArgNum.ARG_NUM_ITERATE.value:
             if not self.is_valid_iteration_operator(cf_split[1]):
                 is_error = True
                 log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1],
                                                                                  cf_split) + "\n"
         else:  # if number of argument is invalid
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
+                cf_split[0].upper(), ArgNum.ARG_NUM_ITERATE.value, elements,
                 cf_split) + "\n"
             is_error = True
         return log, is_error
@@ -1546,9 +1546,9 @@ class Validator:
         log = ""
         is_error = False
         elements = len(cf_split)
-        if elements != Arg_num.ARG_NUM_SECTION.value:
+        if elements != ArgNum.ARG_NUM_SECTION.value:
             log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
-                cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
+                cf_split[0].upper(), ArgNum.ARG_NUM_SECTION.value,
                 elements, cf_split) + "\n"
             is_error = True
         return log, is_error

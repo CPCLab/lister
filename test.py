@@ -884,7 +884,7 @@ class Test_lister(unittest.TestCase):
         cf_split = ["else", "extra_arg"]
         log, is_error = lister.Validator.validate_else(cf_split)
         expected_log = lister.MiscAlertMsg.IMPROPER_ARGNO.value.format(
-            cf_split[0].upper(), lister.Arg_num.ARG_NUM_ELSE.value, len(cf_split), cf_split)
+            cf_split[0].upper(), lister.ArgNum.ARG_NUM_ELSE.value, len(cf_split), cf_split)
         self.assertEqual(log, expected_log + "\n")
         self.assertTrue(is_error)
 
