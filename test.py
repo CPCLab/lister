@@ -15,7 +15,7 @@ import shutil
 
 #  from lxml import etree
 # import latex2mathml.converter
-# from lister import latex_formula_to_docx, Misc_error_and_warning_msg
+# from lister import latex_formula_to_docx, MiscAlertMsg
 
 class Test_lister(unittest.TestCase):
 
@@ -616,7 +616,7 @@ class Test_lister(unittest.TestCase):
     #
     #         mock_convert.assert_called_once_with(latex_formula)
     #         self.assertIsNone(docx_formula)
-    #         self.assertEqual(log, Misc_error_and_warning_msg.MISSING_MML2OMML.value)
+    #         self.assertEqual(log, MiscAlertMsg.MISSING_MML2OMML.value)
 
 
     def test_get_section_title_empty(self):
@@ -883,7 +883,7 @@ class Test_lister(unittest.TestCase):
         # Test invalid input
         cf_split = ["else", "extra_arg"]
         log, is_error = lister.Validator.validate_else(cf_split)
-        expected_log = lister.Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+        expected_log = lister.MiscAlertMsg.IMPROPER_ARGNO.value.format(
             cf_split[0].upper(), lister.Arg_num.ARG_NUM_ELSE.value, len(cf_split), cf_split)
         self.assertEqual(log, expected_log + "\n")
         self.assertTrue(is_error)
@@ -929,7 +929,7 @@ class Test_lister(unittest.TestCase):
 
         resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
 
-        expected_log = lister.Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
+        expected_log = lister.MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
         self.assertEqual(log, expected_log)
         self.assertEqual(resource_item_nkvmu_metadata, "")
 
@@ -944,7 +944,7 @@ class Test_lister(unittest.TestCase):
     def test_validate_range_invalid_not_two_args(self):
         flow_range = "[1-5-10]"
         log, is_error = lister.Validator.validate_range(flow_range)
-        expected_log = lister.Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
+        expected_log = lister.MiscAlertMsg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
         self.assertEqual(log, expected_log)
         self.assertTrue(is_error)
 
@@ -952,7 +952,7 @@ class Test_lister(unittest.TestCase):
     def test_validate_range_invalid_not_numbers(self):
         flow_range = "[1a-10]"
         log, is_error = lister.Validator.validate_range(flow_range)
-        expected_log = lister.Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
+        expected_log = lister.MiscAlertMsg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
         self.assertEqual(log, expected_log)
         self.assertTrue(is_error)
 

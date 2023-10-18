@@ -24,7 +24,8 @@ from argparse import Namespace
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
-class Ctrl_metadata(Enum):
+# Control Flow Metadata Types
+class CFMetadata(Enum):
     STEP_TYPE = "step type"
     FLOW_TYPE = "flow type"
     FLOW_PARAM = "flow parameter"
@@ -38,14 +39,14 @@ class Ctrl_metadata(Enum):
     FLOW_ITRTN_END = "end iteration value"
 
 
-class Bracket_pair_error(Enum):
+class BracketPairErrorMsg(Enum):
     IMPROPER_COMMENT_BRACKET = "ERROR: Mismatch between '(' and ')'. Check line "
     IMPROPER_RANGE_BRACKET = "ERROR: Mismatch between '[' and ']'.  Check line "
     IMPROPER_KV_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
     IMPROPER_FLOW_BRACKET = "ERROR: Mismatch between '<' and '>'.  Check line "
 
 
-class Misc_error_and_warning_msg(Enum):
+class MiscAlertMsg(Enum):
     ARGUMENT_MISMATCH = "ERROR: Argument type mismatch: numerical value is found while string was expected. " \
                         "Check the value '{0}' in the following set of values: '{1}'."
     UNRECOGNIZED_OPERATOR = "ERROR: The logical operator is not recognized. " \
@@ -81,7 +82,7 @@ class Misc_error_and_warning_msg(Enum):
                                 "allow key-value format."
 
 
-class Regex_patterns(Enum):
+class RegexPatterns(Enum):
     EXPLICIT_KEY = r':.+?:'  # catch explicit key which indicated within ":" sign
     SORROUNDED_W_COLONS = r'^:.+?:$'  # catch explicit key which indicated within ":" sign
     KV_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KV or control flow
@@ -145,8 +146,8 @@ class ApiAccess:
                     attachment.write(manager.get_upload(upload["id"]))
                 except Exception as e:
                     # if not log:
-                    log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
-                                                                                          str(upload["id"]), str(e))
+                    log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
+                                                                            str(upload["id"]), str(e))
                     print(log + " Attachment download is skipped as it is inaccessible through API...")
                     # Some attachments are inaccessible through API. This is the limitation on API v1.
         return log
@@ -254,7 +255,7 @@ class ApiAccess:
                 upl_id = matched_upl['id']
                 real_name = matched_upl['real_name']
             except Exception as e:
-                log = Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
+                log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
                 upl_id = ""
                 real_name = ""
                 print(log)
@@ -552,7 +553,7 @@ class Serializer:
             for row_no, data in enumerate(nkvmu):
                 key = data[1]
                 # do not use regex here, or it will be very slow
-                # if re.match(Regex_patterns.SUBSECTION.value, data[1].lower()):
+                # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
                 if len(key) >= 7 and key[
                                      0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
                     worksheet.write_row(row_no + 1, 0, data, section_format)
@@ -573,7 +574,7 @@ class MetadataExtractor:
         :return: bool stating whether the key is a LISTER explicit key.
 
         '''
-        if re.match(Regex_patterns.EXPLICIT_KEY.value, key):
+        if re.match(RegexPatterns.EXPLICIT_KEY.value, key):
             return True
         else:
             return False
@@ -627,7 +628,7 @@ class MetadataExtractor:
             if log != "":
                 flow_log = flow_log + "\n" + log
         # elif flow_type.casefold() == "section".casefold():
-        elif re.match(Regex_patterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
+        elif re.match(RegexPatterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
             key_val, log, is_error = self.process_section(cf_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
@@ -637,7 +638,7 @@ class MetadataExtractor:
                 flow_log = flow_log + "\n" + log
         else:
             is_error = True
-            log = Misc_error_and_warning_msg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
+            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
             flow_log = flow_log + "\n" + log
             print(flow_log)
         print("key_val: " + str(key_val) + "\n\n")
@@ -669,7 +670,7 @@ class MetadataExtractor:
             section_keyword = cf_split[0].lower()
             section_level = section_keyword.count("sub")
             key_val.append(
-                ["-", Ctrl_metadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], '', ''])
+                ["-", CFMetadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], '', ''])
         return key_val, section_log, is_error
 
 
@@ -724,7 +725,7 @@ class MetadataExtractor:
         df_col_no = df.shape[1]
         log = ""
         if df_col_no != 2:
-            log = Misc_error_and_warning_msg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
+            log = MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
             print(log)
             resource_item_nkvmu_metadata = ""
             pass
@@ -802,7 +803,7 @@ class MetadataExtractor:
             str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit,
             str internal_comment: string containing the comment part of the string fragment, with brackets retained.
         '''
-        comment = re.search(Regex_patterns.COMMENT.value, str_with_brackets)
+        comment = re.search(RegexPatterns.COMMENT.value, str_with_brackets)
         comment = comment.group(0)
         remains = str_with_brackets.replace(comment, '')
         actual_fragment, internal_comment = remains.strip(), comment.strip()
@@ -829,11 +830,11 @@ class MetadataExtractor:
             print(log)
             exit()
         step_type = "iteration"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         return key_val, log, is_error
 
 
@@ -857,15 +858,15 @@ class MetadataExtractor:
             print(log)
             exit()
         step_type = "iteration"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
-        key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
 
@@ -889,15 +890,15 @@ class MetadataExtractor:
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
-        key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
 
@@ -921,21 +922,21 @@ class MetadataExtractor:
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, Ctrl_metadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
         if re.search("\[.*?\]", flow_compared_value):
-            key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_compared_value, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
             start, end, range_log, range_is_error = self.process_range(flow_compared_value)
-            key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start, '', ''])
-            key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_ITRTN_STRT.value, start, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_ITRTN_END.value, end, '', ''])
         else:
-            key_val.append([par_no, Ctrl_metadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
 
@@ -961,9 +962,9 @@ class MetadataExtractor:
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         return key_val, log, is_error
 
     @classmethod
@@ -1014,34 +1015,34 @@ class MetadataExtractor:
             print(for_validation_log)
             # exit()
         step_type = "iteration"
-        key_val.append([par_no, Ctrl_metadata.STEP_TYPE.value, step_type, '', ''])
+        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         flow_range = cf_split[2]
-        key_val.append([par_no, Ctrl_metadata.FLOW_RANGE.value, flow_range, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_range, '', ''])
         start, end, range_log, is_range_error = self.process_range(flow_range)
         if is_range_error:
             for_log = for_log + "\n" + range_log
             print(range_log)
             is_error = True
-        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_STRT.value, start, '', ''])
-        key_val.append([par_no, Ctrl_metadata.FLOW_ITRTN_END.value, end, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_ITRTN_STRT.value, start, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_ITRTN_END.value, end, '', ''])
         try:
             flow_operation = cf_split[3]
-            key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_OPRTN.value, flow_operation, '', ''])
         except:
             is_error = True
-            print(Misc_error_and_warning_msg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split))
-            for_log = for_log + "\n" + Misc_error_and_warning_msg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split)
+            print(MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split))
+            for_log = for_log + "\n" + MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split)
         try:
             flow_magnitude = cf_split[4]
-            key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
         except:
             is_error = True
-            print(Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
-            for_log = for_log + "\n" + Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
+            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
+            for_log = for_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, for_log, is_error
 
 
@@ -1069,16 +1070,16 @@ class MetadataExtractor:
             print(iterate_log)
             # exit()
         flow_type = cf_split[0]
-        key_val.append([par_no, Ctrl_metadata.FLOW_TYPE.value, flow_type + "  (after while)"])
+        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
         flow_operation = cf_split[1]
-        key_val.append([par_no, Ctrl_metadata.FLOW_OPRTN.value, flow_operation])
+        key_val.append([par_no, CFMetadata.FLOW_OPRTN.value, flow_operation])
         try:
             flow_magnitude = cf_split[2]
-            key_val.append([par_no, Ctrl_metadata.FLOW_MGNTD.value, flow_magnitude])
+            key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude])
         except:
             is_error = True
-            print(Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
-            iterate_log = iterate_log + "\n" + Misc_error_and_warning_msg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
+            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
+            iterate_log = iterate_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, iterate_log, is_error
 
 
@@ -1110,46 +1111,46 @@ class MetadataExtractor:
                 break
 
             # Extract KV and flow metadata
-            kv_and_flow_pairs = re.findall(Regex_patterns.KV_OR_FLOW.value, line)
+            kv_and_flow_pairs = re.findall(RegexPatterns.KV_OR_FLOW.value, line)
             para_len = len(GeneralHelper.split_into_sentences(line))
             if para_len > 0:
                 par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
             for kv_and_flow_pair in kv_and_flow_pairs:
-                if re.match(Regex_patterns.KV.value, kv_and_flow_pair):
+                if re.match(RegexPatterns.KV.value, kv_and_flow_pair):
                     kvmu_set = self.conv_bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                     # measure, unit, log could be empty
                     if kvmu_set[4] != "":
                         log = log + "\n" + kvmu_set[4]
                     if kvmu_set[0] != "" and kvmu_set[1] != "":
-                        if re.search(Regex_patterns.COMMENT.value, kvmu_set[0]):
+                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[0]):
                             key, comment = self.process_internal_comment(kvmu_set[0])
                             internal_comments.append(comment)
                         else:
                             key = kvmu_set[0]
-                        if re.search(Regex_patterns.COMMENT.value, kvmu_set[1]):
+                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[1]):
                             val, comment = self.process_internal_comment(kvmu_set[1])
                             internal_comments.append(comment)
                         else:
                             val = kvmu_set[1]
-                        if re.search(Regex_patterns.COMMENT.value, kvmu_set[2]):
+                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[2]):
                             measure, comment = self.process_internal_comment(kvmu_set[2])
                             internal_comments.append(comment)
                         else:
                             measure = kvmu_set[2]
-                        if re.search(Regex_patterns.COMMENT.value, kvmu_set[3]):
+                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[3]):
                             unit, comment = self.process_internal_comment(kvmu_set[3])
                             internal_comments.append(comment)
                         else:
                             unit = kvmu_set[3]
                         nk_pair = [par_no, key]
                         if (nk_pair in nk_pairs):
-                            log = log + Misc_error_and_warning_msg.SIMILAR_PAR_KEY_FOUND.value.format(nk_pair) + "\n"
+                            log = log + MiscAlertMsg.SIMILAR_PAR_KEY_FOUND.value.format(nk_pair) + "\n"
                         if self.is_explicit_key(key):
                             key = TextCleaner.strip_colon(key)
                         nkvmu_pair = [par_no, key, val, measure, unit]
                         nk_pairs.append(nk_pair)
                         nkvmu_pairs.append(nkvmu_pair)
-                if re.match(Regex_patterns.FLOW.value, kv_and_flow_pair):
+                if re.match(RegexPatterns.FLOW.value, kv_and_flow_pair):
                     flow_metadata, flow_log, is_flow_error = self.extract_flow_type(par_no, kv_and_flow_pair)
                     log = log + flow_log  # + "\n"
                     if is_flow_error:
@@ -1199,10 +1200,10 @@ class MetadataExtractor:
             val = ""
             measure = ""
             unit = ""
-            print(Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu))
-            log = Misc_error_and_warning_msg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu)
+            print(MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu))
+            log = MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu)
         else:
-            log = Misc_error_and_warning_msg.INVALID_KV_SET_ELEMENT_NO.value.format(len(kv_split), str(source_kvmu))
+            log = MiscAlertMsg.INVALID_KV_SET_ELEMENT_NO.value.format(len(kv_split), str(source_kvmu))
             raise SystemExit(log)
         key = key.strip()
         val = val.strip()
@@ -1269,16 +1270,16 @@ class Validator:
         is_error = False
         if text.count("{") != text.count("}"):
             is_error = True
-            log = base_error_warning % (Bracket_pair_error.IMPROPER_KV_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_KV_BRACKET.value, str(par_no), text)
         if text.count("<") != text.count(">"):
             is_error = True
-            log = base_error_warning % (Bracket_pair_error.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
         if text.count("[") != text.count("]"):
             is_error = True
-            log = base_error_warning % (Bracket_pair_error.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
         if text.count("(") != text.count(")"):
             is_error = True
-            log = base_error_warning % (Bracket_pair_error.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
         # print(log)
         return log, is_error
 
@@ -1331,12 +1332,12 @@ class Validator:
         if elements == Arg_num.ARG_NUM_WHILE.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
             if not self.is_valid_comparative_operator(cf_split[2]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_WHILE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1363,9 +1364,9 @@ class Validator:
             if GeneralHelper.is_num(cf_split[1]):  # or
                 # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
                 is_error = True
-                log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         else:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_FOREACH.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1381,12 +1382,12 @@ class Validator:
         if elements == Arg_num.ARG_NUM_IF.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
             if not self.is_valid_comparative_operator(cf_split[2]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_IF.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1406,12 +1407,12 @@ class Validator:
         if elements == Arg_num.ARG_NUM_ELSEIF.value:
             if GeneralHelper.is_num(cf_split[1]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
             if not self.is_valid_comparative_operator(cf_split[2]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_ELSEIF.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1435,7 +1436,7 @@ class Validator:
         is_error = False
         elements = len(cf_split)
         if elements != Arg_num.ARG_NUM_ELSE.value:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_ELSE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1460,10 +1461,10 @@ class Validator:
         if len(range_values) == 2:
             if not (GeneralHelper.is_num(range_values[0]) and GeneralHelper.is_num(range_values[0])):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
+                log = log + MiscAlertMsg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
         else:
             is_error = True
-            log = log + Misc_error_and_warning_msg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
+            log = log + MiscAlertMsg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
         return log, is_error
 
 
@@ -1485,17 +1486,17 @@ class Validator:
         if elements == Arg_num.ARG_NUM_FOR.value:  # validating number of arguments in FOR
             if GeneralHelper.is_num(cf_split[1]):  # in case 2nd argument is number, throw an error
                 is_error = True
-                log = log + Misc_error_and_warning_msg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
             range_error_log, is_range_error = self.validate_range(cf_split[2])
             if is_range_error == True:  # check whether it is a valid range
                 is_error = True
                 log = log + range_error_log + "\n"
             if not self.is_valid_iteration_operator(cf_split[3]):  # check whether it is a valid operator
                 is_error = True
-                log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value.format(cf_split[3],
-                                                                                               cf_split) + "\n"
+                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[3],
+                                                                                 cf_split) + "\n"
         else:  # if number of argument is invalid
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_FOR.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1520,10 +1521,10 @@ class Validator:
         if elements == Arg_num.ARG_NUM_ITERATE.value:
             if not self.is_valid_iteration_operator(cf_split[1]):
                 is_error = True
-                log = log + Misc_error_and_warning_msg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1],
-                                                                                               cf_split) + "\n"
+                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1],
+                                                                                 cf_split) + "\n"
         else:  # if number of argument is invalid
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_ITERATE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1546,7 +1547,7 @@ class Validator:
         is_error = False
         elements = len(cf_split)
         if elements != Arg_num.ARG_NUM_SECTION.value:
-            log = log + Misc_error_and_warning_msg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
                 cf_split[0].upper(), Arg_num.ARG_NUM_SECTION.value,
                 elements, cf_split) + "\n"
             is_error = True
@@ -1658,7 +1659,7 @@ class DocxHelper:
         '''
         Get the attribute and value from the "style" attribute of a given Tag.
         '''
-        found = re.findall(Regex_patterns.SPAN_ATTR_VAL.value, c.get("style"))
+        found = re.findall(RegexPatterns.SPAN_ATTR_VAL.value, c.get("style"))
         attr, val = found[0]
         return attr, val
 
@@ -1695,19 +1696,19 @@ class DocxHelper:
         global ref_counter
         references = []
         # split based on the existence of brackets - including the captured bracket block in the result
-        line_elements = re.split(Regex_patterns.COMMENT_W_CAPTURE_GROUP.value, line)
+        line_elements = re.split(RegexPatterns.COMMENT_W_CAPTURE_GROUP.value, line)
         processed_line = ""
         for element in line_elements:
-            found_dois = re.findall(Regex_patterns.DOI.value, element)
+            found_dois = re.findall(RegexPatterns.DOI.value, element)
             found_doi_length = len(found_dois)
-            if re.search(Regex_patterns.COMMENT.value, element):
+            if re.search(RegexPatterns.COMMENT.value, element):
                 # _invisible_ comment - strip all content (brackets, underscores, content
-                if re.search(Regex_patterns.COMMENT_INVISIBLE.value, element):
+                if re.search(RegexPatterns.COMMENT_INVISIBLE.value, element):
                     processed_element = ""
                 # visible comment - strip brackets and colons, keep the content
-                elif re.search(Regex_patterns.COMMENT_VISIBLE.value, element):
-                    element = re.sub(Regex_patterns.SEPARATOR_MARKUP.value, '', element)
-                    visible_comments = re.split(Regex_patterns.COMMENT_VISIBLE.value, element)
+                elif re.search(RegexPatterns.COMMENT_VISIBLE.value, element):
+                    element = re.sub(RegexPatterns.SEPARATOR_MARKUP.value, '', element)
+                    visible_comments = re.split(RegexPatterns.COMMENT_VISIBLE.value, element)
                     concatenated_string = ""
                     for visible_comment in visible_comments:
                         concatenated_string = concatenated_string + visible_comment
@@ -1750,10 +1751,10 @@ class DocxHelper:
                     line, references = TextCleaner.strip_markup_and_explicit_keys(subcontent.get_text())
                     # print("LINE FROM TAG INSTANCE: " + line)
                 else:
-                    if re.match(Regex_patterns.FORMULA.value, subcontent):
+                    if re.match(RegexPatterns.FORMULA.value, subcontent):
                         references = []
                         line = ""
-                        formulas = re.findall(Regex_patterns.FORMULA.value, subcontent)
+                        formulas = re.findall(RegexPatterns.FORMULA.value, subcontent)
                         processed_subcontent = str(subcontent)
                         for formula in formulas:
                             stripped_formula = formula[1:-1]
@@ -1774,7 +1775,7 @@ class DocxHelper:
                 if re.match(r'Goal:*|Procedure:*|Result:*', line, re.IGNORECASE) and len(line.split()) == 1:
                     document.add_heading(line, level=1)
                 # check if the line is a section with following characters
-                elif re.match(Regex_patterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
+                elif re.match(RegexPatterns.SUBSECTION_W_EXTRAS.value, line, re.IGNORECASE):
                     section_title = self.get_section_title(line)
                     subsection_level = line.count("sub")
                     if subsection_level == 0:
@@ -1801,7 +1802,7 @@ class DocxHelper:
                     # check if the line is a section without being followed by other characters, hence it needs the following
                     # chars from the next line as its section title. This case tends to happen when a section in a line is
                     # not covered within the same span tag hierarchy as its label.
-                    if re.match(Regex_patterns.SUBSECTION.value, line, re.IGNORECASE):
+                    if re.match(RegexPatterns.SUBSECTION.value, line, re.IGNORECASE):
                         section_toggle = True
                         subsection_level = line.count("sub")
                     elif (section_toggle):
@@ -1881,7 +1882,7 @@ class DocxHelper:
             docx_formula = new_dom.getroot()
         except Exception as e:
             docx_formula = None
-            log = log + Misc_error_and_warning_msg.MISSING_MML2OMML.value
+            log = log + MiscAlertMsg.MISSING_MML2OMML.value
             print(log)
             pass
         return docx_formula, log
@@ -1936,7 +1937,7 @@ class DocxHelper:
             try:
                 document.add_picture(sanitized_img_saving_path + "/" + real_name, width=Mm(self.get_text_width(document)))
             except Exception as e:
-                log = log + Misc_error_and_warning_msg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
+                log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
                 pass
             print(log)
 
@@ -1988,7 +1989,7 @@ class TextCleaner:
         :param str word: string with or without colons.
         :return: str word without colons.
         '''
-        if re.search(Regex_patterns.SORROUNDED_W_COLONS.value, word):
+        if re.search(RegexPatterns.SORROUNDED_W_COLONS.value, word):
             print("Surrounding colons in the value/measure/unit {} is removed".format(word))
             word = word[1:-1]  # if there are colons surrounding the word remains, remove it
         return word
@@ -2004,17 +2005,17 @@ class TextCleaner:
         :param bs4.element.NavigableString/str line: string to be inspected.
         :return: list of string containing DOI number.
         '''
-        stripped_from_explicit_keys = re.sub(Regex_patterns.SEPARATOR_AND_KEY.value, '', line)
+        stripped_from_explicit_keys = re.sub(RegexPatterns.SEPARATOR_AND_KEY.value, '', line)
         # print(stripped_from_explicit_keys)
         # strip curly and angle brackets
-        stripped_from_markup = re.sub(Regex_patterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
+        stripped_from_markup = re.sub(RegexPatterns.BRACKET_MARKUPS.value, '', stripped_from_explicit_keys)
         # process based on the types within regular comment
         comments_based_strip, references = DocxHelper.process_reg_bracket(stripped_from_markup)
         # strip separator (pipe symbol)
-        stripped_from_markup = re.sub(Regex_patterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
+        stripped_from_markup = re.sub(RegexPatterns.SEPARATOR_COLON_MARKUP.value, ' ', comments_based_strip)
         # strip unnecessary whitespaces
-        stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
-        stripped_from_trailing_spaces = re.sub(Regex_patterns.PRE_COMMA_SPACES.value, ',',
+        stripped_from_trailing_spaces = re.sub(RegexPatterns.PRE_PERIOD_SPACES.value, '.', stripped_from_markup)
+        stripped_from_trailing_spaces = re.sub(RegexPatterns.PRE_COMMA_SPACES.value, ',',
                                                stripped_from_trailing_spaces)
         # stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split())  # strip from trailing whitespaces
         return stripped_from_trailing_spaces, references
