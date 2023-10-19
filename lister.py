@@ -444,7 +444,7 @@ class GUIHelper:
         input_file = PathHelper.manage_input_path() + "config.json"
         print("CONFIG FILE: %s" % (input_file))
         # using ...with open... allows file to be closed automatically.
-        with open(input_file) as json_data_file:
+        with open(input_file, encoding="utf-8") as json_data_file:
             data = json.load(json_data_file)
         token = data['elabftw']['token']
         endpoint = data['elabftw']['endpoint']
@@ -1228,8 +1228,12 @@ class MetadataExtractor:
             str log is a string log returned from the respectively-executed functions.
         '''
         # global log
-        soup = BeautifulSoup(html_content, "html.parser")
+        soup = BeautifulSoup(html_content.encode("utf-8"), "html.parser", from_encoding="found_encoding")
+        soup.encoding = "utf-8"
         soup = TextCleaner.remove_table_tag(soup)
+
+        detected_encoding = soup.encoding
+        print("Detected encoding:", detected_encoding)
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
             multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_kv(clean_lines)
@@ -1247,7 +1251,9 @@ class Validator:
         :return: list tagged_contents: list of non-empty html tags as well as new lines.
         '''
         html_body = exp["body"]
-        soup = BeautifulSoup(html_body, "html.parser")
+        soup = BeautifulSoup(html_body.encode("utf-8"), "html.parser")
+        soup.encoding = "utf-8"
+
         non_empty_soup = TextCleaner.remove_empty_tags(soup)
         tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
         return tagged_contents
@@ -1953,7 +1959,8 @@ class TextCleaner:
         :return: list tagged_contents: list of non-empty html tags as well as new lines.
         '''
         html_body = exp["body"]
-        soup = BeautifulSoup(html_body, "html.parser")
+        soup = BeautifulSoup(html_body.encode("utf-8"), "html.parser")
+        soup.encoding = "utf-8"
         non_empty_soup = self.remove_empty_tags(soup)
         tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
         return tagged_contents
@@ -1990,7 +1997,8 @@ class TextCleaner:
         :return: str word without colons.
         '''
         if re.search(RegexPatterns.SORROUNDED_W_COLONS.value, word):
-            print("Surrounding colons in the value/measure/unit {} is removed".format(word))
+            # TODO: make the unicode character below properly printed as relevant symbol of utf-8 in console
+            print("Surrounding colons in the value/measure/unit {} is removed".format(word).encode("utf-8"))
             word = word[1:-1]  # if there are colons surrounding the word remains, remove it
         return word
 
