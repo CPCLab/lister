@@ -21,6 +21,8 @@ import elabapi_python
 from pathvalidate import sanitize_filepath
 from typing import Any, Tuple, List, Dict, Union
 from argparse import Namespace
+from elabapi_python.rest import ApiException
+from pprint import pprint
 
 
 # -------------------------------- CLASSES TO HANDLE ENUMERATED CONCEPTS --------------------------------
@@ -212,7 +214,39 @@ class ApiAccess:
         # manager = elabapy.Manager(endpoint=current_endpoint, token=current_token, verify=False)
         manager = self.create_elab_manager(current_endpoint, current_token)
         exp = manager.get_experiment(exp_number)
+        # print("-----------------BEGIN EXPERIMENT-------------------")
+        # print(exp)
+        # print("------------------END EXPERIMENT--------------------")
         return (manager, exp)
+
+
+    def configure_apiv2(self, api_key: str, api_host: str):
+        configuration = elabapi_python.Configuration()
+        configuration.api_key['api_key'] = api_key
+        configuration.api_key_prefix['api_key'] = 'Authorization'
+        configuration.host = api_host
+        configuration.debug = False
+        configuration.verify_ssl = False
+        return configuration
+
+
+    @classmethod
+    def get_apiv2_client(self, configuration: elabapi_python.Configuration) -> elabapi_python.ApiClient:
+        apiv2_client = elabapi_python.ApiClient(configuration)
+        apiv2_client.set_default_header(header_name='Authorization', header_value=configuration.api_key['api_key'])
+        return apiv2_client
+
+
+    @classmethod
+    def get_elab_exp_apiv2(self, id: int, apiv2_client: elabapi_python.ApiClient) -> elabapi_python.Experiment:
+        api_instance = elabapi_python.ExperimentsApi(apiv2_client)
+        try:
+            api_response = api_instance.get_experiment(id, format='json')
+            pprint(api_response)
+        except ApiException as e:
+            print("Exception when calling ExperimentsApi->getExperiment: %s\n" % e)
+        return api_response
+
 
     @classmethod
     def get_resource_cat_and_title(self, endpoint: str, token: str, resource_item_no: int) -> Tuple[str, str]:
@@ -318,12 +352,13 @@ class ApiAccess:
     @classmethod
     def get_and_save_attachments_apiv2(self, path: str, apiv2_client: elabapi_python.ApiClient, exp_id: int) -> str:
         '''
-        Get a list of attachments in the experiment entry and download these attachments.
+        Get a list of attachments in the experiment entry and download these attachments, and return the logs as string.
 
-        :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
-        :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
-                        (e.g., file_size, real_name, long_name, hash, etc).
         :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
+        :param elabapi_python.ApiClient apiv2_client: The API v2 client object.
+        :param int exp_id: The experiment ID.
+
+        :return log:  The log as a string.
         '''
 
         log = ""
@@ -750,7 +785,13 @@ class MetadataExtractor:
         """
         overall_log = ""
 
+        # apiv2_config = ApiAccess.configure_apiv2(endpoint, token)
+        apiv2_client = ApiAccess.create_apiv2_client(endpoint, token)
+        exp_v2 = ApiAccess.get_elab_exp_apiv2(exp_no, apiv2_client)
+        # pprint(exp_v2)
+
         manager, exp = ApiAccess.get_elab_exp(exp_no, endpoint, token)
+        # pprint(exp)
         links = exp['items_links']
         excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
         filtered_links = []
