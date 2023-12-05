@@ -451,7 +451,7 @@ class Test_lister(unittest.TestCase):
         manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
 
         with unittest.mock.patch('lister.ApiAccess.create_elab_manager', return_value=manager):
-            category, title = lister.ApiAccess.get_resource_cat_and_title(endpoint, token, resource_item_no)
+            category, title = lister.ApiAccess.get_resource_cat_and_title_v1(endpoint, token, resource_item_no)
 
         self.assertEqual(category, expected_category)
         self.assertEqual(title, expected_title)
@@ -1068,7 +1068,7 @@ class Test_lister(unittest.TestCase):
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
 # or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
 # write_to_xlsx(), parse_lines_to_kv(), get_text_width(), add_table_to_doc(), add_img_to_doc()
-# TODO: process_ref_resource_item(), process_iterate(), process_foreach(), process_for(), process_experiment()
+# TODO: process_ref_resource_item_v2(), process_iterate(), process_foreach(), process_for(), process_experiment()
 
 
 if __name__ == '__main__':
