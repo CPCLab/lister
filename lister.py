@@ -134,7 +134,7 @@ class ApiAccess:
 
         :param apiv2client: The API v2 client.
         :param resource_id: The item ID.
-        :return: The item.
+        :return: The item (resource) content.
         """
         api_instance = elabapi_python.ItemsApi(apiv2client)
         try:
@@ -143,42 +143,20 @@ class ApiAccess:
             print("Exception when calling ItemsApi->get_item: %s\n" % e)
         return api_item_response
 
-
-    # Replaced by get_and_save_attachments_apiv2() as the API v1 is not functioning properly for fetching attachments.
     @classmethod
-    def get_and_save_attachments(self, manager, uploads: List[Dict], path: str) -> None:
-        '''
-        Get a list of attachments in the experiment entry and download these attachments.
-
-        :param elabapy.Manager.Manage manager: an instance of manager object, containing eLabFTW API-related information.
-        :param uploads: a list of dictionary, each list entry consists of dictionary with upload specific attributes
-                        (e.g., file_size, real_name, long_name, hash, etc).
-        :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
-        '''
-        # global log
-        upload_saving_path = path + '/' + 'attachments' + '/'
-        PathHelper.check_and_create_path(upload_saving_path)
-        log = ""
-
-        for upload in uploads:
-            with open(upload_saving_path + upload["real_name"], 'wb') as attachment:
-                print("Attachment found: ID: %s, with name %s" % (upload["id"], upload["real_name"]))
-                try:
-                    attachment.write(manager.get_upload(upload["id"]))
-                except Exception as e:
-                    # if not log:
-                    log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(upload["real_name"],
-                                                                            str(upload["id"]), str(e))
-                    print(log + " Attachment download is skipped as it is inaccessible through API...")
-                    # Some attachments are inaccessible through API. This is the limitation on API v1.
-        return log
-
-
-    @classmethod
-    def get_attachment_long_name_v2(self, img_path: str) -> str:
-        '''
+    def get_attachment_long_name_v2(cls, img_path: str) -> str:
+        """
         Get upload long name from the img path.
-        '''
+
+        :param img_path: The path of the image.
+        :type img_path: str
+        :return: The long name of the upload.
+        :rtype: str
+
+        This method splits the image path by the separators '&' and '='.
+        It then returns the second element of the split path, which corresponds
+        to the randomly-assigned long name used to access via the URI.
+        """
         splitted_path = GeneralHelper.split_by_separators(img_path, ('&', '='))
         return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
@@ -186,11 +164,10 @@ class ApiAccess:
     @classmethod
     def get_exp_title_v2(self, apiv2client, exp_item_no: int) -> str:
         """
-        Get the title of an experiment from eLabFTW using the experiment item number, API endpoint, and token.
+        Get the title of an experiment from eLabFTW using apiv2client object the experiment item number.
 
-        :param endpoint: eLabFTW API endpoint URL
-        :param token: eLabFTW API token
-        :param exp_item_no: eLabFTW experiment item number (integer)
+        :param apiv2client: eLabFTW API v2 client object
+        :param int exp_item_no: eLabFTW experiment item number
         :return: Experiment title as a string
         """
         exp = self.get_elab_exp_v2(apiv2client, exp_item_no)
@@ -205,8 +182,8 @@ class ApiAccess:
         """
         Get experiment information and return it as a list of lists.
 
-        :param exp: A dictionary containing experiment information.
-        :return: A list of lists containing experiment information.
+        :param exp: An eLabFTW API's Experiment object containing experiment information.
+        :return: A list of lists containing experiment information in the form of par.no-key-value-measure-units.
         """
         nkvmu_pairs = []
         nkvmu_pairs.append(["", "metadata section", "Experiment Info", "", ""])
@@ -220,6 +197,17 @@ class ApiAccess:
 
     @classmethod
     def get_elab_exp_v2(self, apiv2_client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
+        """
+        Get an eLab experiment using the provided API client and experiment ID.
+
+        :param elabapi_python.ApiClient apiv2_client: The eLab API client instance.
+        :param int id: The ID of the experiment to retrieve.
+        :return: The retrieved eLab experiment.
+        :rtype: elabapi_python.Experiment
+
+        This method uses the provided eLab API client to fetch an experiment with the given ID.
+        If an ApiException occurs, it prints the exception message and continues.
+        """
         api_instance = elabapi_python.ExperimentsApi(apiv2_client)
         try:
             api_response = api_instance.get_experiment(id, format='json')
@@ -283,6 +271,7 @@ class ApiAccess:
         :param endpoint: The API endpoint.
         :param token: The API token.
         :return: The API v2 client.
+        :rtype: elabapi_python.ApiClient.
         """
         endpoint_v2 = self.get_api_v2endpoint(endpoint)
         apiv2config = elabapi_python.Configuration()
