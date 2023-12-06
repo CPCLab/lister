@@ -409,7 +409,7 @@ class GUIHelper:
             str endpoint: eLabFTW API endpoint URL,
             str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file),
             int exp_no: the parsed experiment ID (int).
-
+            int resource_item_no: the parsed resource/container item ID (int).
         '''
 
         input_file = PathHelper.manage_input_path() + "config.json"
@@ -434,9 +434,10 @@ class Serializer:
         '''
         fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
-        :param elabapy.Manager manager: elabapy Manager object, required to access the experiment from eLabFTW.
         :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
         :param str path: the path for writing the docx file, typically named based on experiment title or ID.
+
+        :return: str log: log of the process.
         '''
 
         document = Document()
@@ -501,7 +502,7 @@ class Serializer:
         '''
         Write extracted order/key/value/measure/unit to an Excel file.
 
-        :param list nkvmu: list containing the order/key/value/measure/unit to be written.
+        :param list nkvmu: list containing the order (paragraph number)/key/value/measure/unit to be written.
         :param dict exp: experiment object.
         :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
         '''
@@ -650,13 +651,9 @@ class MetadataExtractor:
         '''
         Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
-        :param int resource_item_no: The ID of the reference resource item to process.
-        :param str endpoint: The URL of the eLab API endpoint.
-        :param str token: The authentication token for the eLab API.
-        :param int id: The ID of the initial resource container item.
-        :param str title: The title of the initial resource container item.
+        :param apiv2_client: An instance of the API v2 client object, containing eLabFTW API-related information.
+        :param item_api_response: The API response of the reference resource item.
         :return: None
-        :rtype: None
         '''
 
         # TODO: also get the list of related experiments instead of linked experiments only
@@ -670,11 +667,13 @@ class MetadataExtractor:
 
 
     @classmethod
-    def process_linked_resource_item_apiv2(self, apiv2_client: elabapi_python.ApiClient, id: int) -> Tuple[Union[List[List[str]], str], str]:
+    def process_linked_resource_item_apiv2(self, apiv2_client: elabapi_python.ApiClient, id: int) -> (
+            Tuple)[Union[List[List[str]], str], str]:
         """
         Process a linked resource item and return its metadata and log.
 
-        :param apiv2_client: An instance of the API v2 client object, containing eLabFTW API-related information.
+        :param elabapi_python.ApiClient apiv2_client: An instance of the API v2 client object, containing eLabFTW
+        API-related information.
         :param id: The ID of the linked resource item.
         :return: A tuple containing the resource item metadata and log.
         """
@@ -708,14 +707,13 @@ class MetadataExtractor:
 
 
     @classmethod
-    def process_experiment_v2(self, apiv2client, exp_no: int, path: str) -> None:
+    def process_experiment_v2(self, apiv2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
         """
         Process an experiment and save its information to various formats.
 
-        :param exp_no: The experiment number.
-        :param endpoint: The API endpoint.
-        :param token: The API token.
-        :param path: The path for saving the output files.
+        :param elabapi_python.ApiClient apiv2client: The API v2 client.
+        :param int exp_no: The experiment number.
+        :param str path: The path for saving the output files.
         """
         overall_log = ""
 
@@ -755,6 +753,7 @@ class MetadataExtractor:
         Serializer.write_to_json_v2(overall_nkvmu, exp_response, path)
         Serializer.write_to_xlsx_v2(overall_nkvmu, exp_response, path)
         Serializer.write_log(overall_log, path)
+
 
     # only process the comment that is within (key value measure unit) pairs and remove its content
     # (unless if it is begun with "!")
@@ -1352,6 +1351,19 @@ class Validator:
     # Used in process_if().
     @classmethod
     def validate_if(self, cf_split):
+        """
+        Validate the structure of an IF statement.
+
+        This function checks the number of elements, the validity of the comparative operator,
+        and the argument types in the provided IF statement.
+
+        :param list cf_split: A list of elements in the IF statement.
+        :return: tuple (log, is_error)
+            WHERE
+            str log: A log message.
+            bool is_error: A flag indicating if there's an error.
+        """
+
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1377,6 +1389,18 @@ class Validator:
     # provided individually.
     @classmethod
     def validate_elseif(self, cf_split):
+        """
+        Validate the structure of an ELSEIF statement.
+
+        This class method checks the number of elements, the validity of the comparative operator,
+        and the argument types in the provided ELSEIF statement.
+
+        :param list cf_split: A list of elements in the ELSEIF statement.
+        :return: tuple (log, is_error)
+            WHERE
+            str log: A log message.
+            bool is_error: A flag indicating if there's an error.
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1586,10 +1610,8 @@ class GeneralHelper:
         it returns the list of substrings after removing any leading or trailing
         whitespaces from each substring.
 
-        :param text: The input string to be split.
-        :type text: str
-        :param separators: A list of separators to be used for splitting the input string.
-        :type separators: list
+        :param str text: The input string to be split.
+        :param list separators: A list of separators to be used for splitting the input string.
         :return: A list of substrings obtained by splitting the input string using the specified separators.
         :rtype: list
         """
@@ -1631,10 +1653,20 @@ class DocxHelper:
 
     # Used in write_tag_to_doc()
     @classmethod
-    def get_span_attr_val(self, c: Tag) -> tuple:
-        '''
+    def get_span_attr_val(self, c: Tag) -> Tuple[str, str]:
+        """
         Get the attribute and value from the "style" attribute of a given Tag.
-        '''
+
+        This class method uses a regular expression to find the attribute and value
+        in the "style" attribute of the provided Tag. It returns a tuple containing
+        the attribute and value.
+
+        :param bs4.element.Tag c: The Tag to extract the attribute and value from.
+        :return: tuple (attr, val)
+        WHERE
+            str attr: The attribute.
+            str val: The value.
+        """
         found = re.findall(RegexPatterns.SPAN_ATTR_VAL.value, c.get("style"))
         attr, val = found[0]
         return attr, val
@@ -1643,9 +1675,17 @@ class DocxHelper:
     # Used in write_tag_to_doc()
     @classmethod
     def get_section_title(self, line: str) -> str:
-        '''
+        """
         Get the section title from a given line.
-        '''
+
+        This class method splits the given line into words and returns a string
+        composed of all words except the first one. If the line contains only one word,
+        an empty string is returned.
+
+        :param str line: The line to extract the section title from.
+        :return: The section title or an empty string.
+        :rtype: str
+        """
         words = line.split()
         if len(words) > 1:
             return ' '.join(words[1:])
@@ -1657,17 +1697,17 @@ class DocxHelper:
     def process_reg_bracket(self, line: str) -> Tuple[str, List[str]]:
         '''
         Process strings with regular brackets (), which can be (_invisible comment_), (regular comment), or (DOI).
-        Maintain and update DOI numerical index.
+        This class method also maintains and updates numerical index of DOIs found in the text entries.
 
         The string is returned to prepare for further docx content processing, in which the invisible comment will not be
         included, visible regular comment is still there but without brackets, and the DOI is provided with numerical
         index reference.
 
         :param str line: the comment string (with bracket) to be processed.
-        :return: tuplle (processed_line, references)
+        :return: tuple (processed_line, references)
             WHERE
-            str processed_line is the processed string to be written as a part of docx content,
-            list references is the list of available DOI references.
+            str processed_line: processed_line is the processed string to be written as a part of docx content,
+            list references: the list of available DOI references.
         '''
         global ref_counter
         references = []
@@ -1710,9 +1750,11 @@ class DocxHelper:
     def write_tag_to_doc(self, document: Document, tag_item: Tag) -> List[str]:
         '''
         writes and format html tag content to docx document.
-        :param document: python-docx document instance.
+        :param Document document: python-docx document instance.
         :param  bs4.element.Tag tag_item: tag to be processed and written to document.
-        :return: list all_references containing the whole DOI found in the document.
+        :return: list all_references
+            WHERE
+            list all_references: all references of DOIs contained in the document.
         '''
         all_references = []
         p = document.add_paragraph()
@@ -1829,10 +1871,17 @@ class DocxHelper:
 
     # Used in add_img_to_doc()
     @classmethod
-    def get_text_width(self, document) -> float:
-        '''
-        Return the text width in mm.
-        '''
+    def get_text_width(self, document: Document) -> float:
+        """
+        Return the text width in mm of the first section of a given document.
+
+        This class method calculates the text width by subtracting the left and right margins
+        from the page width of the first section of the document. The result is then divided by 36000
+        to convert the measurement to millimeters.
+
+        :param docx.Document document: The document to calculate the text width for.
+        :return: A floating point value representing the text width in millimeters.
+        """
         section = document.sections[0]
         return (section.page_width - section.left_margin - section.right_margin) / 36000
 
@@ -1846,7 +1895,10 @@ class DocxHelper:
         The style sheet file should be placed in the same directory as config.json file. Please check LISTER's readme.
 
         :param str latex_formula: latex string to be converted to docx formula representation.
-        :return: docx_formula that is going to be written to the docx file.
+        :return: tuple (docx_formula, log)
+            WHERE
+            str docx_formula: formula represented in docx-string compatible that is going to be written to the docx file.
+            str log: error log (if any)
         '''
         log = ""
         mathml = latex2mathml.converter.convert(latex_formula)
@@ -1901,10 +1953,9 @@ class DocxHelper:
         '''
         Add image to the document file, based on upload id and image name when it was uploaded.
 
-        :param str elabapy.Manager manager: manager object to get access to the eLabFTW API.
-        :param str document: the document object that is being modified.
-        :param str upl_id: upload id of the image/attachment that is going to be inserted to the document file.
+        :param Document document: the document object that is being modified.
         :param str real_name: real name of the image when it was uploaded to eLabFTW.
+        :param str path: path to the image/attachment.
         '''
         log = ""
         if real_name:
@@ -1977,8 +2028,8 @@ class TextCleaner:
     def strip_markup_and_explicit_keys(self, line: str) -> Tuple[str, List[str]]:
         '''
         Strip keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
-        pattern of DOI as reference, strip curly and angle brackets, reformat any annotation with regular bracket and fetch
-        the DOI references, and strip unnecessary white spaces.
+        pattern of DOI as reference, strip curly and angle brackets, reformat any annotation with regular bracket and
+        fetch the DOI references, and strip unnecessary white spaces.
 
         :param bs4.element.NavigableString/str line: string to be inspected.
         :return: list of string containing DOI number.
@@ -2002,9 +2053,14 @@ class TextCleaner:
     # Used in parse_lines_to_kv().
     @classmethod
     def strip_colon(self, key: str) -> str:
-        '''
+        """
         Strip colon found on key string.
-        '''
+
+        This class method uses a regular expression to remove all colons from the provided string.
+
+        :param str key: The string to remove colons from.
+        :return: str stripped_key: The string with all colons removed.
+        """
         stripped_key = re.sub('\:', '', key)
         return stripped_key
 
@@ -2015,7 +2071,7 @@ class TextCleaner:
         Remove empty tags from a BeautifulSoup object.
 
         :param BeautifulSoup soup: The BeautifulSoup object to be processed.
-        :return: BeautifulSoup object with empty tags removed.
+        :return: BeautifulSoup soup: BeautifulSoup object with empty tags removed.
         '''
         for x in soup.find_all():
             # if the text within a tag is empty, and tag name is not img/br/etc.. and it is not img within p tag:
@@ -2027,9 +2083,15 @@ class TextCleaner:
 
     @classmethod
     def remove_extra_spaces(self, line: str) -> str:
-        '''
+        """
         Remove extra spaces from a given line.
-        '''
+
+        This class method uses a regular expression to replace all occurrences of multiple spaces
+        in the provided string with a single space.
+
+        :param str line: The string to remove extra spaces from.
+        :return: (str) The string with all extra spaces removed.
+        """
         return re.sub(' +', ' ', line)
 
 
@@ -2039,7 +2101,7 @@ class TextCleaner:
         Remove table tags and its content from the soup object.
 
         :param bs4.BeautifulSoup soup: bs4 soup object.
-        :return: bs4.BeautifulSoup soup object without table tag, and it's content.
+        :return: bs4.BeautifulSoup soup: BeautifulSoup object without table tag, and it's content.
         '''
         for table in soup("table"):
             table.decompose()
@@ -2049,10 +2111,19 @@ class TextCleaner:
 # ------------------------------------------------ Path Helper Class --------------------------------------------------
 class PathHelper:
     @classmethod
-    def derive_fname_from_exp_v2(self, exp) -> str:
-        '''
+    def derive_fname_from_exp_v2(self, exp: Union[elabapi_python.Experiment, Dict]) -> str:
+        """
         Derive a file name from the experiment dictionary.
-        '''
+
+        This class method checks if the provided experiment is a dictionary.
+        If it is, it retrieves the title from the dictionary.
+        If it's not a dictionary, it retrieves the title from the experiment's attributes.
+        The title is then slugified to create a file name.
+
+        :param Union[elabapi_python.Experiment, Dict] exp: The experiment to derive the file name from.
+                                                           Can be a dictionary or an object with a "_title" attribute.
+        :return: str fname_from_exp: The derived file name.
+        """
         if isinstance(exp, dict):
             exp_title = exp["title"]
         else:
@@ -2069,8 +2140,8 @@ class PathHelper:
         On macOS, it is in the users' Apps/lister/output/ directory.
 
         :param str file_name: file name for the output.
-        :returns: str output_path is the output path created from appending lister's output home directory and
-        output file name.
+        :return: str output_path: the output path created from appending lister's output home directory and
+                  output file name.
         '''
         if platform.system() == "Darwin":  # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
             home = str(Path.home())
@@ -2110,6 +2181,7 @@ class PathHelper:
     def check_and_create_path(self, path: str) -> None:
         '''
         Check if the given path exists, and create the directory if it doesn't.
+
         :param path: The path to check and create if necessary.
         '''
         if not os.path.isdir(path):
@@ -2122,6 +2194,7 @@ class PathHelper:
         '''
         Enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
         from the executable file's directory).
+
         :return: str input_path is the input directory for macOS.
         '''
         input_path = ""
