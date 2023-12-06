@@ -1,7 +1,7 @@
 {
     "elabftw": {
         "token":"d5b25b7e9128d8ad74e409e0d016f1504fae76908b673b9be67cb7a7e4f404bd509a14ee79cd154fed3f1",
-        "endpoint":"https://elabftw.pharm.hhu.de/api/v1/",
+        "endpoint":"https://elabftw.pharm.hhu.de/api/v2/",
         "exp_no":20,
         "output_file_name":"",
         "resource_item_no":18

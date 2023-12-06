@@ -4,7 +4,7 @@ from enum import Enum
 import xlsxwriter
 from docx import Document
 from bs4 import BeautifulSoup, Tag
-import elabapy
+# import elabapy
 import os
 import PyInstaller
 from gooey import Gooey, GooeyParser
@@ -22,8 +22,9 @@ from pathvalidate import sanitize_filepath
 from typing import Any, Tuple, List, Dict, Union
 from argparse import Namespace
 from elabapi_python.rest import ApiException
-from pprint import pprint
+# from pprint import pprint
 import urllib3
+# TODO: remove the following line when the issue is fixed
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
@@ -2162,7 +2163,7 @@ class PathHelper:
         Get the output path according to respective platform.
 
         If it is on macOS, just return the dir_name (which have already been appended with output filename),
-        on Mindows/Linux, return the dir_name + output file_name.
+        on Windows/Linux, return the dir_name + output file_name.
 
         :param str dir_name: the home directory name for the output.
         :param str file_name: the output name.
@@ -2233,7 +2234,6 @@ def main():
     global output_fname  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
-
     log = ""
 
     guiHelper = GUIHelper()

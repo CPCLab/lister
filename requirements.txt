@@ -2,7 +2,6 @@ latex2mathml
 pandas
 pyinstaller
 beautifulsoup4
-elabapy
 python-docx
 gooey
 xlsxwriter

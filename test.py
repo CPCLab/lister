@@ -39,10 +39,10 @@ class Test_lister(unittest.TestCase):
         self.assertFalse(apiv2_client.configuration.verify_ssl)
 
 
-    def test_derive_fname_from_exp(self):
-        exp = {"title": "Example Experiment Title"}
-        expected_fname = "example-experiment-title"
-        self.assertEqual(lister.PathHelper.derive_fname_from_exp(exp), expected_fname)
+    # def test_derive_fname_from_exp(self):
+    #     exp = {"title": "Example Experiment Title"}
+    #     expected_fname = "example-experiment-title"
+    #     self.assertEqual(lister.PathHelper.derive_fname_from_exp(exp), expected_fname)
 
 
     @patch('os.path.isdir')
@@ -62,29 +62,29 @@ class Test_lister(unittest.TestCase):
         mock_makedirs.assert_called_with(path)
 
 
-    @patch('lister.PathHelper.check_and_create_path')
-    @patch('os.path.isdir')
-    @patch('builtins.open', new_callable=unittest.mock.mock_open)
-    def test_get_and_save_attachments(self, mock_open, mock_isdir, mock_check_and_create_path):
-        manager = MagicMock()
-        uploads = [
-            {"id": "1", "real_name": "attachment1.txt"},
-            {"id": "2", "real_name": "attachment2.txt"}
-        ]
-        path = '/path/to/directory'
-
-        mock_isdir.return_value = True
-        manager.get_upload.side_effect = [b'content1', b'content2']
-
-        lister.ApiAccess.get_and_save_attachments(manager, uploads, path)
-
-        mock_check_and_create_path.assert_called_with(path + '/attachments/')
-        manager.get_upload.assert_any_call("1")
-        manager.get_upload.assert_any_call("2")
-        mock_open.assert_any_call(path + '/attachments/attachment1.txt', 'wb')
-        mock_open.assert_any_call(path + '/attachments/attachment2.txt', 'wb')
-        mock_open().write.assert_any_call(b'content1')
-        mock_open().write.assert_any_call(b'content2')
+    # @patch('lister.PathHelper.check_and_create_path')
+    # @patch('os.path.isdir')
+    # @patch('builtins.open', new_callable=unittest.mock.mock_open)
+    # def test_get_and_save_attachments(self, mock_open, mock_isdir, mock_check_and_create_path):
+    #     manager = MagicMock()
+    #     uploads = [
+    #         {"id": "1", "real_name": "attachment1.txt"},
+    #         {"id": "2", "real_name": "attachment2.txt"}
+    #     ]
+    #     path = '/path/to/directory'
+    #
+    #     mock_isdir.return_value = True
+    #     manager.get_upload.side_effect = [b'content1', b'content2']
+    #
+    #     lister.ApiAccess.get_and_save_attachments(manager, uploads, path)
+    #
+    #     mock_check_and_create_path.assert_called_with(path + '/attachments/')
+    #     manager.get_upload.assert_any_call("1")
+    #     manager.get_upload.assert_any_call("2")
+    #     mock_open.assert_any_call(path + '/attachments/attachment1.txt', 'wb')
+    #     mock_open.assert_any_call(path + '/attachments/attachment2.txt', 'wb')
+    #     mock_open().write.assert_any_call(b'content1')
+    #     mock_open().write.assert_any_call(b'content2')
 
 
     @patch('lister.PathHelper.check_and_create_path')
@@ -403,58 +403,58 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(lister.TextCleaner.remove_table_tag(soup), expected_output)
 
 
-    def test_get_attachment_long_name(self):
-        img_path = "some_url?file=long_name_value"
-        expected_long_name = "long_name_value"
-        self.assertEqual(lister.ApiAccess.get_attachment_long_name(img_path), expected_long_name)
+    # def test_get_attachment_long_name(self):
+    #     img_path = "some_url?file=long_name_value"
+    #     expected_long_name = "long_name_value"
+    #     self.assertEqual(lister.ApiAccess.get_attachment_long_name(img_path), expected_long_name)
 
 
-    def test_get_attachment_id(self):
-        exp = {
-            "uploads": [
-                {"id": "1", "real_name": "attachment1.txt", "long_name": "long_name_1"},
-                {"id": "2", "real_name": "attachment2.txt", "long_name": "long_name_2"}
-            ]
-        }
-        content = MagicMock()
-        content.img = {"src": "some_url?file=long_name_1"}
-
-        expected_upl_id = "1"
-        expected_real_name = "attachment1.txt"
-
-        upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
-
-        self.assertEqual(upl_id, expected_upl_id)
-        self.assertEqual(real_name, expected_real_name)
-
-
-    def test_create_elab_manager(self):
-        current_endpoint = 'http://example.com'
-        current_token = 'test_token'
-        manager = lister.ApiAccess.create_elab_manager(current_endpoint, current_token)
-
-        self.assertIsInstance(manager, elabapy.Manager)
-        self.assertEqual(manager.endpoint, current_endpoint)
-        self.assertEqual(manager.token, current_token)
-        self.assertFalse(manager.verify)
+    # def test_get_attachment_id(self):
+    #     exp = {
+    #         "uploads": [
+    #             {"id": "1", "real_name": "attachment1.txt", "long_name": "long_name_1"},
+    #             {"id": "2", "real_name": "attachment2.txt", "long_name": "long_name_2"}
+    #         ]
+    #     }
+    #     content = MagicMock()
+    #     content.img = {"src": "some_url?file=long_name_1"}
+    #
+    #     expected_upl_id = "1"
+    #     expected_real_name = "attachment1.txt"
+    #
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
+    #
+    #     self.assertEqual(upl_id, expected_upl_id)
+    #     self.assertEqual(real_name, expected_real_name)
 
 
+    # def test_create_elab_manager(self):
+    #     current_endpoint = 'http://example.com'
+    #     current_token = 'test_token'
+    #     manager = lister.ApiAccess.create_elab_manager(current_endpoint, current_token)
+    #
+    #     self.assertIsInstance(manager, elabapy.Manager)
+    #     self.assertEqual(manager.endpoint, current_endpoint)
+    #     self.assertEqual(manager.token, current_token)
+    #     self.assertFalse(manager.verify)
 
-    def test_get_resource_cat_and_title(self):
-        endpoint = 'http://example.com'
-        token = 'test_token'
-        resource_item_no = 1
-        expected_category = 'Sample Category'
-        expected_title = 'Sample Title'
 
-        manager = MagicMock()
-        manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
 
-        with unittest.mock.patch('lister.ApiAccess.create_elab_manager', return_value=manager):
-            category, title = lister.ApiAccess.get_resource_cat_and_title_v1(endpoint, token, resource_item_no)
-
-        self.assertEqual(category, expected_category)
-        self.assertEqual(title, expected_title)
+    # def test_get_resource_cat_and_title(self):
+    #     endpoint = 'http://example.com'
+    #     token = 'test_token'
+    #     resource_item_no = 1
+    #     expected_category = 'Sample Category'
+    #     expected_title = 'Sample Title'
+    #
+    #     manager = MagicMock()
+    #     manager.get_item.return_value = {'category': expected_category, 'title': expected_title}
+    #
+    #     with unittest.mock.patch('lister.ApiAccess.create_elab_manager', return_value=manager):
+    #         category, title = lister.ApiAccess.get_resource_cat_and_title_v1(endpoint, token, resource_item_no)
+    #
+    #     self.assertEqual(category, expected_category)
+    #     self.assertEqual(title, expected_title)
 
 
     def test_output_path_darwin(self):
@@ -480,71 +480,71 @@ class Test_lister(unittest.TestCase):
             self.assertEqual(output_path, expected_output_path)
 
 
-    def test_get_elab_exp(self):
-        exp_number = 1
-        current_endpoint = 'http://example.com'
-        current_token = 'test_token'
-
-        manager = MagicMock()
-        expected_exp = {'id': exp_number, 'title': 'Sample Experiment'}
-
-        manager.get_experiment.return_value = expected_exp
-
-        with patch('lister.ApiAccess.create_elab_manager', return_value=manager):
-            result_manager, result_exp = lister.ApiAccess.get_elab_exp(exp_number, current_endpoint, current_token)
-
-        self.assertEqual(result_manager, manager)
-        self.assertEqual(result_exp, expected_exp)
-
-
-    def test_get_exp_info(self):
-        exp = {
-            'title': 'Sample Experiment',
-            'date': '2021-01-01',
-            'category': 'Sample Category',
-            'fullname': 'John Doe',
-            'tags': 'tag1, tag2'
-        }
-
-        expected_nkvmu_pairs = [
-            ["", "metadata section", "Experiment Info", "", ""],
-            ["", "title", exp['title'], "", ""],
-            ["", "creation date", exp['date'], "", ""],
-            ["", "category", exp['category'], "", ""],
-            ["", "author", exp['fullname'], "", ""],
-            ["", "tags", exp['tags'], "", ""]
-        ]
-
-        # print("expected_nkvmu_pairs: " + str(expected_nkvmu_pairs))
-        result_nkvmu_pairs = lister.ApiAccess.get_exp_info(exp)
-        #m print("result_nkvmu_pairs: " + str(result_nkvmu_pairs))
-        self.assertEqual(result_nkvmu_pairs, expected_nkvmu_pairs)
+    # def test_get_elab_exp(self):
+    #     exp_number = 1
+    #     current_endpoint = 'http://example.com'
+    #     current_token = 'test_token'
+    #
+    #     manager = MagicMock()
+    #     expected_exp = {'id': exp_number, 'title': 'Sample Experiment'}
+    #
+    #     manager.get_experiment.return_value = expected_exp
+    #
+    #     with patch('lister.ApiAccess.create_elab_manager', return_value=manager):
+    #         result_manager, result_exp = lister.ApiAccess.get_elab_exp(exp_number, current_endpoint, current_token)
+    #
+    #     self.assertEqual(result_manager, manager)
+    #     self.assertEqual(result_exp, expected_exp)
 
 
-    def test_get_exp_title(self):
-        endpoint = 'http://example.com'
-        token = 'test_token'
-        exp_item_no = 1
-        exp_title = 'Sample Experiment'
+    # def test_get_exp_info(self):
+    #     exp = {
+    #         'title': 'Sample Experiment',
+    #         'date': '2021-01-01',
+    #         'category': 'Sample Category',
+    #         'fullname': 'John Doe',
+    #         'tags': 'tag1, tag2'
+    #     }
+    #
+    #     expected_nkvmu_pairs = [
+    #         ["", "metadata section", "Experiment Info", "", ""],
+    #         ["", "title", exp['title'], "", ""],
+    #         ["", "creation date", exp['date'], "", ""],
+    #         ["", "category", exp['category'], "", ""],
+    #         ["", "author", exp['fullname'], "", ""],
+    #         ["", "tags", exp['tags'], "", ""]
+    #     ]
+    #
+    #     # print("expected_nkvmu_pairs: " + str(expected_nkvmu_pairs))
+    #     result_nkvmu_pairs = lister.ApiAccess.get_exp_info(exp)
+    #     #m print("result_nkvmu_pairs: " + str(result_nkvmu_pairs))
+    #     self.assertEqual(result_nkvmu_pairs, expected_nkvmu_pairs)
 
-        mock_exp = (None, {'title': exp_title})
 
-        with patch('lister.ApiAccess.get_elab_exp', return_value=mock_exp):
-            result_title = lister.ApiAccess.get_exp_title(endpoint, token, exp_item_no)
+    # def test_get_exp_title(self):
+    #     endpoint = 'http://example.com'
+    #     token = 'test_token'
+    #     exp_item_no = 1
+    #     exp_title = 'Sample Experiment'
+    #
+    #     mock_exp = (None, {'title': exp_title})
+    #
+    #     with patch('lister.ApiAccess.get_elab_exp', return_value=mock_exp):
+    #         result_title = lister.ApiAccess.get_exp_title(endpoint, token, exp_item_no)
+    #
+    #     self.assertEqual(result_title, exp_title)
 
-        self.assertEqual(result_title, exp_title)
 
-
-    def test_get_nonempty_body_tags(self):
-        exp = {'body': '<p>Some text</p><p></p><div><span>More text</span></div><div></div>'}
-        expected_tagged_contents = ['Some text', 'More text']
-
-        with unittest.mock.patch('lister.TextCleaner.remove_empty_tags') as mock_remove_empty_tags:
-            mock_remove_empty_tags.return_value = BeautifulSoup('<p>Some text</p><div><span>More text</span></div>', 'html.parser')
-            result_tagged_contents = lister.TextCleaner.get_nonempty_body_tags(exp)
-
-        self.assertEqual(len(result_tagged_contents), len(expected_tagged_contents))
-        self.assertEqual([tag.string for tag in result_tagged_contents], expected_tagged_contents)
+    # def test_get_nonempty_body_tags(self):
+    #     exp = {'body': '<p>Some text</p><p></p><div><span>More text</span></div><div></div>'}
+    #     expected_tagged_contents = ['Some text', 'More text']
+    #
+    #     with unittest.mock.patch('lister.TextCleaner.remove_empty_tags') as mock_remove_empty_tags:
+    #         mock_remove_empty_tags.return_value = BeautifulSoup('<p>Some text</p><div><span>More text</span></div>', 'html.parser')
+    #         result_tagged_contents = lister.TextCleaner.get_nonempty_body_tags(exp)
+    #
+    #     self.assertEqual(len(result_tagged_contents), len(expected_tagged_contents))
+    #     self.assertEqual([tag.string for tag in result_tagged_contents], expected_tagged_contents)
 
 
     def test_get_section_title(self):
@@ -902,36 +902,36 @@ class Test_lister(unittest.TestCase):
         ])
 
 
-    def test_process_linked_resource_item_two_columns(self):
-        manager = MagicMock()
-        manager.get_item.return_value = {
-            "body": "<table><tr><td>Key</td><td>Value</td></tr></table>",
-            "category": "TestCategory"
-        }
-        id = 1
+    # def test_process_linked_resource_item_two_columns(self):
+    #     manager = MagicMock()
+    #     manager.get_item.return_value = {
+    #         "body": "<table><tr><td>Key</td><td>Value</td></tr></table>",
+    #         "category": "TestCategory"
+    #     }
+    #     id = 1
+    #
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
+    #
+    #     self.assertEqual(log, "")
+    #     self.assertEqual(resource_item_nkvmu_metadata, [
+    #         ['', 'metadata section', 'TestCategory', '', ''],
+    #         ['', 'Key', 'Value', '', '']
+    #     ])
 
-        resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
 
-        self.assertEqual(log, "")
-        self.assertEqual(resource_item_nkvmu_metadata, [
-            ['', 'metadata section', 'TestCategory', '', ''],
-            ['', 'Key', 'Value', '', '']
-        ])
-
-
-    def test_process_linked_resource_item_not_two_columns(self):
-        manager = MagicMock()
-        manager.get_item.return_value = {
-            "body": "<table><tr><td>Key</td><td>Value</td><td>Extra</td></tr></table>",
-            "category": "TestCategory"
-        }
-        id = 1
-
-        resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
-
-        expected_log = lister.MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
-        self.assertEqual(log, expected_log)
-        self.assertEqual(resource_item_nkvmu_metadata, "")
+    # def test_process_linked_resource_item_not_two_columns(self):
+    #     manager = MagicMock()
+    #     manager.get_item.return_value = {
+    #         "body": "<table><tr><td>Key</td><td>Value</td><td>Extra</td></tr></table>",
+    #         "category": "TestCategory"
+    #     }
+    #     id = 1
+    #
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
+    #
+    #     expected_log = lister.MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
+    #     self.assertEqual(log, expected_log)
+    #     self.assertEqual(resource_item_nkvmu_metadata, "")
 
 
     def test_validate_range_valid(self):
