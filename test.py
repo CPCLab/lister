@@ -2,7 +2,7 @@ import re
 import lister
 from bs4 import BeautifulSoup
 import elabapi_python
-import elabapy
+# import elabapy
 import os
 from unittest.mock import MagicMock, patch
 from pathlib import Path
@@ -43,6 +43,19 @@ class Test_lister(unittest.TestCase):
     #     exp = {"title": "Example Experiment Title"}
     #     expected_fname = "example-experiment-title"
     #     self.assertEqual(lister.PathHelper.derive_fname_from_exp(exp), expected_fname)
+
+    def test_derive_fname_from_exp_v2(self):
+
+        # Test with a dictionary
+        exp_dict = {"title": "My Experiment"}
+        result = lister.PathHelper.derive_fname_from_exp_v2(exp_dict)
+        self.assertEqual(result, "my-experiment")  # assuming slugify converts "My Experiment" to "my-experiment"
+
+        # Test with an Experiment object
+        exp_obj = elabapi_python.Experiment()
+        exp_obj.__dict__["_title"] = "Another Experiment"
+        result = lister.PathHelper.derive_fname_from_exp_v2(exp_obj)
+        self.assertEqual(result, "another-experiment")  # assuming slugify converts "Another Experiment" to "another-experiment"
 
 
     @patch('os.path.isdir')
@@ -85,6 +98,40 @@ class Test_lister(unittest.TestCase):
     #     mock_open.assert_any_call(path + '/attachments/attachment2.txt', 'wb')
     #     mock_open().write.assert_any_call(b'content1')
     #     mock_open().write.assert_any_call(b'content2')
+
+
+    @patch("lister.PathHelper.check_and_create_path")
+    @patch("elabapi_python.UploadsApi")
+    @patch("elabapi_python.ExperimentsApi")
+    def test_get_and_save_attachments_apiv2(self, mock_experiments_api, mock_uploads_api, mock_check_and_create_path):
+        # Create an instance of the class
+
+        # Mock the experiment object
+        mock_experiment = MagicMock()
+        mock_experiment.id = 1
+        mock_experiments_api.return_value.get_experiment.return_value = mock_experiment
+
+        # Mock the upload object
+        mock_upload = MagicMock()
+        mock_upload.id = 1
+        mock_upload.real_name = "attachment.txt"
+        mock_uploads_api.return_value.read_uploads.return_value = [mock_upload]
+        mock_uploads_api.return_value.read_upload.return_value.data = b"attachment content"
+
+        # Call the method
+        path = "test_path"
+        apiv2_client = MagicMock()
+        exp_id = 1
+        log = lister.get_and_save_attachments_apiv2(path, apiv2_client, exp_id)
+
+        # Check if the method calls are correct
+        mock_experiments_api.return_value.get_experiment.assert_called_once_with(exp_id)
+        mock_uploads_api.return_value.read_uploads.assert_called_once_with("experiments", mock_experiment.id)
+        mock_uploads_api.return_value.read_upload.assert_called_once_with("experiments", mock_experiment.id, mock_upload.id, format="binary", _preload_content=False)
+        mock_check_and_create_path.assert_called_once_with(path + "/attachments")
+
+        # Check if the log is empty
+        self.assertEqual(log, "")
 
 
     @patch('lister.PathHelper.check_and_create_path')
@@ -403,10 +450,10 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(lister.TextCleaner.remove_table_tag(soup), expected_output)
 
 
-    # def test_get_attachment_long_name(self):
-    #     img_path = "some_url?file=long_name_value"
-    #     expected_long_name = "long_name_value"
-    #     self.assertEqual(lister.ApiAccess.get_attachment_long_name(img_path), expected_long_name)
+    def test_get_attachment_long_name(self):
+        img_path = "some_url?file=long_name_value"
+        expected_long_name = "long_name_value"
+        self.assertEqual(lister.ApiAccess.get_attachment_long_name_v2(img_path), expected_long_name)
 
 
     # def test_get_attachment_id(self):
@@ -422,10 +469,11 @@ class Test_lister(unittest.TestCase):
     #     expected_upl_id = "1"
     #     expected_real_name = "attachment1.txt"
     #
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(exp, content)
     #
     #     self.assertEqual(upl_id, expected_upl_id)
     #     self.assertEqual(real_name, expected_real_name)
+
 
 
     # def test_create_elab_manager(self):
@@ -497,6 +545,29 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(result_exp, expected_exp)
 
 
+    @patch.object(elabapi_python.ExperimentsApi, 'get_experiment')
+    def test_get_elab_exp_v2(self, mock_get_experiment):
+
+        # Mock the API client
+        mock_client = MagicMock(spec=elabapi_python.ApiClient)
+
+        # Mock the experiment ID
+        mock_id = 123
+
+        # Mock the API response
+        mock_response = MagicMock()
+        mock_get_experiment.return_value = mock_response
+
+        # Call the method
+        result = lister.ApiAccess.get_elab_exp_v2(mock_client, mock_id)
+
+        # Check if the method was called with the correct arguments
+        mock_get_experiment.assert_called_once_with(mock_id, format='json')
+
+        # Check if the returned value is correct
+        self.assertEqual(result, mock_response)
+
+
     # def test_get_exp_info(self):
     #     exp = {
     #         'title': 'Sample Experiment',
@@ -521,6 +592,35 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(result_nkvmu_pairs, expected_nkvmu_pairs)
 
 
+    def test_get_exp_info_v2(self):
+
+        # Mock the experiment
+        mock_exp = MagicMock()
+        mock_exp.__dict__ = {
+            "_title": "Test Title",
+            "_created_at": "2023-12-06",
+            "_type": "Test Type",
+            "_fullname": "Test Fullname",
+            "_tags": "Test Tags"
+        }
+
+        # Call the method
+        result = lister.ApiAccess.get_exp_info_v2(mock_exp)
+
+        # Expected result
+        expected_result = [
+            ["", "metadata section", "Experiment Info", "", ""],
+            ["", "title", "Test Title", "", ""],
+            ["", "creation date", "2023-12-06", "", ""],
+            ["", "category", "Test Type", "", ""],
+            ["", "author", "Test Fullname", "", ""],
+            ["", "tags", "Test Tags", "", ""]
+        ]
+
+        # Check if the returned value is correct
+        self.assertEqual(result, expected_result)
+
+
     # def test_get_exp_title(self):
     #     endpoint = 'http://example.com'
     #     token = 'test_token'
@@ -533,6 +633,7 @@ class Test_lister(unittest.TestCase):
     #         result_title = lister.ApiAccess.get_exp_title(endpoint, token, exp_item_no)
     #
     #     self.assertEqual(result_title, exp_title)
+    
 
 
     # def test_get_nonempty_body_tags(self):

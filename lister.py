@@ -203,8 +203,7 @@ class ApiAccess:
 
         :param elabapi_python.ApiClient apiv2_client: The eLab API client instance.
         :param int id: The ID of the experiment to retrieve.
-        :return: The retrieved eLab experiment.
-        :rtype: elabapi_python.Experiment
+        :return: elabapi_python.Experiment api_response: The retrieved eLab experiment.
 
         This method uses the provided eLab API client to fetch an experiment with the given ID.
         If an ApiException occurs, it prints the exception message and continues.
