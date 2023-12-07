@@ -24,6 +24,9 @@ from argparse import Namespace
 from elabapi_python.rest import ApiException
 from pprint import pprint
 import urllib3
+import warnings
+from multiprocessing import freeze_support
+
 # TODO: remove the following line when the issue is fixed
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -2252,6 +2255,12 @@ def main():
     global output_path, base_output_path
     global token, exp_no, endpoint
     log = ""
+
+    # suppress the redundant window pop up on macOS as a workaround, see
+    # https://stackoverflow.com/questions/72636873/app-package-built-by-pyinstaller-fails-after-it-uses-tqdm
+    if platform.system() == "Darwin":
+        warnings.filterwarnings("ignore")
+        freeze_support()
 
     guiHelper = GUIHelper()
 
