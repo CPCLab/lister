@@ -2,20 +2,25 @@ import re
 import lister
 from bs4 import BeautifulSoup
 import elabapi_python
-# import elabapy
 import os
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 from pathlib import Path
 import unittest
 import platform
 from argparse import Namespace
 from bs4 import BeautifulSoup, Tag
 import shutil
+import pandas as pd
+from lxml import etree
 
 
 #  from lxml import etree
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, MiscAlertMsg
+
+class ApiException:
+    pass
+
 
 class Test_lister(unittest.TestCase):
 
@@ -475,6 +480,53 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(real_name, expected_real_name)
 
 
+    # @patch('lister.ApiAccess.get_attachment_long_name_v2')
+    # def test_get_attachment_id_v2_correct_output(self, mock_get_attachment_long_name):
+    #     # Mock the get_attachment_long_name response
+    #     mock_get_attachment_long_name.return_value = "long_name"
+    #
+    #     # Create a mock experiment with a mock upload
+    #     mock_exp = {"_uploads": [MagicMock(_long_name="long_name", _id="id", _real_name="real_name")]}
+    #
+    #     # Create a mock Tag with a mock img
+    #     mock_tag = MagicMock()
+    #     mock_img = MagicMock()
+    #     mock_img.__dict__["src"] = "src"
+    #     # mock_img["src"] = "src"
+    #     mock_tag.img = mock_img
+    #
+    #     print("mock_exp")
+    #     print([MagicMock(_long_name="long_name", _id="id", _real_name="real_name")].__str__())
+    #
+    #     # Call the method under test
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(mock_exp, mock_tag)
+    #
+    #     # Assert that the method returns the correct upload ID and real name
+    #     self.assertEqual(upl_id, "id")
+    #     self.assertEqual(real_name, "real_name")
+
+
+    # @patch('lister.ApiAccess.get_attachment_long_name_v2')
+    # def test_get_attachment_id_v2_empty_strings_when_no_uploads(self, mock_get_attachment_long_name):
+    #     # Mock the get_attachment_long_name response
+    #     mock_get_attachment_long_name.return_value = "long_name"
+    #
+    #     # Create a mock experiment with no uploads
+    #     mock_exp = {"_uploads": []}
+    #
+    #     # Create a mock Tag with a mock img
+    #     mock_tag = MagicMock()
+    #     mock_img = MagicMock()
+    #     mock_img.__dict__["src"] = "src"
+    #     mock_tag.img = mock_img
+    #
+    #     # Call the method under test
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(mock_exp, mock_tag)
+    #
+    #     # Assert that the method returns empty strings for the upload ID and real name
+    #     self.assertEqual(upl_id, "")
+    #     self.assertEqual(real_name, "")
+
 
     # def test_create_elab_manager(self):
     #     current_endpoint = 'http://example.com'
@@ -621,6 +673,35 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
 
+    @patch('elabapi_python.ExperimentsApi.get_experiment')
+    def test_get_exp_title_v2_returns_correct_title(self, mock_get_experiment):
+        # Mock the API response
+        mock_experiment = Mock()
+        mock_experiment.__dict__["_title"] = "Test Experiment"
+        mock_get_experiment.return_value = mock_experiment
+
+        # Create a mock API client
+        mock_apiv2client = Mock()
+
+        # Call the method under test
+        result = lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+
+        # Assert that the method returns the correct title
+        self.assertEqual(result, "Test Experiment")
+
+    @patch('elabapi_python.ExperimentsApi.get_experiment')
+    def test_get_exp_title_v2_raises_error_when_experiment_not_found(self, mock_get_experiment):
+        # Mock the API response to return None
+        mock_get_experiment.return_value = None
+
+        # Create a mock API client
+        mock_apiv2client = Mock()
+
+        # Call the method under test and assert that it raises an error
+        with self.assertRaises(ValueError):
+            lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+
+
     # def test_get_exp_title(self):
     #     endpoint = 'http://example.com'
     #     token = 'test_token'
@@ -633,19 +714,75 @@ class Test_lister(unittest.TestCase):
     #         result_title = lister.ApiAccess.get_exp_title(endpoint, token, exp_item_no)
     #
     #     self.assertEqual(result_title, exp_title)
-    
 
 
-    # def test_get_nonempty_body_tags(self):
-    #     exp = {'body': '<p>Some text</p><p></p><div><span>More text</span></div><div></div>'}
-    #     expected_tagged_contents = ['Some text', 'More text']
-    #
-    #     with unittest.mock.patch('lister.TextCleaner.remove_empty_tags') as mock_remove_empty_tags:
-    #         mock_remove_empty_tags.return_value = BeautifulSoup('<p>Some text</p><div><span>More text</span></div>', 'html.parser')
-    #         result_tagged_contents = lister.TextCleaner.get_nonempty_body_tags(exp)
-    #
-    #     self.assertEqual(len(result_tagged_contents), len(expected_tagged_contents))
-    #     self.assertEqual([tag.string for tag in result_tagged_contents], expected_tagged_contents)
+    @patch.object(elabapi_python.ExperimentsApi, 'get_experiment')
+    def test_get_exp_title_v2_success(self, mock_get_experiment):
+        # Mock the get_experiment response
+        mock_experiment = MagicMock()
+        mock_experiment.__dict__["_title"] = "Test Experiment"
+        mock_get_experiment.return_value = mock_experiment
+
+        # Create a mock API client
+        mock_apiv2client = MagicMock()
+
+        # Call the method under test
+        result = lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+
+        # Assert that the method returns the correct experiment title
+        self.assertEqual(result, "Test Experiment")
+
+
+    @patch.object(elabapi_python.ExperimentsApi, 'get_experiment')
+    def test_get_exp_title_v2_error_experiment_not_found(self, mock_get_experiment):
+        # Mock the get_experiment response to return None
+        mock_get_experiment.return_value = None
+
+        # Create a mock API client
+        mock_apiv2client = MagicMock()
+
+        # Call the method under test and assert that it raises an error
+        with self.assertRaises(ValueError):
+            lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+
+
+
+    @patch('bs4.BeautifulSoup')
+    @patch('lister.TextCleaner.remove_empty_tags')
+    def test_get_nonempty_body_tags_correct_output(self, mock_remove_empty_tags, mock_BeautifulSoup):
+        # Mock the BeautifulSoup response
+        mock_soup = MagicMock()
+        mock_BeautifulSoup.return_value = mock_soup
+
+        # Mock the remove_empty_tags response
+        mock_remove_empty_tags.return_value = mock_soup
+
+        # Create a mock experiment
+        mock_exp = MagicMock()
+        mock_exp.__dict__["_body"] = "<html></html>"
+
+        # Call the method under test
+        result = lister.TextCleaner.get_nonempty_body_tags_v2(mock_exp)
+        print("RESULT: ")
+        print(result)
+
+        # Assert that the method returns the correct output
+        expected_result = mock_soup.currentTag.tagStack[0].contents
+        self.assertEqual(result, expected_result)
+
+
+    @patch('bs4.BeautifulSoup')
+    def test_get_nonempty_body_tags_error_when_body_is_none(self, mock_BeautifulSoup):
+        # Mock the BeautifulSoup response to return None
+        mock_BeautifulSoup.return_value = None
+
+        # Create a mock experiment with a None body
+        mock_exp = Mock()
+        mock_exp.__dict__["_body"] = None
+
+        # Call the method under test and assert that it raises an error
+        with self.assertRaises(AttributeError):
+            lister.TextCleaner.get_nonempty_body_tags_v2(mock_exp)
 
 
     def test_get_section_title(self):
@@ -665,6 +802,22 @@ class Test_lister(unittest.TestCase):
     #     print(attr, val)
     #     self.assertEqual(attr, expected_attr)
     #     self.assertEqual(val, expected_val)
+
+    @patch('re.findall')
+    def test_get_span_attr_val(self, mock_findall):
+        # Mock the re.findall response
+        mock_findall.return_value = [("color", "#ffffff")]
+
+        # Create a mock Tag
+        mock_tag = Mock()
+        mock_tag.get.return_value = "color:#ffffff;"
+
+        # Call the method under test
+        attr, val = lister.DocxHelper.get_span_attr_val(mock_tag)
+
+        # Assert that the method returns the correct attribute and value
+        self.assertEqual(attr, "color")
+        self.assertEqual(val, "#ffffff")
 
 
     # def test_get_span_attr_val_no_match(self):
@@ -718,6 +871,52 @@ class Test_lister(unittest.TestCase):
     #         mock_convert.assert_called_once_with(latex_formula)
     #         self.assertIsNone(docx_formula)
     #         self.assertEqual(log, MiscAlertMsg.MISSING_MML2OMML.value)
+
+
+    # @patch('latex2mathml.converter.convert')
+    # @patch('lxml.etree.fromstring')
+    # @patch('lxml.etree.parse')
+    # @patch('lxml.etree.XSLT')
+    # def test_latex_formula_to_docx(self, mock_XSLT, mock_parse, mock_fromstring, mock_convert):
+    #     # Mock the convert function to return a specific MathML string
+    #     mock_convert.return_value = "<mathml></mathml>"
+    #
+    #     # Mock the fromstring function to return a specific etree Element
+    #     mock_fromstring.return_value = etree.Element("mathml")
+    #
+    #     # Mock the parse function to return a specific etree ElementTree
+    #     mock_parse.return_value = etree.ElementTree(etree.Element("xslt"))
+    #
+    #     # Mock the XSLT function to return a specific XSLT object
+    #     mock_XSLT.return_value = etree.XSLT(etree.ElementTree(etree.Element("xslt")))
+    #
+    #     # Call the method under test
+    #     docx_formula, log = lister.DocxHelper.latex_formula_to_docx("x^2")
+    #
+    #     # Assert that the method returns the correct docx formula and an empty log
+    #     self.assertEqual(docx_formula, etree.Element("mathml"))
+    #     self.assertEqual(log, "")
+
+    @patch('latex2mathml.converter.convert')
+    @patch('lxml.etree.fromstring')
+    @patch('lxml.etree.parse')
+    def test_latex_formula_to_docx_missing_mml2omml(self, mock_parse, mock_fromstring, mock_convert):
+        # Mock the convert function to return a specific MathML string
+        mock_convert.return_value = "<mathml></mathml>"
+
+        # Mock the fromstring function to return a specific etree Element
+        mock_fromstring.return_value = etree.Element("mathml")
+
+        # Mock the parse function to raise an exception
+        mock_parse.side_effect = Exception("Missing stylesheet")
+
+        # Call the method under test
+        docx_formula, log = lister.DocxHelper.latex_formula_to_docx("x^2")
+
+        # Assert that the method returns None for the docx formula and a log message indicating the error
+        self.assertIsNone(docx_formula)
+        self.assertEqual(log,
+                         "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, formula parsing is disabled.")
 
 
     def test_get_section_title_empty(self):
@@ -792,34 +991,6 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(args.endpoint, 'test_endpoint')
         self.assertEqual(args.token, 'test_token')
 
-    def test_conv_html_to_nkvmu(self):
-
-        pass
-
-        # TODO: check the flow again surrounding creating metadata headers for the first paragraph which now creates:
-        #  [['', 'metadata section', 'Experiment Context', '', '']] - find alternative options.
-
-        # # Test case 1: HTML with no tables
-        # html_content = "<p>This is a test paragraph without tables.</p>"
-        # expected_output = ([
-        #     ["", "section", "This is a test paragraph without tables.", "", ""]
-        # ], "")
-        # self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
-
-        # # Test case 2: HTML with one table
-        # html_content = "<p>This is a test paragraph with a table.</p><table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>"
-        # expected_output = ([
-        #     ["", "section", "This is a test paragraph with a table.", "", ""]
-        # ], "")
-        # self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
-        #
-        # # Test case 3: HTML with multiple tables
-        # html_content = "<p>Paragraph with multiple tables.</p><table><tr><td>Table 1</td></tr></table><table><tr><td>Table 2</td></tr></table>"
-        # expected_output = ([
-        #     ["", "section", "Paragraph with multiple tables.", "", ""]
-        # ], "")
-        # self.assertEqual(lister.conv_html_to_nkvmu(html_content), expected_output)
-
 
     def test_slugify(self):
         self.assertEqual(lister.PathHelper.slugify('Test String'), 'test-string')
@@ -869,6 +1040,59 @@ class Test_lister(unittest.TestCase):
     #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
     #
     #     self.assertEqual(result, expected_result)
+
+
+    @patch('bs4.BeautifulSoup')
+    @patch('lister.TextCleaner.remove_table_tag')
+    @patch('lister.TextCleaner.process_nbsp')
+    @patch('lister.MetadataExtractor.parse_lines_to_kv')
+    def test_conv_html_to_nkvmu_returns_correct_output(self, mock_parse_lines_to_kv, mock_process_nbsp,
+                                                  mock_remove_table_tag, mock_BeautifulSoup):
+        # Mock the BeautifulSoup response
+        mock_soup = Mock()
+        mock_BeautifulSoup.return_value = mock_soup
+
+        # Mock the remove_table_tag response
+        mock_remove_table_tag.return_value = mock_soup
+
+        # Mock the process_nbsp response
+        mock_process_nbsp.return_value = ["line1", "line2"]
+
+        # Mock the parse_lines_to_kv response
+        mock_parse_lines_to_kv.return_value = (
+        [["-", "section level 0", "Experiment Context", "", ""]], ["comment", "comment"], "")
+
+        # Call the method under test
+        result = lister.MetadataExtractor.conv_html_to_nkvmu("<html></html>")
+
+        # Assert that the method returns the correct output
+        expected_result = ([["-", "section level 0", "Experiment Context", "", ""]], "")
+        self.assertEqual(result, expected_result)
+
+
+    # @patch('bs4.BeautifulSoup')
+    # @patch('lister.TextCleaner.remove_table_tag')
+    # @patch('lister.TextCleaner.process_nbsp')
+    # @patch('lister.MetadataExtractor.parse_lines_to_kv')
+    # def test_conv_html_to_nkvmu_returns_empty_output_when_no_clean_lines(self, mock_parse_lines_to_kv, mock_process_nbsp,
+    #                                                                 mock_remove_table_tag, mock_BeautifulSoup):
+    #     # Mock the BeautifulSoup response
+    #     mock_soup = Mock()
+    #     mock_BeautifulSoup.return_value = mock_soup
+    #
+    #     # Mock the remove_table_tag response
+    #     mock_remove_table_tag.return_value = mock_soup
+    #
+    #     # Mock the process_nbsp response to return None
+    #     mock_process_nbsp.return_value = None
+    #
+    #     # Call the method under test
+    #     result = lister.MetadataExtractor.conv_html_to_nkvmu("<html></html>")
+    #
+    #     # Assert that the method returns an empty output
+    #     expected_result = ([], "")
+    #     self.assertEqual(result, expected_result)
+
 
     def test_strip_unwanted_mvu_colons(self):
         # Test a word with surrounding colons
@@ -1035,6 +1259,44 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(resource_item_nkvmu_metadata, "")
 
 
+    # @patch('elabapi_python.ItemsApi.get_item')
+    # @patch('pandas.read_html')
+    # def test_linked_resource_item_returns_correct_metadata(self, mock_read_html, mock_get_item):
+    #     # Mock the API response
+    #     mock_item = Mock()
+    #     mock_item.__dict__["_body"] = "<html></html>"
+    #     mock_item.__dict__["_mainattr_title"] = "Test Category"
+    #     mock_get_item.return_value = mock_item
+    #
+    #     # Mock the pandas read_html response
+    #     mock_df = pd.DataFrame({'metadata section': ['key1', 'key2'], 'Test Category': ['value1', 'value2']})
+    #     mock_read_html.return_value = [mock_df]
+    #
+    #     # Create a mock API client
+    #     mock_apiv2client = Mock()
+    #
+    #     # Call the method under test
+    #     result, _ = lister.MetadataExtractor.process_linked_resource_item_apiv2(mock_apiv2client, 1)
+    #
+    #     # Assert that the method returns the correct metadata
+    #     expected_result = [['', 'metadata section', 'Test Category', '', ''], ['', 'key1', 'value1', '', ''],
+    #                        ['', 'key2', 'value2', '', '']]
+    #     self.assertEqual(result, expected_result)
+
+
+    # @patch('elabapi_python.ItemsApi.get_item')
+    # def test_linked_resource_item_raises_error_when_item_not_found(self, mock_get_item):
+    #     # Mock the API response to return None
+    #     mock_get_item.return_value = None
+    #
+    #     # Create a mock API client
+    #     mock_apiv2client = Mock()
+    #
+    #     # Call the method under test and assert that it raises an error
+    #     with self.assertRaises(ApiException):
+    #         lister.MetadataExtractor.process_linked_resource_item_apiv2(mock_apiv2client, 1)
+
+
     def test_validate_range_valid(self):
         flow_range = "[1-10]"
         log, is_error = lister.Validator.validate_range(flow_range)
@@ -1075,6 +1337,48 @@ class Test_lister(unittest.TestCase):
     #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
     #
     #     self.assertEqual(result, expected_result)
+
+
+    # @patch('lister.MetadataExtractor.process_internal_comment')
+    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_kvmu')
+    # @patch('lister.MetadataExtractor.extract_flow_type')
+    # @patch('lister.GeneralHelper.split_into_sentences')
+    # @patch('lister.Validator.check_bracket_num')
+    # def test_parse_lines_to_kv_happy_path(self, mock_check_bracket_num, mock_split_into_sentences, mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
+    #     # Arrange
+    #     mock_check_bracket_num.return_value = ("", False)
+    #     mock_split_into_sentences.return_value = ["sentence1", "sentence2"]
+    #     mock_extract_flow_type.return_value = ([["-", "section level 0", "Experiment Context", "", ""]], "", False)
+    #     mock_conv_bracketedstring_to_kvmu.return_value = ("key", "value", "measure", "unit", "")
+    #     mock_process_internal_comment.return_value = ("key", "comment")
+    #     lines = ["line1", "line2"]
+    #
+    #     # Act
+    #     result = lister.MetadataExtractor.parse_lines_to_kv(lines)
+    #
+    #     # Assert
+    #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""], ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
+
+
+    # @patch('lister.MetadataExtractor.process_internal_comment')
+    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_kvmu')
+    # @patch('lister.MetadataExtractor.extract_flow_type')
+    # @patch('lister.GeneralHelper.split_into_sentences')
+    # @patch('lister.Validator.check_bracket_num')
+    # def test_parse_lines_to_kv_bracket_error(self, mock_check_bracket_num, mock_split_into_sentences, mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
+    #     # Arrange
+    #     mock_check_bracket_num.return_value = ("Bracket error", True)
+    #     mock_split_into_sentences.return_value = ["sentence1", "sentence2"]
+    #     mock_extract_flow_type.return_value = ([["-", "section level 0", "Experiment Context", "", ""]], "", False)
+    #     mock_conv_bracketedstring_to_kvmu.return_value = ("key", "value", "measure", "unit", "")
+    #     mock_process_internal_comment.return_value = ("key", "comment")
+    #     lines = ["line1", "line2"]
+    #
+    #     # Act
+    #     result = lister.MetadataExtractor.parse_lines_to_kv(lines)
+    #
+    #     # Assert
+    #     self.assertEqual(result, ([], [], "Bracket error"))
 
 
     def test_remove_empty_tags(self):

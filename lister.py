@@ -536,7 +536,6 @@ class Serializer:
 # ---------------------------------------------- Metadata Extraction Class --------------------------------------------
 class MetadataExtractor:
 
-    # Used in parse_lines_to_kv().
     @classmethod
     def is_explicit_key(self, key: str) -> bool:
         '''
