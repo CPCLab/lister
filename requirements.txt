@@ -1,6 +1,7 @@
 latex2mathml
 pandas
-pyinstaller
+# pyinstaller==5.10.0 # use this version to use the prev spec file in this repo.
+pyinstaller==6.2.0
 beautifulsoup4
 python-docx
 gooey

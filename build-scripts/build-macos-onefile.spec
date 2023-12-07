@@ -40,7 +40,7 @@ exe = EXE(
     gooey_images,
     name="lister",
     debug=False,
-    strip=None,
+    strip=False,
     upx=True,
     console=False,
     icon=os.path.join(gooey_root, "images", "program_icon.ico"),
