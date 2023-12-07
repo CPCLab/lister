@@ -5,5 +5,5 @@ beautifulsoup4
 python-docx
 gooey
 xlsxwriter
-elabapi_python
+elabapi_python==0.5.1
 pathvalidate

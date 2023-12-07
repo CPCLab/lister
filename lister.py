@@ -22,7 +22,7 @@ from pathvalidate import sanitize_filepath
 from typing import Any, Tuple, List, Dict, Union
 from argparse import Namespace
 from elabapi_python.rest import ApiException
-# from pprint import pprint
+from pprint import pprint
 import urllib3
 # TODO: remove the following line when the issue is fixed
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -655,7 +655,8 @@ class MetadataExtractor:
         :return: None
         '''
 
-        # TODO: also get the list of related experiments instead of linked experiments only
+        # TODO: also get the list of related experiments instead of linked experiments only,
+        #  status: pending. see https://github.com/elabftw/elabftw/issues/4811
         try:
             experiments = item_api_response.__dict__["_experiments_links"]
             for experiment in experiments:
@@ -682,7 +683,8 @@ class MetadataExtractor:
             # Read an item
             linked_item = api_instance.get_item(id)
             html_body = getattr(linked_item, 'body')
-            category = getattr(linked_item, 'mainattr_title')
+            # category = getattr(linked_item, 'mainattr_title') # only works for elabapi-python 0.4.1.
+            category = getattr(linked_item, 'category_title')
 
             dfs = pd.read_html(html_body)
             df = pd.concat(dfs)
@@ -720,13 +722,30 @@ class MetadataExtractor:
         exp_response = exp_instance.get_experiment(int(exp_no))
 
         linked_resources = exp_response.__dict__['_items_links']
+        # get the IDs of the linked resources
+        linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
+
+        # get the respective category of the linked resources
         id_and_category = {}
         excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
-        for linked_resource in linked_resources:
-            id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
+
+        # this will only work with elabapi-python 0.4.1.
+        # unfortunately the response from the API is not consistent between versions, so it may be a good idea to fix
+        # the version of elabapi-python to specific version in the requirements.txt in the future.
+
+        #for linked_resource in linked_resources:
+            #id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
+
+        for linked_resource_id in linked_resource_ids:
+            # get the linked resource item by ID
+            linked_resource = ApiAccess.get_resource_item_v2(apiv2client, linked_resource_id)
+            # pprint(linked_resource)
+            id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
+        # pprint(id_and_category)
 
         filtered_id_and_category =  {key: value for key, value in id_and_category.items() if value.lower() not in
                                      [item.lower() for item in excluded_item_types]}
+        # pprint(filtered_id_and_category)
 
         overall_nkvmu = []
         # the 'key' here is the ID of the resource item.
