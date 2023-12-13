@@ -31,16 +31,16 @@ class Test_lister(unittest.TestCase):
     # no test here.
 
     # ArgNum(Enum)
-    # no test here.get_attachment_long_name_v2
+    # no test here.get_attachment_long_name
 
     # ------- APIAccess Class -------
     # TODO: test_get_resource_item_v2()
     def test_get_attachment_long_name(self):
         img_path = "some_url?file=long_name_value"
         expected_long_name = "long_name_value"
-        self.assertEqual(lister.ApiAccess.get_attachment_long_name_v2(img_path), expected_long_name)
+        self.assertEqual(lister.ApiAccess.get_attachment_long_name(img_path), expected_long_name)
 
-    # @patch('lister.ApiAccess.get_attachment_long_name_v2')
+    # @patch('lister.ApiAccess.get_attachment_long_name')
     # def test_get_attachment_id_v2_empty_strings_when_no_uploads(self, mock_get_attachment_long_name):
     #     # Mock the get_attachment_long_name response
     #     mock_get_attachment_long_name.return_value = "long_name"
@@ -55,7 +55,7 @@ class Test_lister(unittest.TestCase):
     #     mock_tag.img = mock_img
     #
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
     #
     #     # Assert that the method returns empty strings for the upload ID and real name
     #     self.assertEqual(upl_id, "")
@@ -70,7 +70,7 @@ class Test_lister(unittest.TestCase):
         # Create a mock API client
         mock_apiv2client = Mock()
         # Call the method under test
-        result = lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+        result = lister.ApiAccess.get_exp_title(mock_apiv2client, 1)
         # Assert that the method returns the correct title
         self.assertEqual(result, "Test Experiment")
 
@@ -82,7 +82,7 @@ class Test_lister(unittest.TestCase):
         mock_apiv2client = Mock()
         # Call the method under test and assert that it raises an error
         with self.assertRaises(ValueError):
-            lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+            lister.ApiAccess.get_exp_title(mock_apiv2client, 1)
 
 
     # def test_get_exp_title(self):
@@ -104,7 +104,7 @@ class Test_lister(unittest.TestCase):
         # Create a mock API client
         mock_apiv2client = MagicMock()
         # Call the method under test
-        result = lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+        result = lister.ApiAccess.get_exp_title(mock_apiv2client, 1)
         # Assert that the method returns the correct experiment title
         self.assertEqual(result, "Test Experiment")
 
@@ -116,7 +116,7 @@ class Test_lister(unittest.TestCase):
         mock_apiv2client = MagicMock()
         # Call the method under test and assert that it raises an error
         with self.assertRaises(ValueError):
-            lister.ApiAccess.get_exp_title_v2(mock_apiv2client, 1)
+            lister.ApiAccess.get_exp_title(mock_apiv2client, 1)
 
     def test_get_exp_info_v2(self):
         # Mock the experiment
@@ -129,7 +129,7 @@ class Test_lister(unittest.TestCase):
             "_tags": "Test Tags"
         }
         # Call the method
-        result = lister.ApiAccess.get_exp_info_v2(mock_exp)
+        result = lister.ApiAccess.get_exp_info(mock_exp)
         # Expected result
         expected_result = [
             ["", "metadata section", "Experiment Info", "", ""],
@@ -152,7 +152,7 @@ class Test_lister(unittest.TestCase):
         mock_response = MagicMock()
         mock_get_experiment.return_value = mock_response
         # Call the method
-        result = lister.ApiAccess.get_elab_exp_v2(mock_client, mock_id)
+        result = lister.ApiAccess.get_exp(mock_client, mock_id)
         # Check if the method was called with the correct arguments
         mock_get_experiment.assert_called_once_with(mock_id, format='json')
         # Check if the returned value is correct
@@ -169,11 +169,11 @@ class Test_lister(unittest.TestCase):
     #     content.img = {"src": "some_url?file=long_name_1"}
     #     expected_upl_id = "1"
     #     expected_real_name = "attachment1.txt"
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(exp, content)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
     #     self.assertEqual(upl_id, expected_upl_id)
     #     self.assertEqual(real_name, expected_real_name)
 
-    # @patch('lister.ApiAccess.get_attachment_long_name_v2')
+    # @patch('lister.ApiAccess.get_attachment_long_name')
     # def test_get_attachment_id_v2_correct_output(self, mock_get_attachment_long_name):
     #     # Mock the get_attachment_long_name response
     #     mock_get_attachment_long_name.return_value = "long_name"
@@ -188,7 +188,7 @@ class Test_lister(unittest.TestCase):
     #     print("mock_exp")
     #     print([MagicMock(_long_name="long_name", _id="id", _real_name="real_name")].__str__())
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id_v2(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
     #     # Assert that the method returns the correct upload ID and real name
     #     self.assertEqual(upl_id, "id")
     #     self.assertEqual(real_name, "real_name")
@@ -196,12 +196,12 @@ class Test_lister(unittest.TestCase):
     def test_get_api_v2endpoint(self):
         v1endpoint = 'http://example.com/v1'
         expected_v2endpoint = 'https://example.com/v2'
-        self.assertEqual(lister.ApiAccess.get_api_v2endpoint(v1endpoint), expected_v2endpoint)
+        self.assertEqual(lister.ApiAccess.get_apiv2endpoint(v1endpoint), expected_v2endpoint)
 
     def test_create_apiv2_client(self):
         endpoint = 'http://example.com/v1'
         token = 'test_token'
-        apiv2_client = lister.ApiAccess.create_apiv2_client(endpoint, token)
+        apiv2_client = lister.ApiAccess.create_apiv2client(endpoint, token)
         self.assertIsInstance(apiv2_client, elabapi_python.ApiClient)
         self.assertEqual(apiv2_client.configuration.host, 'https://example.com/v2')
         self.assertEqual(apiv2_client.configuration.api_key['api_key'], token)
@@ -274,7 +274,7 @@ class Test_lister(unittest.TestCase):
             MagicMock(id="2", real_name="attachment2.txt")
         ]
         mock_uploads_api.read_upload.return_value = MagicMock(data=b"file_content")
-        lister.ApiAccess.get_and_save_attachments_apiv2(path, apiv2_client, exp_id)
+        lister.ApiAccess.get_save_attachments(path, apiv2_client, exp_id)
         mock_check_and_create_path.assert_called_once_with(mock_sanitize_filepath.return_value)
 
         # TODO: check the necesssity of the following assertions.
@@ -418,7 +418,7 @@ class Test_lister(unittest.TestCase):
         processed_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
         self.assertListEqual(lister.MetadataExtractor.process_section(list1)[0], processed_list)
 
-    # TODO: process_ref_resource_item_v2(),
+    # TODO: process_ref_resource_item(),
     # def test_process_linked_resource_item_two_columns(self):
     #     manager = MagicMock()
     #     manager.get_item.return_value = {
@@ -579,7 +579,7 @@ class Test_lister(unittest.TestCase):
         self.assertTrue(is_error)
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_kvmu')
+    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -592,12 +592,12 @@ class Test_lister(unittest.TestCase):
     #     mock_process_internal_comment.return_value = ("key", "comment")
     #     lines = ["line1", "line2"]
     #     # Act
-    #     result = lister.MetadataExtractor.parse_lines_to_kv(lines)
+    #     result = lister.MetadataExtractor.parse_lines_to_metadata(lines)
     #     # Assert
     #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""], ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_kvmu')
+    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -610,14 +610,14 @@ class Test_lister(unittest.TestCase):
     #     mock_process_internal_comment.return_value = ("key", "comment")
     #     lines = ["line1", "line2"]
     #     # Act
-    #     result = lister.MetadataExtractor.parse_lines_to_kv(lines)
+    #     result = lister.MetadataExtractor.parse_lines_to_metadata(lines)
     #     # Assert
     #     self.assertEqual(result, ([], [], "Bracket error"))
 
     # @patch('bs4.BeautifulSoup')
     # @patch('lister.TextCleaner.remove_table_tag')
     # @patch('lister.TextCleaner.process_nbsp')
-    # @patch('lister.MetadataExtractor.parse_lines_to_kv')
+    # @patch('lister.MetadataExtractor.parse_lines_to_metadata')
     # def test_conv_html_to_nkvmu_returns_empty_output_when_no_clean_lines(self, mock_parse_lines_to_kv, mock_process_nbsp,
     #                                                                 mock_remove_table_tag, mock_BeautifulSoup):
     #     # Mock the BeautifulSoup response
@@ -628,14 +628,14 @@ class Test_lister(unittest.TestCase):
     #     # Mock the process_nbsp response to return None
     #     mock_process_nbsp.return_value = None
     #     # Call the method under test
-    #     result = lister.MetadataExtractor.conv_html_to_nkvmu("<html></html>")
+    #     result = lister.MetadataExtractor.conv_html_to_metadata("<html></html>")
     #     # Assert that the method returns an empty output
     #     expected_result = ([], "")
     #     self.assertEqual(result, expected_result)
 
     # def test_parse_lines_to_kv(self):
     #     lines = ["metadata section: Experiment Context"]
-    #     result, internal_comments, log = lister.parse_lines_to_kv(lines)
+    #     result, internal_comments, log = lister.parse_lines_to_metadata(lines)
     #     # The expected result is based on the assumption of how the dependent functions work
     #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
     #     self.assertEqual(result, expected_result)
@@ -643,7 +643,7 @@ class Test_lister(unittest.TestCase):
     @patch('bs4.BeautifulSoup')
     @patch('lister.TextCleaner.remove_table_tag')
     @patch('lister.TextCleaner.process_nbsp')
-    @patch('lister.MetadataExtractor.parse_lines_to_kv')
+    @patch('lister.MetadataExtractor.parse_lines_to_metadata')
     def test_conv_html_to_nkvmu_returns_correct_output(self, mock_parse_lines_to_kv, mock_process_nbsp,
                                                   mock_remove_table_tag, mock_BeautifulSoup):
         # Mock the BeautifulSoup response
@@ -653,18 +653,18 @@ class Test_lister(unittest.TestCase):
         mock_remove_table_tag.return_value = mock_soup
         # Mock the process_nbsp response
         mock_process_nbsp.return_value = ["line1", "line2"]
-        # Mock the parse_lines_to_kv response
+        # Mock the parse_lines_to_metadata response
         mock_parse_lines_to_kv.return_value = (
         [["-", "section level 0", "Experiment Context", "", ""]], ["comment", "comment"], "")
         # Call the method under test
-        result = lister.MetadataExtractor.conv_html_to_nkvmu("<html></html>")
+        result = lister.MetadataExtractor.conv_html_to_metadata("<html></html>")
         # Assert that the method returns the correct output
         expected_result = ([["-", "section level 0", "Experiment Context", "", ""]], "")
         self.assertEqual(result, expected_result)
 
     # def test_conv_html_to_nkvmu(self):
     #     html_content = "<html><body><p>metadata section: Experiment Context</p></body></html>"
-    #     result, log = lister.conv_html_to_nkvmu(html_content)
+    #     result, log = lister.conv_html_to_metadata(html_content)
     #     # The expected result is based on the assumption of how the dependent functions work
     #     expected_result = [[0, "metadata section", "Experiment Context", "", ""]]
     #     self.assertEqual(result, expected_result)
@@ -672,19 +672,19 @@ class Test_lister(unittest.TestCase):
     def test_conv_bracketedstring_to_kvmu(self):
         # Test a string with key and value
         kvmu = "{value|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_kvmu(kvmu)
+        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "", ""))
         # Test a string with value, unit, and key
         kvmu = "{value|unit|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_kvmu(kvmu)
+        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "unit", ""))
         # Test a string with measure, unit, value, and key
         kvmu = "{measure|unit|value|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_kvmu(kvmu)
+        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "measure", "unit", ""))
         # Test a string with no separators
         kvmu = "{value}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_kvmu(kvmu)
+        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
         expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
                             "Otherwise please check this pair: {0}."
@@ -692,7 +692,7 @@ class Test_lister(unittest.TestCase):
         # Test a string with too many separators
         with self.assertRaises(SystemExit):
             kvmu = "{measure|unit|value|key|extra}"
-            lister.MetadataExtractor.conv_bracketedstring_to_kvmu(kvmu)
+            lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
 
     @patch('latex2mathml.converter.convert')
     @patch('lxml.etree.fromstring')
@@ -719,7 +719,6 @@ class Test_lister(unittest.TestCase):
 
 
     # ------- Validator -------
-
 
     def test_check_bracket_num(self):
         line = ('<if|membrane simulation|e|true>, The variants were embedded in a membrane consisting of '
@@ -1004,7 +1003,7 @@ class Test_lister(unittest.TestCase):
         mock_exp = MagicMock()
         mock_exp.__dict__["_body"] = "<html></html>"
         # Call the method under test
-        result = lister.TextCleaner.get_nonempty_body_tags_v2(mock_exp)
+        result = lister.TextCleaner.get_nonempty_body_tags(mock_exp)
         print("RESULT: ")
         print(result)
         # Assert that the method returns the correct output
@@ -1020,7 +1019,7 @@ class Test_lister(unittest.TestCase):
         mock_exp.__dict__["_body"] = None
         # Call the method under test and assert that it raises an error
         with self.assertRaises(AttributeError):
-            lister.TextCleaner.get_nonempty_body_tags_v2(mock_exp)
+            lister.TextCleaner.get_nonempty_body_tags(mock_exp)
 
     def test_process_nbsp(self):
         html_content = "<html><body><p>Hello&nbsp;world!</p><p>How are&nbsp;you?</p></body></html>"
@@ -1160,12 +1159,12 @@ class Test_lister(unittest.TestCase):
     def test_derive_fname_from_exp_v2(self):
         # Test with a dictionary
         exp_dict = {"title": "My Experiment"}
-        result = lister.PathHelper.derive_fname_from_exp_v2(exp_dict)
+        result = lister.PathHelper.derive_fname_from_exp(exp_dict)
         self.assertEqual(result, "my-experiment")  # assuming slugify converts "My Experiment" to "my-experiment"
         # Test with an Experiment object
         exp_obj = elabapi_python.Experiment()
         exp_obj.__dict__["_title"] = "Another Experiment"
-        result = lister.PathHelper.derive_fname_from_exp_v2(exp_obj)
+        result = lister.PathHelper.derive_fname_from_exp(exp_obj)
         self.assertEqual(result, "another-experiment")  # assuming slugify converts "Another Experiment" to "another-experiment"
 
     @patch('os.path.isdir')
@@ -1244,7 +1243,7 @@ class Test_lister(unittest.TestCase):
 
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
 # or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
-# write_to_xlsx(), parse_lines_to_kv(), get_text_width(), add_table_to_doc(), add_img_to_doc()
+# write_to_xlsx(), parse_lines_to_metadata(), get_text_width(), add_table_to_doc(), add_img_to_doc()
 #  process_experiment()
 
 if __name__ == '__main__':

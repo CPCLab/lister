@@ -132,7 +132,7 @@ class ArgNum(Enum):
 class ApiAccess:
 
     @classmethod
-    def get_resource_item_v2(self, apiv2client: elabapi_python.api_client, resource_id: int) -> elabapi_python.Item:
+    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> elabapi_python.Item:
         """
         Get an item from eLabFTW using the resourece  item ID and API v2 client.
 
@@ -148,7 +148,7 @@ class ApiAccess:
         return api_item_response
 
     @classmethod
-    def get_attachment_long_name_v2(cls, img_path: str) -> str:
+    def get_attachment_long_name(cls, img_path: str) -> str:
         """
         Get upload long name from the img path.
 
@@ -166,7 +166,7 @@ class ApiAccess:
 
 
     @classmethod
-    def get_exp_title_v2(self, apiv2client, exp_item_no: int) -> str:
+    def get_exp_title(self, apiv2client, exp_item_no: int) -> str:
         """
         Get the title of an experiment from eLabFTW using apiv2client object the experiment item number.
 
@@ -174,7 +174,7 @@ class ApiAccess:
         :param int exp_item_no: eLabFTW experiment item number
         :return: Experiment title as a string
         """
-        exp = self.get_elab_exp_v2(apiv2client, exp_item_no)
+        exp = self.get_exp(apiv2client, exp_item_no)
         if exp is None:
             raise ValueError("Failed to retrieve experiment entry")
         exp_title = exp.__dict__["_title"]
@@ -182,7 +182,7 @@ class ApiAccess:
 
 
     @classmethod
-    def get_exp_info_v2(self, exp: dict) -> List[List[str]]:
+    def get_exp_info(self, exp: dict) -> List[List[str]]:
         """
         Get experiment information and return it as a list of lists.
 
@@ -200,27 +200,27 @@ class ApiAccess:
 
 
     @classmethod
-    def get_elab_exp_v2(self, apiv2_client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
+    def get_exp(self, apiv2client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
         """
         Get an eLab experiment using the provided API client and experiment ID.
 
-        :param elabapi_python.ApiClient apiv2_client: The eLab API client instance.
+        :param elabapi_python.ApiClient apiv2client: The eLab API client instance.
         :param int id: The ID of the experiment to retrieve.
-        :return: elabapi_python.Experiment api_response: The retrieved eLab experiment.
+        :return: elabapi_python.Experiment exp_response: The retrieved eLab experiment.
 
         This method uses the provided eLab API client to fetch an experiment with the given ID.
         If an ApiException occurs, it prints the exception message and continues.
         """
-        api_instance = elabapi_python.ExperimentsApi(apiv2_client)
+        api_instance = elabapi_python.ExperimentsApi(apiv2client)
         try:
-            api_response = api_instance.get_experiment(id, format='json')
+            exp_response = api_instance.get_experiment(id, format='json')
         except ApiException as e:
             print("Exception when calling ExperimentsApi->getExperiment: %s\n" % e)
-        return api_response
+        return exp_response
 
 
     @classmethod
-    def get_attachment_id_v2(self, exp: Dict, content: Tag) -> Tuple[str, str]:
+    def get_attachment_id(self, exp: Dict, content: Tag) -> Tuple[str, str]:
         '''
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
@@ -233,7 +233,7 @@ class ApiAccess:
         '''
 
         img_path = content.img['src']
-        upl_long_name = self.get_attachment_long_name_v2(img_path)
+        upl_long_name = self.get_attachment_long_name(img_path)
         uploads = exp.__dict__['_uploads']
         if len(uploads) > 0:
             try:
@@ -254,20 +254,20 @@ class ApiAccess:
 
 
     @classmethod
-    def get_api_v2endpoint(self, v1endpoint: str) -> str:
+    def get_apiv2endpoint(self, apiv1endpoint: str) -> str:
         '''
         Convert a version 1 API endpoint to a version 2 API endpoint.
 
-        :param str v1endpoint: version 1 API endpoint.
+        :param str apiv1endpoint: version 1 API endpoint.
         :return: str v2endpoint: version 2 API endpoint.
         '''
-        v2endpoint = re.sub(r'http://', 'https://', v1endpoint)
+        v2endpoint = re.sub(r'http://', 'https://', apiv1endpoint)
         v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
         return v2endpoint
 
 
     @classmethod
-    def create_apiv2_client(self, endpoint: str, token: str) -> elabapi_python.ApiClient:
+    def create_apiv2client(self, endpoint: str, token: str) -> elabapi_python.ApiClient:
         """
         Create an API v2 client with the given endpoint and token.
 
@@ -276,7 +276,7 @@ class ApiAccess:
         :return: The API v2 client.
         :rtype: elabapi_python.ApiClient.
         """
-        endpoint_v2 = self.get_api_v2endpoint(endpoint)
+        endpoint_v2 = self.get_apiv2endpoint(endpoint)
         apiv2config = elabapi_python.Configuration()
         apiv2config.api_key['api_key'] = token
         apiv2config.api_key_prefix['api_key'] = 'Authorization'
@@ -289,12 +289,12 @@ class ApiAccess:
 
 
     @classmethod
-    def get_and_save_attachments_apiv2(self, path: str, apiv2_client: elabapi_python.ApiClient, exp_id: int) -> str:
+    def get_save_attachments(self, path: str, apiv2client: elabapi_python.ApiClient, exp_id: int) -> str:
         '''
         Get a list of attachments in the experiment entry and download these attachments, and return the logs as string.
 
         :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
-        :param elabapi_python.ApiClient apiv2_client: The API v2 client object.
+        :param elabapi_python.ApiClient apiv2client: The API v2 client object.
         :param int exp_id: The experiment ID.
 
         :return log:  The log as a string.
@@ -302,8 +302,8 @@ class ApiAccess:
 
         log = ""
 
-        experimentsApi = elabapi_python.ExperimentsApi(apiv2_client)
-        uploadsApi = elabapi_python.UploadsApi(apiv2_client)
+        experimentsApi = elabapi_python.ExperimentsApi(apiv2client)
+        uploadsApi = elabapi_python.UploadsApi(apiv2client)
         exp = experimentsApi.get_experiment(int(exp_id))
 
         upload_saving_path = path + '/' + 'attachments'
@@ -433,7 +433,7 @@ class GUIHelper:
 class Serializer:
 
     @classmethod
-    def write_to_docx_v2(self, exp: dict, path: str) -> str:
+    def write_to_docx(self, exp: dict, path: str) -> str:
         '''
         fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
@@ -445,12 +445,12 @@ class Serializer:
 
         document = Document()
         all_references = []
-        tagged_contents = TextCleaner.get_nonempty_body_tags_v2(exp)
+        tagged_contents = TextCleaner.get_nonempty_body_tags(exp)
         watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
         for content in tagged_contents:  # iterate over list of tags
             if isinstance(content, Tag):
                 if len(content.select("img")) > 0:
-                    upl_id, real_name = ApiAccess.get_attachment_id_v2(exp, content)
+                    upl_id, real_name = ApiAccess.get_attachment_id(exp, content)
                     DocxHelper.add_img_to_doc(document, real_name, path)
                 elif any(x in content.name for x in watched_tags):
                     references, log = DocxHelper.write_tag_to_doc(document, content)
@@ -461,26 +461,26 @@ class Serializer:
                     DocxHelper.add_table_to_doc(document, content)
                 if content.name == "img":
                     print("An image is found, serializing to docx...")
-                    upl_id, real_name = ApiAccess.get_attachment_id_v2(exp, content)
+                    upl_id, real_name = ApiAccess.get_attachment_id(exp, content)
                     DocxHelper.add_img_to_doc(document, real_name, path)
 
         if len(all_references) > 0:
             document.add_heading("Reference", level=1)
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
-        document.save(path + '/' + PathHelper.derive_fname_from_exp_v2(exp) + '.docx')
+        document.save(path + '/' + PathHelper.derive_fname_from_exp(exp) + '.docx')
 
 
     # Used to serialize extracted metadata to json file.
     @classmethod
-    def write_to_json_v2(self, lst: List, exp: dict, path: str) -> None:
+    def write_to_json(self, lst: List, exp: dict, path: str) -> None:
         """
         Write a list to a JSON file.
         :param lst: The list to write to the JSON file.
         :param exp: The experiment title or ID.
         :param path: The path for writing the JSON file.
         """
-        filename = f"{PathHelper.derive_fname_from_exp_v2(exp)}.json"
+        filename = f"{PathHelper.derive_fname_from_exp(exp)}.json"
         with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
             json.dump(lst, f, ensure_ascii=False)
 
@@ -501,7 +501,7 @@ class Serializer:
 
 
     @classmethod
-    def write_to_xlsx_v2(self, nkvmu: List, exp: dict, path: str) -> None:
+    def write_to_xlsx(self, nkvmu: List, exp: dict, path: str) -> None:
         '''
         Write extracted order/key/value/measure/unit to an Excel file.
 
@@ -513,7 +513,7 @@ class Serializer:
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
         # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
         # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
-        with xlsxwriter.Workbook(path + '/' + PathHelper.derive_fname_from_exp_v2(exp) + ".xlsx") as workbook:
+        with xlsxwriter.Workbook(path + '/' + PathHelper.derive_fname_from_exp(exp) + ".xlsx") as workbook:
             # formatting cells
             header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
             default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
@@ -649,11 +649,11 @@ class MetadataExtractor:
 
 
     @classmethod
-    def process_ref_resource_item_v2(self, apiv2_client: elabapi_python.ApiClient, item_api_response) -> None:
+    def process_ref_resource_item(self, apiv2client: elabapi_python.ApiClient, item_api_response) -> None:
         '''
         Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
-        :param apiv2_client: An instance of the API v2 client object, containing eLabFTW API-related information.
+        :param apiv2client: An instance of the API v2 client object, containing eLabFTW API-related information.
         :param item_api_response: The API response of the reference resource item.
         :return: None
         '''
@@ -664,23 +664,23 @@ class MetadataExtractor:
             experiments = item_api_response.__dict__["_experiments_links"]
             for experiment in experiments:
                 exp_path = output_path + PathHelper.slugify(experiment.__dict__["_title"])
-                self.process_experiment_v2(apiv2_client, experiment.__dict__["_itemid"], exp_path)
+                self.process_experiment(apiv2client, experiment.__dict__["_itemid"], exp_path)
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
 
     @classmethod
-    def process_linked_resource_item_apiv2(self, apiv2_client: elabapi_python.ApiClient, id: int) -> (
+    def process_linked_resource_item_apiv2(self, apiv2client: elabapi_python.ApiClient, id: int) -> (
             Tuple)[Union[List[List[str]], str], str]:
         """
         Process a linked resource item and return its metadata and log.
 
-        :param elabapi_python.ApiClient apiv2_client: An instance of the API v2 client object, containing eLabFTW
+        :param elabapi_python.ApiClient apiv2client: An instance of the API v2 client object, containing eLabFTW
         API-related information.
         :param id: The ID of the linked resource item.
         :return: A tuple containing the resource item metadata and log.
         """
-        api_instance = elabapi_python.ItemsApi(apiv2_client)
+        api_instance = elabapi_python.ItemsApi(apiv2client)
 
         try:
             # Read an item
@@ -711,7 +711,7 @@ class MetadataExtractor:
 
 
     @classmethod
-    def process_experiment_v2(self, apiv2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
+    def process_experiment(self, apiv2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
         """
         Process an experiment and save its information to various formats.
 
@@ -741,7 +741,7 @@ class MetadataExtractor:
 
         for linked_resource_id in linked_resource_ids:
             # get the linked resource item by ID
-            linked_resource = ApiAccess.get_resource_item_v2(apiv2client, linked_resource_id)
+            linked_resource = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
             # pprint(linked_resource)
             id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
         # pprint(id_and_category)
@@ -757,22 +757,22 @@ class MetadataExtractor:
             overall_log = overall_log + "\n" + log
             overall_nkvmu.extend(resource_item_nkvmu_metadata)
 
-        exp_nkvmu_info_v2 = ApiAccess.get_exp_info_v2(exp_response)
+        exp_nkvmu_info_v2 = ApiAccess.get_exp_info(exp_response)
         overall_nkvmu.extend(exp_nkvmu_info_v2)
-        exp_nkvmu, log = MetadataExtractor.conv_html_to_nkvmu(exp_response.__dict__["_body"])
+        exp_nkvmu, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
         overall_log = overall_log + "\n" + log
         overall_nkvmu.extend(exp_nkvmu)
 
-        log = ApiAccess.get_and_save_attachments_apiv2(path, apiv2client, int(exp_no))
+        log = ApiAccess.get_save_attachments(path, apiv2client, int(exp_no))
         overall_log = overall_log + "\n" + log
-        docx_log = Serializer.write_to_docx_v2(exp_response, path)
+        docx_log = Serializer.write_to_docx(exp_response, path)
         try:
             overall_log = overall_log + "\n" + docx_log
         except:
             pass
 
-        Serializer.write_to_json_v2(overall_nkvmu, exp_response, path)
-        Serializer.write_to_xlsx_v2(overall_nkvmu, exp_response, path)
+        Serializer.write_to_json(overall_nkvmu, exp_response, path)
+        Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
         Serializer.write_log(overall_log, path)
 
 
@@ -1074,9 +1074,9 @@ class MetadataExtractor:
 
 
     @classmethod
-    def parse_lines_to_kv(self, lines: List[str]) -> Tuple[List, List[str], str]:
+    def parse_lines_to_metadata(self, lines: List[str]) -> Tuple[List, List[str], str]:
         '''
-        Get a list of [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
+        Get a list of metadata pairs [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
         :param list lines: list of lines cleaned up from nbsp.
         :return: tuple (nkvmu_pairs, internal_comments, log)
             WHERE
@@ -1107,7 +1107,7 @@ class MetadataExtractor:
                 par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
             for kv_and_flow_pair in kv_and_flow_pairs:
                 if re.match(RegexPatterns.KV.value, kv_and_flow_pair):
-                    kvmu_set = self.conv_bracketedstring_to_kvmu(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+                    kvmu_set = self.conv_bracketedstring_to_metadata(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                     # measure, unit, log could be empty
                     if kvmu_set[4] != "":
                         log = log + "\n" + kvmu_set[4]
@@ -1153,11 +1153,11 @@ class MetadataExtractor:
 
     # parse opened document, first draft of sop
     @classmethod
-    def conv_bracketedstring_to_kvmu(self, kvmu: str) -> Tuple[str, str, str, str, str]:
+    def conv_bracketedstring_to_metadata(self, bracketed_str: str) -> Tuple[str, str, str, str, str]:
         '''
         Extract lines to a tuple containing key, value, measure, and log.
 
-        :param str kvmu: a string fragment with a single lister bracketing annotation.
+        :param str bracketed_str: a string fragment with a single lister bracketing annotation.
         :returns: tuple (key, val, measure, unit, log)
             WHERE
             str key: the key portion of the string fragment,
@@ -1167,33 +1167,33 @@ class MetadataExtractor:
             str log: log resulted from executing this and underlying functions.
         '''
         log = ""
-        source_kvmu = kvmu
-        kvmu = kvmu[1:-1]
-        kv_split = re.split("\|", kvmu)
-        if len(kv_split) == 2:
-            key = kv_split[1]
-            val = TextCleaner.strip_unwanted_mvu_colons(kv_split[0])
+        bracketed_str_source = bracketed_str
+        bracketed_str = bracketed_str[1:-1]
+        splitted_metadata = re.split("\|", bracketed_str)
+        if len(splitted_metadata) == 2:
+            key = splitted_metadata[1]
+            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0]) # mvu: measure, value, unit
             measure = ""
             unit = ""
-        elif len(kv_split) == 3:
-            val = TextCleaner.strip_unwanted_mvu_colons(kv_split[0])
-            unit = TextCleaner.strip_unwanted_mvu_colons(kv_split[1])
-            key = kv_split[2]
+        elif len(splitted_metadata) == 3:
+            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])
+            unit = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[1])
+            key = splitted_metadata[2]
             measure = ""
-        elif len(kv_split) == 4:
-            measure = TextCleaner.strip_unwanted_mvu_colons(kv_split[0])
-            unit = TextCleaner.strip_unwanted_mvu_colons(kv_split[1])
-            key = kv_split[3]
-            val = TextCleaner.strip_unwanted_mvu_colons(kv_split[2])
-        elif len(kv_split) == 1:
+        elif len(splitted_metadata) == 4:
+            measure = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])
+            unit = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[1])
+            key = splitted_metadata[3]
+            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[2])
+        elif len(splitted_metadata) == 1:
             key = ""
             val = ""
             measure = ""
             unit = ""
-            print(MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu))
-            log = MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(source_kvmu)
+            print(MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source))
+            log = MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source)
         else:
-            log = MiscAlertMsg.INVALID_KV_SET_ELEMENT_NO.value.format(len(kv_split), str(source_kvmu))
+            log = MiscAlertMsg.INVALID_KV_SET_ELEMENT_NO.value.format(len(splitted_metadata), str(bracketed_str_source))
             raise SystemExit(log)
         key = key.strip()
         val = val.strip()
@@ -1203,7 +1203,7 @@ class MetadataExtractor:
 
 
     @classmethod
-    def conv_html_to_nkvmu(self, html_content: str) -> Tuple[List, str]:
+    def conv_html_to_metadata(self, html_content: str) -> Tuple[List, str]:
         '''
         Turn html body content into extended key-value pair
                 [order, key, value, measure (if applicable), unit (if applicable)] or
@@ -1226,7 +1226,7 @@ class MetadataExtractor:
         print("Detected encoding:", detected_encoding)
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
-            multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_kv(clean_lines)
+            multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
         return multi_nkvmu_pair, log
 
 
@@ -1993,7 +1993,7 @@ class DocxHelper:
 class TextCleaner:
 
     @classmethod
-    def get_nonempty_body_tags_v2(self, exp: BeautifulSoup) -> List:
+    def get_nonempty_body_tags(self, exp: BeautifulSoup) -> List:
         '''
         Clean up the source-html from empty-content html tags.
 
@@ -2071,7 +2071,7 @@ class TextCleaner:
         return stripped_from_trailing_spaces, references
 
 
-    # Used in parse_lines_to_kv().
+    # Used in parse_lines_to_metadata().
     @classmethod
     def strip_colon(self, key: str) -> str:
         """
@@ -2132,7 +2132,7 @@ class TextCleaner:
 # ------------------------------------------------ Path Helper Class --------------------------------------------------
 class PathHelper:
     @classmethod
-    def derive_fname_from_exp_v2(self, exp: Union[elabapi_python.Experiment, Dict]) -> str:
+    def derive_fname_from_exp(self, exp: Union[elabapi_python.Experiment, Dict]) -> str:
         """
         Derive a file name from the experiment dictionary.
 
@@ -2266,11 +2266,11 @@ def main():
 
     args = guiHelper.parse_gooey_args()
     base_output_path = args.base_output_dir
-    apiv2endpoint = ApiAccess.get_api_v2endpoint(args.endpoint)
-    apiv2client = ApiAccess.create_apiv2_client(apiv2endpoint, args.token)
+    apiv2endpoint = ApiAccess.get_apiv2endpoint(args.endpoint)
+    apiv2client = ApiAccess.create_apiv2client(apiv2endpoint, args.token)
 
     if args.command == 'parse_resource':
-        item_api_response = ApiAccess.get_resource_item_v2(apiv2client, args.resource_item_no)
+        item_api_response = ApiAccess.get_resource_item(apiv2client, args.resource_item_no)
         cat = item_api_response.__dict__["_category_title"]
         title = item_api_response.__dict__["_title"]
         if args.id:
@@ -2281,7 +2281,7 @@ def main():
         if args.id:
             output_fname = PathHelper.slugify("experiment") + "_" + str(args.exp_no)
         elif args.title:
-            title = ApiAccess.get_exp_title_v2(apiv2client, args.exp_no)
+            title = ApiAccess.get_exp_title(apiv2client, args.exp_no)
             output_fname = PathHelper.slugify("experiment") + "_" + PathHelper.slugify(title)
     print("The output is written to %s directory" % (output_fname))
 
@@ -2294,10 +2294,10 @@ def main():
 
     if args.command == 'parse_experiment':
         print("Processing an experiment...")
-        MetadataExtractor.process_experiment_v2(apiv2client, args.exp_no, output_path)
+        MetadataExtractor.process_experiment(apiv2client, args.exp_no, output_path)
     elif args.command == 'parse_resource':
         print("Processing a resource...")
-        MetadataExtractor.process_ref_resource_item_v2(apiv2client, item_api_response)
+        MetadataExtractor.process_ref_resource_item(apiv2client, item_api_response)
 
 
 if __name__ == "__main__":
