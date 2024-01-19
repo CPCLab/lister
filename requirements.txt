@@ -1,9 +1,9 @@
-latex2mathml
-pandas
+latex2mathml==3.75.1
+pandas==1.5.2
 pyinstaller==6.2.0
-beautifulsoup4
-python-docx
-gooey
-xlsxwriter
+beautifulsoup4==4.11.1
+python-docx==0.8.11
+gooey==1.0.8.1
+xlsxwriter==3.0.6
 elabapi_python==0.5.1
-pathvalidate
+pathvalidate==2.5.2
