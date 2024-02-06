@@ -240,17 +240,19 @@ class ApiAccess:
                 matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
                 upl_id = matched_upl.__dict__['_id']
                 real_name = matched_upl.__dict__['_real_name']
+                hash = matched_upl.__dict__['_hash']
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
                 upl_id = ""
                 real_name = ""
+                hash = ""
                 print(log)
                 print("Attachment download is skipped...")
                 pass
         else:
             upl_id = ""
             real_name = ""
-        return upl_id, real_name
+        return upl_id, real_name, hash
 
 
     @classmethod
@@ -311,7 +313,7 @@ class ApiAccess:
         PathHelper.check_and_create_path(sanitized_upload_saving_path)
 
         for upload in uploadsApi.read_uploads('experiments', exp.id):
-            with open(sanitized_upload_saving_path + "/" + upload.real_name, 'wb') as file:
+            with open(sanitized_upload_saving_path + "/" + upload.hash  + "_"+  upload.real_name, 'wb') as file:
                 print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name,
                                                                                          upload_saving_path + "/" + upload.real_name))
                 file.write(
@@ -445,13 +447,19 @@ class Serializer:
 
         document = Document()
         all_references = []
+        pprint("-------------------------- docx experiment --------------------------")
+        pprint(exp)
+        pprint("-------------------------- docx experiment --------------------------")
         tagged_contents = TextCleaner.get_nonempty_body_tags(exp)
         watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
         for content in tagged_contents:  # iterate over list of tags
             if isinstance(content, Tag):
                 if len(content.select("img")) > 0:
-                    upl_id, real_name = ApiAccess.get_attachment_id(exp, content)
-                    DocxHelper.add_img_to_doc(document, real_name, path)
+                    upl_id, real_name, hash = ApiAccess.get_attachment_id(exp, content)
+                    pprint("---------------- adding img to docx: tagged_contents.content.select.img ----------------")
+                    print(str(real_name), str(path))
+                    DocxHelper.add_img_to_doc(document, real_name, path, hash)
+                    pprint("---------------- finish adding img to docx: tagged_contents.content.select.img ----------------")
                 elif any(x in content.name for x in watched_tags):
                     references, log = DocxHelper.write_tag_to_doc(document, content)
                     if len(references) > 0:
@@ -461,8 +469,12 @@ class Serializer:
                     DocxHelper.add_table_to_doc(document, content)
                 if content.name == "img":
                     print("An image is found, serializing to docx...")
-                    upl_id, real_name = ApiAccess.get_attachment_id(exp, content)
-                    DocxHelper.add_img_to_doc(document, real_name, path)
+                    pprint("---------------- adding img to docx: tagged_contents.content.name.img ----------------")
+                    upl_id, real_name, hash = ApiAccess.get_attachment_id(exp, content)
+                    DocxHelper.add_img_to_doc(document, real_name, path, hash)
+                    print(str(real_name), str(path))
+                    pprint("---------------- finish adding img to docx: tagged_contents.content.name.img ----------------")
+
 
         if len(all_references) > 0:
             document.add_heading("Reference", level=1)
@@ -612,9 +624,10 @@ class MetadataExtractor:
                 flow_log = flow_log + "\n" + log
         else:
             is_error = True
-            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) + "\n"
+            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) # + "\n"
+            print(log)
             flow_log = flow_log + "\n" + log
-            print(flow_log)
+            # print(flow_log)
         # print("key_val: " + str(key_val) + "\n\n")
         return key_val, flow_log, is_error
 
@@ -1222,8 +1235,8 @@ class MetadataExtractor:
         soup.encoding = "utf-8"
         soup = TextCleaner.remove_table_tag(soup)
 
-        detected_encoding = soup.encoding
-        print("Detected encoding:", detected_encoding)
+        # detected_encoding = soup.encoding
+        # print("Detected encoding:", detected_encoding)
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
             multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
@@ -1970,7 +1983,7 @@ class DocxHelper:
 
 
     @classmethod
-    def add_img_to_doc(self, document: Document, real_name: str, path: str) -> None:
+    def add_img_to_doc(self, document: Document, real_name: str, path: str, hash: str) -> None:
         '''
         Add image to the document file, based on upload id and image name when it was uploaded.
 
@@ -1983,7 +1996,7 @@ class DocxHelper:
             img_saving_path = path + '/attachments/'
             sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
             try:
-                document.add_picture(sanitized_img_saving_path + "/" + real_name, width=Mm(self.get_text_width(document)))
+                document.add_picture(sanitized_img_saving_path + "/" + hash + "_"+ real_name, width=Mm(self.get_text_width(document)))
             except Exception as e:
                 log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
                 pass
