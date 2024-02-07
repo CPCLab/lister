@@ -72,6 +72,12 @@ class MiscAlertMsg(Enum):
                      "Check the following part: '{3}'"
     ITRTN_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, please check the following part: {0}."
+    INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is not accessible using the current user's API Token. " \
+                            "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
+                             "message: {3}, description: {4} Parsing this resource is skipped."
+    INACCESSIBLE_EXP = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token. " \
+                            "Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
+                             "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
@@ -140,12 +146,33 @@ class ApiAccess:
         :param resource_id: The item ID.
         :return: The item (resource) content.
         """
+        api_item_response =None
         api_instance = elabapi_python.ItemsApi(apiv2client)
+        print("------------------------------")
+        print("Accessing resource item with ID: " + str(resource_id))
         try:
             api_item_response = api_instance.get_item(resource_id, format='json')
         except ApiException as e:
-            print("Exception when calling ItemsApi->get_item: %s\n" % e)
+            reason, code, message, description = self.parseApiException(e)
+            log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(resource_id, reason, code, message, description)
+            print(log)
+            # TODO: append this log into the log file
         return api_item_response
+
+
+    @classmethod
+    def parseApiException(cls, e: ApiException) -> Tuple[str, str, str, str]:
+        """
+        Parse an ApiException and return the error details.
+        """
+        reason = e.reason
+        details = e.body.decode('utf-8')  # Decode byte string to string
+        details_json = json.loads(details)  # Parse string to JSON
+        code = details_json['code']  # Access the code
+        message = details_json['message']  # Access the message
+        description = details_json['description']  # Access the description
+        return reason, code, message, description
+
 
     @classmethod
     def get_attachment_long_name(cls, img_path: str) -> str:
@@ -211,16 +238,22 @@ class ApiAccess:
         This method uses the provided eLab API client to fetch an experiment with the given ID.
         If an ApiException occurs, it prints the exception message and continues.
         """
+        exp_response = None
         api_instance = elabapi_python.ExperimentsApi(apiv2client)
+        print("------------------------------")
+        print("Accessing experiment with ID: " + str(id))
         try:
             exp_response = api_instance.get_experiment(id, format='json')
         except ApiException as e:
-            print("Exception when calling ExperimentsApi->getExperiment: %s\n" % e)
+            reason, code, message, description = self.parseApiException(e)
+            log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
+            # TODO: append this log into the log file
+            print(log)
         return exp_response
 
 
     @classmethod
-    def get_attachment_id(self, exp: Dict, content: Tag) -> Tuple[str, str]:
+    def get_attachment_id(self, exp: Dict, content: Tag) -> Tuple[str, str, str]:
         '''
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
@@ -230,6 +263,7 @@ class ApiAccess:
             WHERE
             str upl_id: upload id of the image attachment, used to access the image through API,
             str real_name: the name of the file when it was uploaded to eLabFTW.
+            str hash: the hash of the file when it was uploaded to eLabFTW.
         '''
 
         img_path = content.img['src']
@@ -752,11 +786,15 @@ class MetadataExtractor:
         #for linked_resource in linked_resources:
             #id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
 
+        print("---------------- linked_resource_ids: ---------------- ")
+        pprint(linked_resource_ids)
+
         for linked_resource_id in linked_resource_ids:
             # get the linked resource item by ID
             linked_resource = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
             # pprint(linked_resource)
-            id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
+            if linked_resource is not None:
+                id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
         # pprint(id_and_category)
 
         filtered_id_and_category =  {key: value for key, value in id_and_category.items() if value.lower() not in
