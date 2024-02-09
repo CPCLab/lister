@@ -74,10 +74,10 @@ class MiscAlertMsg(Enum):
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, please check the following part: {0}."
     INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is not accessible using the current user's API Token. " \
                             "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
-                             "message: {3}, description: {4} Parsing this resource is skipped."
+                            "message: {3}, description: {4} Parsing this resource is skipped."
     INACCESSIBLE_EXP = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token. " \
-                            "Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
-                             "message: {3}, description: {4} Parsing this experiment is skipped."
+                       "Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
+                       "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. Please " \
                             "make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
@@ -133,12 +133,12 @@ class ArgNum(Enum):
     ARG_NUM_SECTION = 2
 
 
-
 # -------------------------------------------- API Access-related Class -----------------------------------------------
 class ApiAccess:
 
     @classmethod
-    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[elabapi_python.Item, str]:
+    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[
+        elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resourece  item ID and API v2 client.
 
@@ -147,7 +147,7 @@ class ApiAccess:
         :return: The item (resource) content.
         """
         log = ""
-        api_item_response =None
+        api_item_response = None
         api_instance = elabapi_python.ItemsApi(apiv2client)
         print("------------------------------")
         print("Accessing resource item with ID: " + str(resource_id))
@@ -159,7 +159,6 @@ class ApiAccess:
             print(log)
             # TODO: append this log into the log file
         return api_item_response, log
-
 
     @classmethod
     def parseApiException(cls, e: ApiException) -> Tuple[str, str, str, str]:
@@ -173,7 +172,6 @@ class ApiAccess:
         message = details_json['message']  # Access the message
         description = details_json['description']  # Access the description
         return reason, code, message, description
-
 
     @classmethod
     def get_attachment_long_name(cls, img_path: str) -> str:
@@ -192,7 +190,6 @@ class ApiAccess:
         splitted_path = GeneralHelper.split_by_separators(img_path, ('&', '='))
         return (splitted_path[1])  # strip first 19 chars to get the long_name field in the upload dictionary
 
-
     @classmethod
     def get_exp_title(self, apiv2client, exp_item_no: int) -> str:
         """
@@ -207,7 +204,6 @@ class ApiAccess:
             raise ValueError("Failed to retrieve experiment entry")
         exp_title = exp.__dict__["_title"]
         return exp_title
-
 
     @classmethod
     def get_exp_info(self, exp: dict) -> List[List[str]]:
@@ -225,7 +221,6 @@ class ApiAccess:
         nkvmu_pairs.append(["", "author", exp.__dict__["_fullname"], "", ""])
         nkvmu_pairs.append(["", "tags", exp.__dict__["_tags"], "", ""])
         return nkvmu_pairs
-
 
     @classmethod
     def get_exp(self, apiv2client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
@@ -252,10 +247,9 @@ class ApiAccess:
             print(log)
         return exp_response
 
-
     @classmethod
     def get_attachment_ids(self, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-                                                                                        list[Union[str, TypedDict]]]:
+    list[Union[str, TypedDict]]]:
         """
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
@@ -320,7 +314,6 @@ class ApiAccess:
         v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
         return v2endpoint
 
-
     @classmethod
     def create_apiv2client(self, endpoint: str, token: str) -> elabapi_python.ApiClient:
         """
@@ -341,7 +334,6 @@ class ApiAccess:
         apiv2_client = elabapi_python.ApiClient(apiv2config)
         apiv2_client.set_default_header(header_name='Authorization', header_value=token)
         return apiv2_client
-
 
     @classmethod
     def get_save_attachments(self, path: str, apiv2client: elabapi_python.ApiClient, exp_id: int) -> str:
@@ -366,11 +358,13 @@ class ApiAccess:
         PathHelper.check_and_create_path(sanitized_upload_saving_path)
 
         for upload in uploadsApi.read_uploads('experiments', exp.id):
-            with open(sanitized_upload_saving_path + "/" + upload.hash  + "_"+  upload.real_name, 'wb') as file:
-                print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name,
-                                                                                         upload_saving_path + "/" + upload.real_name))
+            with open(sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name, 'wb') as file:
+                print(
+                    "Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id), upload.real_name,
+                                                                                       upload_saving_path + "/" + upload.real_name))
                 file.write(
-                    uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary', _preload_content=False).data)
+                    uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary',
+                                           _preload_content=False).data)
                 file.flush()
         return log
 
@@ -523,7 +517,8 @@ class Serializer:
                     for image_id in image_ids:
                         print(str(image_id['real_name']), path)
                         DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
-                    pprint("---------------- finish adding img to docx: tagged_contents.content.select.img ----------------")
+                    pprint(
+                        "---------------- finish adding img to docx: tagged_contents.content.select.img ----------------")
                 elif any(x in content.name for x in watched_tags):
                     references, log = DocxHelper.write_tag_to_doc(document, content)
                     if len(references) > 0:
@@ -540,15 +535,14 @@ class Serializer:
                     for image_id in image_ids:
                         print(str(image_id['real_name']), path)
                         DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
-                    pprint("---------------- finish adding img to docx: tagged_contents.content.name.img ----------------")
-
+                    pprint(
+                        "---------------- finish adding img to docx: tagged_contents.content.name.img ----------------")
 
         if len(all_references) > 0:
             document.add_heading("Reference", level=1)
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
         document.save(path + '/' + PathHelper.derive_fname_from_exp(exp) + '.docx')
-
 
     # Used to serialize extracted metadata to json file.
     @classmethod
@@ -563,7 +557,6 @@ class Serializer:
         with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
             json.dump(lst, f, ensure_ascii=False)
 
-
     # Used to write into the log file.
     # def write_log(log, full_path=output_path_and_fname):
     @classmethod
@@ -577,7 +570,6 @@ class Serializer:
         PathHelper.check_and_create_path(path)
         with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
             f.write(log_text)
-
 
     @classmethod
     def write_to_xlsx(self, nkvmu: List, exp: dict, path: str) -> None:
@@ -631,7 +623,6 @@ class MetadataExtractor:
             return True
         else:
             return False
-
 
     @classmethod
     def extract_flow_type(self, par_no: int, flow_control_pair: str) -> Tuple[List[List], str, bool]:
@@ -691,13 +682,12 @@ class MetadataExtractor:
                 flow_log = flow_log + "\n" + log
         else:
             is_error = True
-            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split) # + "\n"
+            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split)  # + "\n"
             print(log)
             flow_log = flow_log + "\n" + log
             # print(flow_log)
         # print("key_val: " + str(key_val) + "\n\n")
         return key_val, flow_log, is_error
-
 
     @classmethod
     def process_section(self, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -727,7 +717,6 @@ class MetadataExtractor:
                 ["-", CFMetadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], '', ''])
         return key_val, section_log, is_error
 
-
     @classmethod
     def process_ref_resource_item(self, apiv2client: elabapi_python.ApiClient, item_api_response) -> None:
         """
@@ -747,7 +736,6 @@ class MetadataExtractor:
                 self.process_experiment(apiv2client, experiment.__dict__["_itemid"], exp_path)
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
-
 
     @classmethod
     def process_linked_resource_item_apiv2(self, apiv2client: elabapi_python.ApiClient, id: int) -> (
@@ -789,7 +777,6 @@ class MetadataExtractor:
             print(log)
         return resource_item_nkvmu_metadata, log
 
-
     @classmethod
     def process_experiment(self, apiv2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
         """
@@ -816,8 +803,8 @@ class MetadataExtractor:
         # unfortunately the response from the API is not consistent between versions, so it may be a good idea to fix
         # the version of elabapi-python to specific version in the requirements.txt in the future.
 
-        #for linked_resource in linked_resources:
-            #id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
+        # for linked_resource in linked_resources:
+        # id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
 
         print("---------------- linked_resource_ids: ---------------- ")
         pprint(linked_resource_ids)
@@ -831,8 +818,8 @@ class MetadataExtractor:
                 id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
         # pprint(id_and_category)
 
-        filtered_id_and_category =  {key: value for key, value in id_and_category.items() if value.lower() not in
-                                     [item.lower() for item in excluded_item_types]}
+        filtered_id_and_category = {key: value for key, value in id_and_category.items() if value.lower() not in
+                                    [item.lower() for item in excluded_item_types]}
         # pprint(filtered_id_and_category)
 
         overall_nkvmu = []
@@ -860,7 +847,6 @@ class MetadataExtractor:
         Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
         Serializer.write_log(overall_log, path)
 
-
     # only process the comment that is within (key value measure unit) pairs and remove its content
     # (unless if it is begun with "!")
     @classmethod
@@ -883,7 +869,6 @@ class MetadataExtractor:
         remains = str_with_brackets.replace(comment, '')
         actual_fragment, internal_comment = remains.strip(), comment.strip()
         return actual_fragment, internal_comment
-
 
     @classmethod
     def process_foreach(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -911,7 +896,6 @@ class MetadataExtractor:
         flow_param = cf_split[1]
         key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
         return key_val, log, is_error
-
 
     @classmethod
     def process_while(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -944,7 +928,6 @@ class MetadataExtractor:
         key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
-
     @classmethod
     def process_if(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
         """
@@ -975,7 +958,6 @@ class MetadataExtractor:
         flow_compared_value = cf_split[3]
         key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
-
 
     @classmethod
     def process_elseif(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -1013,7 +995,6 @@ class MetadataExtractor:
         else:
             key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
         return key_val, log, is_error
-
 
     @classmethod
     def process_else(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -1064,7 +1045,6 @@ class MetadataExtractor:
         else:
             range_values = re.split("-", flow_range[1:-1])
         return float(range_values[0]), float(range_values[1]), log, is_error
-
 
     @classmethod
     def process_for(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -1120,7 +1100,6 @@ class MetadataExtractor:
             for_log = for_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, for_log, is_error
 
-
     # should happen only after having 'while' iterations to provide additional steps on the iterator
     @classmethod
     def process_iterate(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
@@ -1157,7 +1136,6 @@ class MetadataExtractor:
             iterate_log = iterate_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, iterate_log, is_error
 
-
     @classmethod
     def parse_lines_to_metadata(self, lines: List[str]) -> Tuple[List, List[str], str]:
         """
@@ -1193,7 +1171,8 @@ class MetadataExtractor:
                 par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
             for kv_and_flow_pair in kv_and_flow_pairs:
                 if re.match(RegexPatterns.KV.value, kv_and_flow_pair):
-                    kvmu_set = self.conv_bracketedstring_to_metadata(kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+                    kvmu_set = self.conv_bracketedstring_to_metadata(
+                        kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
                     # measure, unit, log could be empty
                     if kvmu_set[4] != "":
                         log = log + "\n" + kvmu_set[4]
@@ -1236,7 +1215,6 @@ class MetadataExtractor:
         print(log)
         return nkvmu_pairs, internal_comments, log
 
-
     # parse opened document, first draft of sop
     @classmethod
     def conv_bracketedstring_to_metadata(self, bracketed_str: str) -> Tuple[str, str, str, str, str]:
@@ -1258,7 +1236,7 @@ class MetadataExtractor:
         splitted_metadata = re.split("\|", bracketed_str)
         if len(splitted_metadata) == 2:
             key = splitted_metadata[1]
-            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0]) # mvu: measure, value, unit
+            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])  # mvu: measure, value, unit
             measure = ""
             unit = ""
         elif len(splitted_metadata) == 3:
@@ -1286,7 +1264,6 @@ class MetadataExtractor:
         measure = measure.strip()
         unit = unit.strip()
         return key, val, measure, unit, log
-
 
     @classmethod
     def conv_html_to_metadata(self, html_content: str) -> Tuple[List, str]:
@@ -1334,7 +1311,6 @@ class Validator:
         tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
         return tagged_contents
 
-
     @classmethod
     def check_bracket_num(self, par_no: int, text: str) -> Tuple[str, bool]:
         """
@@ -1365,7 +1341,6 @@ class Validator:
         # print(log)
         return log, is_error
 
-
     # Used in several control flow validation functions.
     @classmethod
     def is_valid_comparative_operator(self, operator: str) -> bool:
@@ -1381,7 +1356,6 @@ class Validator:
         else:
             return False
 
-
     # Used in several control flow validation functions.
     @classmethod
     def is_valid_iteration_operator(self, operator: str) -> bool:
@@ -1396,7 +1370,6 @@ class Validator:
             return True
         else:
             return False
-
 
     @classmethod
     def validate_while(self, cf_split: List[str]) -> Tuple[str, bool]:
@@ -1426,7 +1399,6 @@ class Validator:
         # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
         return log, is_error
 
-
     # Used in process_foreach()
     @classmethod
     def validate_foreach(self, cf_split: List[str]) -> Tuple[str, bool]:
@@ -1453,7 +1425,6 @@ class Validator:
                 cf_split) + "\n"
             is_error = True
         return log, is_error
-
 
     # Used in process_if().
     @classmethod
@@ -1488,7 +1459,6 @@ class Validator:
             is_error = True
         # note that the last value (comparison point) is not yet checked as it can be digit, binary or possibly other things
         return log, is_error
-
 
     # Used in process_elseif().
     # Validation functions for else if, while and if have similar properties. Hence, these functions can be integrated, but
@@ -1526,7 +1496,6 @@ class Validator:
         # note that the last value (comparison point is not yet checked as it can be digit, binary or possibly other things)
         return log, is_error
 
-
     # Used in else().
     @classmethod
     def validate_else(self, cf_split: List[str]) -> Tuple[str, bool]:
@@ -1548,7 +1517,6 @@ class Validator:
                 cf_split) + "\n"
             is_error = True
         return log, is_error
-
 
     # Used in process_range().
     @classmethod
@@ -1573,7 +1541,6 @@ class Validator:
             is_error = True
             log = log + MiscAlertMsg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
         return log, is_error
-
 
     # Used in process_for().
     @classmethod
@@ -1609,7 +1576,6 @@ class Validator:
             is_error = True
         return log, is_error
 
-
     # Used in process_iterate().
     @classmethod
     def validate_iterate(self, cf_split: List[str]) -> Tuple[str, bool]:
@@ -1636,7 +1602,6 @@ class Validator:
                 cf_split) + "\n"
             is_error = True
         return log, is_error
-
 
     # Used in process_section().
     @classmethod
@@ -1704,7 +1669,6 @@ class GeneralHelper:
         sentences = [s.strip() for s in sentences]
         return sentences
 
-
     # Used in get_attachment_long_name()
     @classmethod
     def split_by_separators(self, text: str, separators: List[str]) -> List[str]:
@@ -1727,7 +1691,6 @@ class GeneralHelper:
             text = text.replace(sep, default_sep)
         return [i.strip() for i in text.split(default_sep)]
 
-
     # Used in several control flow validation functions.
     def is_num(s: str) -> bool:
         """
@@ -1744,7 +1707,6 @@ class GeneralHelper:
                 return s[1:].isdigit()
             else:
                 return s.isdigit()
-
 
     # helper function to print dataframe, used for development and debugging
     def print_whole_df(df: pd.DataFrame) -> None:
@@ -1778,7 +1740,6 @@ class DocxHelper:
         attr, val = found[0]
         return attr, val
 
-
     # Used in write_tag_to_doc()
     @classmethod
     def get_section_title(self, line: str) -> str:
@@ -1798,7 +1759,6 @@ class DocxHelper:
             return ' '.join(words[1:])
         else:
             return ""
-
 
     @classmethod
     def process_reg_bracket(self, line: str) -> Tuple[str, List[str]]:
@@ -1850,7 +1810,6 @@ class DocxHelper:
                 processed_element = element
             processed_line = processed_line + processed_element
         return processed_line, references
-
 
     # TODO: check why some invisible key elements passed the invisibility checks.
     @classmethod
@@ -1975,7 +1934,6 @@ class DocxHelper:
             # print("*"*50)
         return all_references, log
 
-
     # Used in add_img_to_doc()
     @classmethod
     def get_text_width(self, document: Document) -> float:
@@ -1991,7 +1949,6 @@ class DocxHelper:
         """
         section = document.sections[0]
         return (section.page_width - section.left_margin - section.right_margin) / 36000
-
 
     @classmethod
     def latex_formula_to_docx(self, latex_formula: str) -> Tuple[str, str]:
@@ -2021,7 +1978,6 @@ class DocxHelper:
             print(log)
             pass
         return docx_formula, log
-
 
     @classmethod
     def add_table_to_doc(self, doc: Document, content: Tag) -> None:
@@ -2054,7 +2010,6 @@ class DocxHelper:
                 if not pd.isna(df.values[i, j]):
                     t.cell(i, j).text = str(df.values[i, j])
 
-
     @classmethod
     def add_img_to_doc(self, document: Document, real_name: str, path: str, hash: str) -> None:
         """
@@ -2069,11 +2024,13 @@ class DocxHelper:
             img_saving_path = path + '/attachments/'
             sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
             try:
-                document.add_picture(sanitized_img_saving_path + "/" + hash + "_"+ real_name, width=Mm(self.get_text_width(document)))
+                document.add_picture(sanitized_img_saving_path + "/" + hash + "_" + real_name,
+                                     width=Mm(self.get_text_width(document)))
             except Exception as e:
                 log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
                 pass
             print(log)
+
 
 # ---------------------------------------------- Text Cleaning Class ---------------------------------------------------
 class TextCleaner:
@@ -2093,9 +2050,9 @@ class TextCleaner:
         tagged_contents = non_empty_soup.currentTag.tagStack[0].contents
         return tagged_contents
 
-
     @classmethod
-    def process_nbsp(self, soup: BeautifulSoup) -> List[str]: # should probably be refactored to remove_nbsp for clarity
+    def process_nbsp(self, soup: BeautifulSoup) -> List[
+        str]:  # should probably be refactored to remove_nbsp for clarity
         """
         Remove non-break space (nbsp), and provide a 'clean' version of the lines.
 
@@ -2115,7 +2072,6 @@ class TextCleaner:
             line_no = line_no + 1
         return clean_lines
 
-
     @classmethod
     def strip_unwanted_mvu_colons(self, word: str) -> str:
         """
@@ -2129,7 +2085,6 @@ class TextCleaner:
             print("Surrounding colons in the value/measure/unit {} is removed".format(word).encode("utf-8"))
             word = word[1:-1]  # if there are colons surrounding the word remains, remove it
         return word
-
 
     @classmethod
     def strip_markup_and_explicit_keys(self, line: str) -> Tuple[str, List[str]]:
@@ -2156,7 +2111,6 @@ class TextCleaner:
         # stripped_from_trailing_spaces = " ".join(stripped_from_trailing_spaces.split())  # strip from trailing whitespaces
         return stripped_from_trailing_spaces, references
 
-
     # Used in parse_lines_to_metadata().
     @classmethod
     def strip_colon(self, key: str) -> str:
@@ -2170,7 +2124,6 @@ class TextCleaner:
         """
         stripped_key = re.sub('\:', '', key)
         return stripped_key
-
 
     @classmethod
     def remove_empty_tags(self, soup: BeautifulSoup) -> BeautifulSoup:
@@ -2187,7 +2140,6 @@ class TextCleaner:
                 x.extract()
         return soup
 
-
     @classmethod
     def remove_extra_spaces(self, line: str) -> str:
         """
@@ -2200,7 +2152,6 @@ class TextCleaner:
         :return: (str) The string with all extra spaces removed.
         """
         return re.sub(' +', ' ', line)
-
 
     @classmethod
     def remove_table_tag(self, soup: BeautifulSoup) -> BeautifulSoup:
@@ -2238,7 +2189,6 @@ class PathHelper:
         fname_from_exp = PathHelper.slugify(exp_title)
         return fname_from_exp
 
-
     @classmethod
     def get_default_output_path(self, file_name: str) -> str:
         """
@@ -2262,7 +2212,6 @@ class PathHelper:
                 output_path = str(current_path) + "/output/"
         return output_path
 
-
     @classmethod
     def manage_output_path(path, dir_name: str, file_name: str) -> str:
         """
@@ -2283,7 +2232,6 @@ class PathHelper:
 
         return output_path
 
-
     @classmethod
     def check_and_create_path(self, path: str) -> None:
         """
@@ -2294,7 +2242,6 @@ class PathHelper:
         if not os.path.isdir(path):
             print("Output path %s is not available, creating the path directory..." % (path))
             os.makedirs(path)
-
 
     @classmethod
     def manage_input_path(self) -> str:
@@ -2310,13 +2257,14 @@ class PathHelper:
             input_path = home + "/Apps/lister/"
         return input_path
 
-
     #    Taken from https://github.com/django/django/blob/master/django/utils/text.py
     #    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
     #    dashes to single dashes. Remove characters that aren't alphanumerics,
     #    underscores, or hyphens. Convert to lowercase. Also strip leading and
     #   trailing whitespace, dashes, and underscores.
+
     def slugify(value: Union[str, Any], allow_unicode: bool = False) -> str:
+
         """
         Convert a string into a URL-friendly slug.
 
@@ -2336,6 +2284,7 @@ class PathHelper:
 # ------------------------------------------------ MAIN FUNCTION ------------------------------------------------------
 ref_counter = 0
 
+
 def main():
     global output_fname  # , input_file
     global output_path, base_output_path
@@ -2348,9 +2297,9 @@ def main():
         warnings.filterwarnings("ignore")
         freeze_support()
 
-    guiHelper = GUIHelper()
+    gui_helper = GUIHelper()
 
-    args = guiHelper.parse_gooey_args()
+    args = gui_helper.parse_gooey_args()
     base_output_path = args.base_output_dir
     apiv2endpoint = ApiAccess.get_apiv2endpoint(args.endpoint)
     apiv2client = ApiAccess.create_apiv2client(apiv2endpoint, args.token)
@@ -2369,14 +2318,14 @@ def main():
         elif args.title:
             title = ApiAccess.get_exp_title(apiv2client, args.exp_no)
             output_fname = PathHelper.slugify("experiment") + "_" + PathHelper.slugify(title)
-    print("The output is written to %s directory" % (output_fname))
+    print("The output is written to %s directory" % output_fname)
 
     output_path = PathHelper.manage_output_path(args.base_output_dir, output_fname)
     PathHelper.check_and_create_path(output_path)
 
-    print("base_output_dir: ", (base_output_path))
-    print("output_fname: ", (output_fname))
-    print("output_path: ", (output_path))
+    print("base_output_dir: ", base_output_path)
+    print("output_fname: ", output_fname)
+    print("output_path: ", output_path)
 
     if args.command == 'parse_experiment':
         print("Processing an experiment...")
