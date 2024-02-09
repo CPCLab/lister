@@ -1,31 +1,31 @@
 import json
-import re
-from enum import Enum
-import xlsxwriter
-from docx import Document
-from bs4 import BeautifulSoup, Tag
 # import elabapy
 import os
-import PyInstaller
-from gooey import Gooey, GooeyParser
-import ssl
-import platform
-from pathlib import Path
 import pathlib
-import pandas as pd
-from docx.shared import Mm, RGBColor
-from lxml import etree
-import latex2mathml.converter
+import platform
+import re
 import unicodedata
-import elabapi_python
-from pathvalidate import sanitize_filepath
-from typing import Any, Tuple, List, Dict, Union
-from argparse import Namespace
-from elabapi_python.rest import ApiException
-from pprint import pprint
-import urllib3
 import warnings
+from argparse import Namespace
+from enum import Enum
 from multiprocessing import freeze_support
+from pathlib import Path
+from pprint import pprint
+from typing import Any, Tuple, List, Dict, Union, TypedDict
+import PyInstaller
+
+import elabapi_python
+import latex2mathml.converter
+import pandas as pd
+import urllib3
+import xlsxwriter
+from bs4 import BeautifulSoup, Tag
+from docx import Document
+from docx.shared import Mm, RGBColor
+from elabapi_python.rest import ApiException
+from gooey import Gooey, GooeyParser
+from lxml import etree
+from pathvalidate import sanitize_filepath
 
 # TODO: remove the following line when the issue is fixed
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -138,7 +138,7 @@ class ArgNum(Enum):
 class ApiAccess:
 
     @classmethod
-    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> elabapi_python.Item:
+    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resourece  item ID and API v2 client.
 
@@ -254,8 +254,9 @@ class ApiAccess:
 
 
     @classmethod
-    def get_attachment_ids(self, exp: Dict, content: Tag) -> Dict[str, str]:
-        '''
+    def get_attachment_ids(self, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
+                                                                                        list[Union[str, TypedDict]]]:
+        """
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
         :param bs4.element.Tag content: a bs4 Tag object containing <h1>/<p><img alt=... src=...> Tag that provides the
@@ -265,17 +266,17 @@ class ApiAccess:
             str upl_id: upload id of the image attachment, used to access the image through API,
             str real_name: the name of the file when it was uploaded to eLabFTW.
             str hash: the hash of the file when it was uploaded to eLabFTW.
-        '''
+        """
 
         print("------------------------------ images ------------------------------")
         images = content.find_all('img')
         pprint(images)
         uploads = exp.__dict__['_uploads']
         # Initialize the dictionary with default values
-
+        results = []
         if len(uploads) > 0:
 
-            results = []
+            # results = []
             try:
                 for image in images:
                     upl_long_name = self.get_attachment_long_name(image['src'])
@@ -296,25 +297,25 @@ class ApiAccess:
                     results.append(result)
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
+                # results = ['']
                 # TODO: append this log into the log file
                 print(log)
                 print("Attachment download is skipped...")
                 # The dictionary 'result' already has default values set, so no need to set them again here
                 pass
 
-        print("------------------------------ image_path -----------------------------------")
-        pprint(results)
-
+            print("------------------------------ image_path -----------------------------------")
+            pprint(results)
         return results
 
     @classmethod
     def get_apiv2endpoint(self, apiv1endpoint: str) -> str:
-        '''
+        """
         Convert a version 1 API endpoint to a version 2 API endpoint.
 
         :param str apiv1endpoint: version 1 API endpoint.
         :return: str v2endpoint: version 2 API endpoint.
-        '''
+        """
         v2endpoint = re.sub(r'http://', 'https://', apiv1endpoint)
         v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
         return v2endpoint
@@ -344,7 +345,7 @@ class ApiAccess:
 
     @classmethod
     def get_save_attachments(self, path: str, apiv2client: elabapi_python.ApiClient, exp_id: int) -> str:
-        '''
+        """
         Get a list of attachments in the experiment entry and download these attachments, and return the logs as string.
 
         :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
@@ -352,7 +353,7 @@ class ApiAccess:
         :param int exp_id: The experiment ID.
 
         :return log:  The log as a string.
-        '''
+        """
 
         log = ""
 
@@ -455,7 +456,7 @@ class GUIHelper:
 
     @classmethod
     def parse_cfg(self) -> Tuple[str, str, str, int, int]:
-        '''
+        """
         Parse JSON config file, requires existing config.json file which should be specified on certain directory.
 
         The directory is OS-dependent. On Windows/Linux, it is in the same folder as the script/executables.
@@ -467,7 +468,7 @@ class GUIHelper:
             str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file),
             int exp_no: the parsed experiment ID (int).
             int resource_item_no: the parsed resource/container item ID (int).
-        '''
+        """
 
         input_file = PathHelper.manage_input_path() + "config.json"
         print("CONFIG FILE: %s" % (input_file))
@@ -488,14 +489,14 @@ class Serializer:
 
     @classmethod
     def write_to_docx(self, exp: dict, path: str) -> str:
-        '''
+        """
         fetch an experiment, clean the content from LISTER annotation markup and serialize the result to a docx file.
 
         :param dict exp: dictionary containing the properties of the experiment, including its HTML body content.
         :param str path: the path for writing the docx file, typically named based on experiment title or ID.
 
         :return: str log: log of the process.
-        '''
+        """
 
         document = Document()
         all_references = []
@@ -580,13 +581,13 @@ class Serializer:
 
     @classmethod
     def write_to_xlsx(self, nkvmu: List, exp: dict, path: str) -> None:
-        '''
+        """
         Write extracted order/key/value/measure/unit to an Excel file.
 
         :param list nkvmu: list containing the order (paragraph number)/key/value/measure/unit to be written.
         :param dict exp: experiment object.
         :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
-        '''
+        """
         PathHelper.check_and_create_path(path)
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
         # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"), ensure_ascii=False)
@@ -619,13 +620,13 @@ class MetadataExtractor:
 
     @classmethod
     def is_explicit_key(self, key: str) -> bool:
-        '''
+        """
         Check whether the string is an explicit key.
 
         :param str key: checked string.
         :return: bool stating whether the key is a LISTER explicit key.
 
-        '''
+        """
         if re.match(RegexPatterns.EXPLICIT_KEY.value, key):
             return True
         else:
@@ -634,7 +635,7 @@ class MetadataExtractor:
 
     @classmethod
     def extract_flow_type(self, par_no: int, flow_control_pair: str) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Extracts the type of flow found on any annotation with angle brackets, which can be control flow or sectioning.
 
         :param int par_no: paragraph number on where the control flow fragment string was found.
@@ -645,7 +646,7 @@ class MetadataExtractor:
                         e.g. [['-', 'section level 0', 'Precultures', '', '']],
             str flow_log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         flow_log = ""
         # print("flow_control_pair: " + str(flow_control_pair))
         is_error = False
@@ -700,7 +701,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_section(self, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key value based on section to a full section metadata entry
 
         :param list cf_split: list of strings split e.g., ['Section', 'Remarks']
@@ -710,7 +711,7 @@ class MetadataExtractor:
                         e.g. [['-', 'section level 0', 'Precultures', '', '']],
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         section_log = ""
         is_error = False
@@ -729,13 +730,13 @@ class MetadataExtractor:
 
     @classmethod
     def process_ref_resource_item(self, apiv2client: elabapi_python.ApiClient, item_api_response) -> None:
-        '''
+        """
         Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
         :param apiv2client: An instance of the API v2 client object, containing eLabFTW API-related information.
         :param item_api_response: The API response of the reference resource item.
         :return: None
-        '''
+        """
 
         # TODO: also get the list of related experiments instead of linked experiments only,
         #  status: pending. see https://github.com/elabftw/elabftw/issues/4811
@@ -864,7 +865,7 @@ class MetadataExtractor:
     # (unless if it is begun with "!")
     @classmethod
     def process_internal_comment(self, str_with_brackets: str) -> Tuple[str, str]:
-        '''
+        """
         Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the trailing comments.
 
         Internal comment refers to any comment that is available within a fragment of a lister bracket annotation.
@@ -876,7 +877,7 @@ class MetadataExtractor:
             WHERE
             str actual_fragment:  string containing the actual element of metadata, it can be either key/value/measure/unit,
             str internal_comment: string containing the comment part of the string fragment, with brackets retained.
-        '''
+        """
         comment = re.search(RegexPatterns.COMMENT.value, str_with_brackets)
         comment = comment.group(0)
         remains = str_with_brackets.replace(comment, '')
@@ -886,7 +887,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_foreach(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Converts key-value based on foreach control-metadata entry.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -896,7 +897,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         log, is_error = Validator.validate_foreach(cf_split)
         if is_error:
@@ -914,7 +915,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_while(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key value based on while control-metadata entry.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -924,7 +925,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         log, is_error = Validator.validate_while(cf_split)
         if is_error:
@@ -946,7 +947,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_if(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key-value based on if control-metadata entry.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -956,7 +957,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         log, is_error = Validator.validate_if(cf_split)
         if is_error:
@@ -978,7 +979,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_elseif(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key-value based on else-if control-metadata entry.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -988,7 +989,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurs.
-        '''
+        """
         key_val = []
         log, is_error = Validator.validate_elseif(cf_split)
         if is_error:
@@ -1016,7 +1017,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_else(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key value based on else control-metadata entry.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -1026,7 +1027,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         print(cf_split)
         key_val = []
         is_error = False
@@ -1043,7 +1044,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_range(self, flow_range: str) -> Tuple[float, float, str, bool]:
-        '''
+        """
         Convert key value based on range control-metadata entry. Please consult LISTER documentation on GitHub.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -1053,7 +1054,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         log, is_error = "", False
         log, is_error = Validator.validate_range(flow_range)
         if is_error:
@@ -1067,7 +1068,7 @@ class MetadataExtractor:
 
     @classmethod
     def process_for(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -1077,7 +1078,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         for_log = ""
         is_error = False
@@ -1123,7 +1124,7 @@ class MetadataExtractor:
     # should happen only after having 'while' iterations to provide additional steps on the iterator
     @classmethod
     def process_iterate(self, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
-        '''
+        """
         Convert key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
 
         :param int par_no: paragraph number where string fragment containing the referred pair was found.
@@ -1133,7 +1134,7 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occured.
-        '''
+        """
         key_val = []
         iterate_log = ""
         is_error = False
@@ -1159,15 +1160,16 @@ class MetadataExtractor:
 
     @classmethod
     def parse_lines_to_metadata(self, lines: List[str]) -> Tuple[List, List[str], str]:
-        '''
-        Get a list of metadata pairs [order, key, value, measure, unit] or ['-', sec. level, section name, '', ''] from nbsp-clean lines.
+        """
+        Get a list of metadata pairs [order, key, value, measure, unit] or ['-', sec. level, section name, '', '']
+        from nbsp-clean lines.
         :param list lines: list of lines cleaned up from nbsp.
         :return: tuple (nkvmu_pairs, internal_comments, log)
             WHERE
             list nkvmu_pairs: list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''],
             str internal_comments: placeholder for found internal comments within key-value pairs - currently unused,
             str log: log from running subsequent functions.
-        '''
+        """
         par_no = 0
         nkvmu_pairs = []
         nkvmu_header = ["", "metadata section", "Experiment Context", "", ""]
@@ -1238,7 +1240,7 @@ class MetadataExtractor:
     # parse opened document, first draft of sop
     @classmethod
     def conv_bracketedstring_to_metadata(self, bracketed_str: str) -> Tuple[str, str, str, str, str]:
-        '''
+        """
         Extract lines to a tuple containing key, value, measure, and log.
 
         :param str bracketed_str: a string fragment with a single lister bracketing annotation.
@@ -1249,7 +1251,7 @@ class MetadataExtractor:
             str measure: the measure portion of the string fragment,
             str unit: the unit portion of the string fragment,
             str log: log resulted from executing this and underlying functions.
-        '''
+        """
         log = ""
         bracketed_str_source = bracketed_str
         bracketed_str = bracketed_str[1:-1]
@@ -1288,7 +1290,7 @@ class MetadataExtractor:
 
     @classmethod
     def conv_html_to_metadata(self, html_content: str) -> Tuple[List, str]:
-        '''
+        """
         Turn html body content into extended key-value pair
                 [order, key, value, measure (if applicable), unit (if applicable)] or
                 [-, section level, section name, '', ''].
@@ -1300,7 +1302,7 @@ class MetadataExtractor:
                 [order, key, value, measure (if applicable), unit (if applicable)] or
                 [-, section level, section name, '', ''],
             str log is a string log returned from the respectively-executed functions.
-        '''
+        """
         # global log
         soup = BeautifulSoup(html_content.encode("utf-8"), "html.parser", from_encoding="found_encoding")
         soup.encoding = "utf-8"
@@ -1318,12 +1320,12 @@ class Validator:
 
     @classmethod
     def get_nonempty_body_tags(self, exp: BeautifulSoup) -> List:
-        '''
+        """
         Clean up the source-html from empty-content html tags.
 
         :param bs4.soup exp: beautifulSoup4.soup experiment object.
         :return: list tagged_contents: list of non-empty html tags as well as new lines.
-        '''
+        """
         html_body = exp["body"]
         soup = BeautifulSoup(html_body.encode("utf-8"), "html.parser")
         soup.encoding = "utf-8"
@@ -1335,7 +1337,7 @@ class Validator:
 
     @classmethod
     def check_bracket_num(self, par_no: int, text: str) -> Tuple[str, bool]:
-        '''
+        """
         Check if there is any bracketing error over the text line
 
         :param int par_no: paragraph number for the referred line
@@ -1344,7 +1346,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains bracketing error
-        '''
+        """
         log = ""
         base_error_warning = "BRACKET ERROR: %s %s: %s"
         is_error = False
@@ -1367,12 +1369,12 @@ class Validator:
     # Used in several control flow validation functions.
     @classmethod
     def is_valid_comparative_operator(self, operator: str) -> bool:
-        '''
+        """
         Check if the given operator is a valid comparative operator.
 
         :param str operator: The operator to check.
         :return: True if the operator is valid, False otherwise.
-        '''
+        """
         operators_list = ["e", "ne", "lt", "lte", "gt", "gte", "between"]
         if operator.lower() in operators_list:
             return True
@@ -1383,12 +1385,12 @@ class Validator:
     # Used in several control flow validation functions.
     @classmethod
     def is_valid_iteration_operator(self, operator: str) -> bool:
-        '''
+        """
         Check if the given operator is a valid iteration operator.
 
         :param str operator: The operator to check.
         :return: True if the operator is valid, False otherwise.
-        '''
+        """
         operators_list = ["+", "-", "*", "/", "%"]
         if operator.lower() in operators_list:
             return True
@@ -1428,7 +1430,7 @@ class Validator:
     # Used in process_foreach()
     @classmethod
     def validate_foreach(self, cf_split: List[str]) -> Tuple[str, bool]:
-        '''
+        """
         Validate the foreach command in the given list of strings.
 
         :param List[str] cf_split: List of strings containing the command and its arguments.
@@ -1436,7 +1438,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1528,7 +1530,7 @@ class Validator:
     # Used in else().
     @classmethod
     def validate_else(self, cf_split: List[str]) -> Tuple[str, bool]:
-        '''
+        """
         Validate the else command in the given list of strings.
 
         :param List[str] cf_split: List of strings containing the command and its arguments.
@@ -1536,7 +1538,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1551,7 +1553,7 @@ class Validator:
     # Used in process_range().
     @classmethod
     def validate_range(self, flow_range: str) -> Tuple[str, bool]:
-        '''
+        """
         Validate the range command in the given string.
 
         :param str flow_range: String containing the range command.
@@ -1559,7 +1561,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         is_error = False
         log = ""
         range_values = re.split("-", flow_range[1:-1])
@@ -1576,7 +1578,7 @@ class Validator:
     # Used in process_for().
     @classmethod
     def validate_for(self, cf_split: List[str]) -> Tuple[str, bool]:
-        '''
+        """
         Validate the for command in the given list of strings.
 
         :param List[str] cf_split: List of strings containing the command and its arguments.
@@ -1584,7 +1586,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1611,7 +1613,7 @@ class Validator:
     # Used in process_iterate().
     @classmethod
     def validate_iterate(self, cf_split: List[str]) -> Tuple[str, bool]:
-        '''
+        """
         Validate the iterate command in the given list of strings.
 
         :param List[str] cf_split: List of strings containing the command and its arguments.
@@ -1619,7 +1621,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1639,7 +1641,7 @@ class Validator:
     # Used in process_section().
     @classmethod
     def validate_section(self, cf_split: List[str]) -> Tuple[str, bool]:
-        '''
+        """
         Validate the section command in the given list of strings.
 
         :param List[str] cf_split: List of strings containing the command and its arguments.
@@ -1647,7 +1649,7 @@ class Validator:
             WHERE
             str log: error log (if any)
             bool is_error: flag if the checked line contains an error
-        '''
+        """
         log = ""
         is_error = False
         elements = len(cf_split)
@@ -1663,12 +1665,12 @@ class GeneralHelper:
 
     @classmethod
     def split_into_sentences(self, content):
-        '''
+        """
         Split a line into proper sentences.
 
         :param str content: a line string that potentially consists of multiple sentences.
         :return: list sentences: list of split sentences, with regular/annotation bracket still intact.
-        '''
+        """
         # The code in this function is adapted from user:5133085's answer in SO: https://stackoverflow.com/a/31505798/548451
         # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
         latin_alphabets = "([A-Za-z])"
@@ -1728,12 +1730,12 @@ class GeneralHelper:
 
     # Used in several control flow validation functions.
     def is_num(s: str) -> bool:
-        '''
+        """
         Check if the given string represents a number (integer or float).
 
         :param str s: The string to check.
         :return: True if the string represents a number, False otherwise.
-        '''
+        """
         if isinstance(s, int) or isinstance(s, float):
             return True
         else:
@@ -1746,9 +1748,9 @@ class GeneralHelper:
 
     # helper function to print dataframe, used for development and debugging
     def print_whole_df(df: pd.DataFrame) -> None:
-        '''
+        """
         Print the entire DataFrame without truncation.
-        '''
+        """
         with pd.option_context('display.max_rows', None, 'display.max_columns',
                                None):  # more options can be specified also
             print(df)
@@ -1800,7 +1802,7 @@ class DocxHelper:
 
     @classmethod
     def process_reg_bracket(self, line: str) -> Tuple[str, List[str]]:
-        '''
+        """
         Process strings with regular brackets (), which can be (_invisible comment_), (regular comment), or (DOI).
         This class method also maintains and updates numerical index of DOIs found in the text entries.
 
@@ -1813,7 +1815,7 @@ class DocxHelper:
             WHERE
             str processed_line: processed_line is the processed string to be written as a part of docx content,
             list references: the list of available DOI references.
-        '''
+        """
         global ref_counter
         references = []
         # split based on the existence of brackets - including the captured bracket block in the result
@@ -1853,14 +1855,14 @@ class DocxHelper:
     # TODO: check why some invisible key elements passed the invisibility checks.
     @classmethod
     def write_tag_to_doc(self, document: Document, tag_item: Tag) -> List[str]:
-        '''
+        """
         writes and format html tag content to docx document.
         :param Document document: python-docx document instance.
         :param  bs4.element.Tag tag_item: tag to be processed and written to document.
         :return: list all_references
             WHERE
             list all_references: all references of DOIs contained in the document.
-        '''
+        """
         all_references = []
         p = document.add_paragraph()
         log = ""
@@ -1993,7 +1995,7 @@ class DocxHelper:
 
     @classmethod
     def latex_formula_to_docx(self, latex_formula: str) -> Tuple[str, str]:
-        '''
+        """
         Convert latex formula to docx formula.
 
         This function requires MML2OMML.XSL style sheet, which normally shipped with Microsoft Office suite.
@@ -2004,7 +2006,7 @@ class DocxHelper:
             WHERE
             str docx_formula: formula represented in docx-string compatible that is going to be written to the docx file.
             str log: error log (if any)
-        '''
+        """
         log = ""
         mathml = latex2mathml.converter.convert(latex_formula)
         tree = etree.fromstring(mathml)
@@ -2023,12 +2025,12 @@ class DocxHelper:
 
     @classmethod
     def add_table_to_doc(self, doc: Document, content: Tag) -> None:
-        '''
+        """
         Add table content to docx instance.
 
         :param doc: python-docx instance of the modified document.
         :param bs4.Elements.Tag content: html table tag.
-        '''
+        """
         html_str_table = str(content.contents)[1:-1]
         dfs = pd.read_html("<table>" + html_str_table + "</table>")
         # read_html unfortunately does not retain styles/formatting, hence write your own html table parser if formatting
@@ -2055,13 +2057,13 @@ class DocxHelper:
 
     @classmethod
     def add_img_to_doc(self, document: Document, real_name: str, path: str, hash: str) -> None:
-        '''
+        """
         Add image to the document file, based on upload id and image name when it was uploaded.
 
         :param Document document: the document object that is being modified.
         :param str real_name: real name of the image when it was uploaded to eLabFTW.
         :param str path: path to the image/attachment.
-        '''
+        """
         log = ""
         if real_name:
             img_saving_path = path + '/attachments/'
@@ -2078,12 +2080,12 @@ class TextCleaner:
 
     @classmethod
     def get_nonempty_body_tags(self, exp: BeautifulSoup) -> List:
-        '''
+        """
         Clean up the source-html from empty-content html tags.
 
         :param bs4.soup exp: beautifulSoup4.soup experiment object.
         :return: list tagged_contents: list of non-empty html tags as well as new lines.
-        '''
+        """
         html_body = exp.__dict__["_body"]
         soup = BeautifulSoup(html_body.encode("utf-8"), "html.parser")
         soup.encoding = "utf-8"
@@ -2094,12 +2096,12 @@ class TextCleaner:
 
     @classmethod
     def process_nbsp(self, soup: BeautifulSoup) -> List[str]: # should probably be refactored to remove_nbsp for clarity
-        '''
+        """
         Remove non-break space (nbsp), and provide a 'clean' version of the lines.
 
         :param bs4.BeautifulSoup soup: soup object that is going to be cleaned up from nbsp.
         :return: list clean_lines lines without nbsp.
-        '''
+        """
         non_break_space = u'\xa0'
         text = soup.get_text().splitlines()
         # fetching the experiment paragraph, line by line
@@ -2116,12 +2118,12 @@ class TextCleaner:
 
     @classmethod
     def strip_unwanted_mvu_colons(self, word: str) -> str:
-        '''
+        """
         Remove surrounding colon on word(s) within annotation bracket, if it belongs value/measure/unit category.
 
         :param str word: string with or without colons.
         :return: str word without colons.
-        '''
+        """
         if re.search(RegexPatterns.SORROUNDED_W_COLONS.value, word):
             # TODO: make the unicode character below properly printed as relevant symbol of utf-8 in console
             print("Surrounding colons in the value/measure/unit {} is removed".format(word).encode("utf-8"))
@@ -2131,14 +2133,14 @@ class TextCleaner:
 
     @classmethod
     def strip_markup_and_explicit_keys(self, line: str) -> Tuple[str, List[str]]:
-        '''
+        """
         Strip keys that are marked as in visible (i.e., keys that are enclosed with colon) and extract any occuring
         pattern of DOI as reference, strip curly and angle brackets, reformat any annotation with regular bracket and
         fetch the DOI references, and strip unnecessary white spaces.
 
         :param bs4.element.NavigableString/str line: string to be inspected.
         :return: list of string containing DOI number.
-        '''
+        """
         stripped_from_explicit_keys = re.sub(RegexPatterns.SEPARATOR_AND_KEY.value, '', line)
         # print(stripped_from_explicit_keys)
         # strip curly and angle brackets
@@ -2172,12 +2174,12 @@ class TextCleaner:
 
     @classmethod
     def remove_empty_tags(self, soup: BeautifulSoup) -> BeautifulSoup:
-        '''
+        """
         Remove empty tags from a BeautifulSoup object.
 
         :param BeautifulSoup soup: The BeautifulSoup object to be processed.
         :return: BeautifulSoup soup: BeautifulSoup object with empty tags removed.
-        '''
+        """
         for x in soup.find_all():
             # if the text within a tag is empty, and tag name is not img/br/etc.. and it is not img within p tag:
             if len(x.get_text(strip=True)) == 0 and x.name not in ['img', 'br', 'td', 'tr', 'table', 'h1', 'h2', 'h3',
@@ -2202,12 +2204,12 @@ class TextCleaner:
 
     @classmethod
     def remove_table_tag(self, soup: BeautifulSoup) -> BeautifulSoup:
-        '''
+        """
         Remove table tags and its content from the soup object.
 
         :param bs4.BeautifulSoup soup: bs4 soup object.
         :return: bs4.BeautifulSoup soup: BeautifulSoup object without table tag, and it's content.
-        '''
+        """
         for table in soup("table"):
             table.decompose()
         return soup
@@ -2239,7 +2241,7 @@ class PathHelper:
 
     @classmethod
     def get_default_output_path(self, file_name: str) -> str:
-        '''
+        """
         Create an output path based on the home path (OS-dependent) and output file name.
         The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
         On macOS, it is in the users' Apps/lister/output/ directory.
@@ -2247,7 +2249,7 @@ class PathHelper:
         :param str file_name: file name for the output.
         :return: str output_path: the output path created from appending lister's output home directory and
                   output file name.
-        '''
+        """
         if platform.system() == "Darwin":  # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
             home = str(Path.home())
             output_path = home + "/Apps/lister/output/" + file_name
@@ -2263,7 +2265,7 @@ class PathHelper:
 
     @classmethod
     def manage_output_path(path, dir_name: str, file_name: str) -> str:
-        '''
+        """
         Get the output path according to respective platform.
 
         If it is on macOS, just return the dir_name (which have already been appended with output filename),
@@ -2272,7 +2274,7 @@ class PathHelper:
         :param str dir_name: the home directory name for the output.
         :param str file_name: the output name.
         :return: str output_path is the output directory created from appending the home path and output path.
-        '''
+        """
         if platform.system() == "Darwin":
             # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
             output_path = dir_name + file_name + "/"
@@ -2284,11 +2286,11 @@ class PathHelper:
 
     @classmethod
     def check_and_create_path(self, path: str) -> None:
-        '''
+        """
         Check if the given path exists, and create the directory if it doesn't.
 
         :param path: The path to check and create if necessary.
-        '''
+        """
         if not os.path.isdir(path):
             print("Output path %s is not available, creating the path directory..." % (path))
             os.makedirs(path)
@@ -2296,12 +2298,12 @@ class PathHelper:
 
     @classmethod
     def manage_input_path(self) -> str:
-        '''
+        """
         Enforce reading input from a specific directory on macOS (on macOS, LISTER cannot get the input directly
         from the executable file's directory).
 
         :return: str input_path is the input directory for macOS.
-        '''
+        """
         input_path = ""
         if platform.system() == "Darwin":  # enforce input path to be specific to ~/Apps/lister/
             home = str(Path.home())
