@@ -269,22 +269,30 @@ class ApiAccess:
         print("------------------------------ images ------------------------------")
         images = content.find_all('img')
         pprint(images)
-
-
-
-        img_path = content.img['src']
-        upl_long_name = self.get_attachment_long_name(img_path)
         uploads = exp.__dict__['_uploads']
-        result = {'upl_id': "", 'real_name': "", 'hash': ""}  # Initialize the dictionary with default values
-        results = []
+        # Initialize the dictionary with default values
 
         if len(uploads) > 0:
+
+            results = []
             try:
-                matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
-                result['upl_id'] = matched_upl.__dict__['_id']
-                result['real_name'] = matched_upl.__dict__['_real_name']
-                result['hash'] = matched_upl.__dict__['_hash']
-                results.append(result)
+                for image in images:
+                    upl_long_name = self.get_attachment_long_name(image['src'])
+                    result = {'image_path': "", 'upl_long_name': "", 'upl_id': "", 'real_name': "", 'hash': ""}
+
+                    result["image_path"] = image['src']
+                    result["upl_long_name"] = upl_long_name
+                    matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
+                    result['upl_id'] = matched_upl.__dict__['_id']
+                    result['real_name'] = matched_upl.__dict__['_real_name']
+                    result['hash'] = matched_upl.__dict__['_hash']
+                    print("----------------- result -----------------")
+                    print(type(image['src']))
+                    pprint(image['src'])
+                    pprint(type(image))
+                    pprint(image)
+                    pprint(result)
+                    results.append(result)
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
                 print(log)
@@ -292,7 +300,9 @@ class ApiAccess:
                 # The dictionary 'result' already has default values set, so no need to set them again here
                 pass
 
-        # return results
+        print("------------------------------ image_path -----------------------------------")
+        pprint(results)
+
         return results
 
     @classmethod
