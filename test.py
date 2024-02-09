@@ -55,7 +55,7 @@ class Test_lister(unittest.TestCase):
     #     mock_tag.img = mock_img
     #
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(mock_exp, mock_tag)
     #
     #     # Assert that the method returns empty strings for the upload ID and real name
     #     self.assertEqual(upl_id, "")
@@ -169,7 +169,7 @@ class Test_lister(unittest.TestCase):
     #     content.img = {"src": "some_url?file=long_name_1"}
     #     expected_upl_id = "1"
     #     expected_real_name = "attachment1.txt"
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(exp, content)
     #     self.assertEqual(upl_id, expected_upl_id)
     #     self.assertEqual(real_name, expected_real_name)
 
@@ -188,7 +188,7 @@ class Test_lister(unittest.TestCase):
     #     print("mock_exp")
     #     print([MagicMock(_long_name="long_name", _id="id", _real_name="real_name")].__str__())
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(mock_exp, mock_tag)
     #     # Assert that the method returns the correct upload ID and real name
     #     self.assertEqual(upl_id, "id")
     #     self.assertEqual(real_name, "real_name")

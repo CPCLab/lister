@@ -253,41 +253,47 @@ class ApiAccess:
 
 
     @classmethod
-    def get_attachment_id(self, exp: Dict, content: Tag) -> Tuple[str, str, str]:
+    def get_attachment_ids(self, exp: Dict, content: Tag) -> Dict[str, str]:
         '''
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc).
         :param bs4.element.Tag content: a bs4 Tag object containing <h1>/<p><img alt=... src=...> Tag that provides the
                 link to a particular image file.
-        :return: tuple (upl_id, real_name)
+        :return: dictionary with keys 'upl_id', 'real_name', and 'hash'
             WHERE
             str upl_id: upload id of the image attachment, used to access the image through API,
             str real_name: the name of the file when it was uploaded to eLabFTW.
             str hash: the hash of the file when it was uploaded to eLabFTW.
         '''
 
+        print("------------------------------ images ------------------------------")
+        images = content.find_all('img')
+        pprint(images)
+
+
+
         img_path = content.img['src']
         upl_long_name = self.get_attachment_long_name(img_path)
         uploads = exp.__dict__['_uploads']
+        result = {'upl_id': "", 'real_name': "", 'hash': ""}  # Initialize the dictionary with default values
+        results = []
+
         if len(uploads) > 0:
             try:
                 matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
-                upl_id = matched_upl.__dict__['_id']
-                real_name = matched_upl.__dict__['_real_name']
-                hash = matched_upl.__dict__['_hash']
+                result['upl_id'] = matched_upl.__dict__['_id']
+                result['real_name'] = matched_upl.__dict__['_real_name']
+                result['hash'] = matched_upl.__dict__['_hash']
+                results.append(result)
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
-                upl_id = ""
-                real_name = ""
-                hash = ""
                 print(log)
                 print("Attachment download is skipped...")
+                # The dictionary 'result' already has default values set, so no need to set them again here
                 pass
-        else:
-            upl_id = ""
-            real_name = ""
-        return upl_id, real_name, hash
 
+        # return results
+        return results
 
     @classmethod
     def get_apiv2endpoint(self, apiv1endpoint: str) -> str:
@@ -481,18 +487,29 @@ class Serializer:
 
         document = Document()
         all_references = []
-        pprint("-------------------------- docx experiment --------------------------")
-        pprint(exp)
+        # pprint("-------------------------- docx experiment --------------------------")
+        # pprint(exp)
         pprint("-------------------------- docx experiment --------------------------")
         tagged_contents = TextCleaner.get_nonempty_body_tags(exp)
         watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
         for content in tagged_contents:  # iterate over list of tags
             if isinstance(content, Tag):
                 if len(content.select("img")) > 0:
-                    upl_id, real_name, hash = ApiAccess.get_attachment_id(exp, content)
+                    print("An image is found, serializing to docx... Image count: ")
+                    print(len(content.select("img")))
+                    pprint(content.select("img"))
+                    print("--------------------- content ---------------------")
+                    pprint(content)
+
+                    # upl_id, real_name, hash = ApiAccess.get_attachment_ids(exp, content)
+                    image_ids = ApiAccess.get_attachment_ids(exp, content)
+
                     pprint("---------------- adding img to docx: tagged_contents.content.select.img ----------------")
-                    print(str(real_name), str(path))
-                    DocxHelper.add_img_to_doc(document, real_name, path, hash)
+
+                    # DocxHelper.add_img_to_doc(document, real_name, path, hash)
+                    for image_id in image_ids:
+                        print(str(image_id['real_name']), path)
+                        DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
                     pprint("---------------- finish adding img to docx: tagged_contents.content.select.img ----------------")
                 elif any(x in content.name for x in watched_tags):
                     references, log = DocxHelper.write_tag_to_doc(document, content)
@@ -504,9 +521,12 @@ class Serializer:
                 if content.name == "img":
                     print("An image is found, serializing to docx...")
                     pprint("---------------- adding img to docx: tagged_contents.content.name.img ----------------")
-                    upl_id, real_name, hash = ApiAccess.get_attachment_id(exp, content)
-                    DocxHelper.add_img_to_doc(document, real_name, path, hash)
-                    print(str(real_name), str(path))
+                    # upl_id, real_name, hash = ApiAccess.get_attachment_ids(exp, content)
+                    # DocxHelper.add_img_to_doc(document, real_name, path, hash)
+                    image_ids = ApiAccess.get_attachment_ids(exp, content)
+                    for image_id in image_ids:
+                        print(str(image_id['real_name']), path)
+                        DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
                     pprint("---------------- finish adding img to docx: tagged_contents.content.name.img ----------------")
 
 
