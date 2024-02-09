@@ -146,6 +146,7 @@ class ApiAccess:
         :param resource_id: The item ID.
         :return: The item (resource) content.
         """
+        log = ""
         api_item_response =None
         api_instance = elabapi_python.ItemsApi(apiv2client)
         print("------------------------------")
@@ -157,7 +158,7 @@ class ApiAccess:
             log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(resource_id, reason, code, message, description)
             print(log)
             # TODO: append this log into the log file
-        return api_item_response
+        return api_item_response, log
 
 
     @classmethod
@@ -295,6 +296,7 @@ class ApiAccess:
                     results.append(result)
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
+                # TODO: append this log into the log file
                 print(log)
                 print("Attachment download is skipped...")
                 # The dictionary 'result' already has default values set, so no need to set them again here
@@ -821,7 +823,8 @@ class MetadataExtractor:
 
         for linked_resource_id in linked_resource_ids:
             # get the linked resource item by ID
-            linked_resource = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
+            linked_resource, resource_log = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
+            overall_log = overall_log + "\n" + resource_log
             # pprint(linked_resource)
             if linked_resource is not None:
                 id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
@@ -2351,7 +2354,7 @@ def main():
     apiv2client = ApiAccess.create_apiv2client(apiv2endpoint, args.token)
 
     if args.command == 'parse_resource':
-        item_api_response = ApiAccess.get_resource_item(apiv2client, args.resource_item_no)
+        item_api_response, resource_log = ApiAccess.get_resource_item(apiv2client, args.resource_item_no)
         cat = item_api_response.__dict__["_category_title"]
         title = item_api_response.__dict__["_title"]
         if args.id:
