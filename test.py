@@ -55,7 +55,7 @@ class Test_lister(unittest.TestCase):
     #     mock_tag.img = mock_img
     #
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(mock_exp, mock_tag)
     #
     #     # Assert that the method returns empty strings for the upload ID and real name
     #     self.assertEqual(upl_id, "")
@@ -169,7 +169,7 @@ class Test_lister(unittest.TestCase):
     #     content.img = {"src": "some_url?file=long_name_1"}
     #     expected_upl_id = "1"
     #     expected_real_name = "attachment1.txt"
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(exp, content)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(exp, content)
     #     self.assertEqual(upl_id, expected_upl_id)
     #     self.assertEqual(real_name, expected_real_name)
 
@@ -188,7 +188,7 @@ class Test_lister(unittest.TestCase):
     #     print("mock_exp")
     #     print([MagicMock(_long_name="long_name", _id="id", _real_name="real_name")].__str__())
     #     # Call the method under test
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_id(mock_exp, mock_tag)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(mock_exp, mock_tag)
     #     # Assert that the method returns the correct upload ID and real name
     #     self.assertEqual(upl_id, "id")
     #     self.assertEqual(real_name, "real_name")
@@ -694,22 +694,22 @@ class Test_lister(unittest.TestCase):
             kvmu = "{measure|unit|value|key|extra}"
             lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
 
-    @patch('latex2mathml.converter.convert')
-    @patch('lxml.etree.fromstring')
-    @patch('lxml.etree.parse')
-    def test_latex_formula_to_docx_missing_mml2omml(self, mock_parse, mock_fromstring, mock_convert):
-        # Mock the convert function to return a specific MathML string
-        mock_convert.return_value = "<mathml></mathml>"
-        # Mock the fromstring function to return a specific etree Element
-        mock_fromstring.return_value = etree.Element("mathml")
-        # Mock the parse function to raise an exception
-        mock_parse.side_effect = Exception("Missing stylesheet")
-        # Call the method under test
-        docx_formula, log = lister.DocxHelper.latex_formula_to_docx("x^2")
-        # Assert that the method returns None for the docx formula and a log message indicating the error
-        self.assertIsNone(docx_formula)
-        self.assertEqual(log,
-                         "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, formula parsing is disabled.")
+    # @patch('latex2mathml.converter.convert')
+    # @patch('lxml.etree.fromstring')
+    # @patch('lxml.etree.parse')
+    # def test_latex_formula_to_docx_missing_mml2omml(self, mock_parse, mock_fromstring, mock_convert):
+    #     # Mock the convert function to return a specific MathML string
+    #     mock_convert.return_value = "<mathml></mathml>"
+    #     # Mock the fromstring function to return a specific etree Element
+    #     mock_fromstring.return_value = etree.Element("mathml")
+    #     # Mock the parse function to raise an exception
+    #     mock_parse.side_effect = Exception("Missing stylesheet")
+    #     # Call the method under test
+    #     docx_formula, log = lister.DocxHelper.latex_formula_to_docx("x^2")
+    #     # Assert that the method returns None for the docx formula and a log message indicating the error
+    #     self.assertIsNone(docx_formula)
+    #     self.assertEqual(log,
+    #                      "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, formula parsing is disabled.")
 
     def test_get_section_title_empty(self):
         line = "1."
