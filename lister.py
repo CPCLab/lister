@@ -105,18 +105,18 @@ class RegexPatterns(Enum):
     KV = r'\{.+?\}'  # find any occurrences of KV
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"  # catch DOI
-    COMMENT = "\(.+?\)"  # define regex for parsing comment
-    FORMULA = "\$.*\$"  # define regex for parsing comment
-    COMMENT_W_CAPTURE_GROUP = "(\(.+?\)*.*\))"
-    COMMENT_VISIBLE = "\(:(.+?):\)"
+    COMMENT = r"\(.+?\)"  # define regex for parsing comment
+    FORMULA = r"\$.*\$"  # define regex for parsing formula
+    COMMENT_W_CAPTURE_GROUP = r"(\(.+?\)*.*\))"
+    COMMENT_VISIBLE = r"\(:(.+?):\)"
     # COMMENT_VISIBLE = "\(:.+?:\)"
-    COMMENT_INVISIBLE = "\(_.+?_\)"
+    COMMENT_INVISIBLE = r"\(_.+?_\)"
     SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KV pairs (the key, tolerating trailing spaces)
     BRACKET_MARKUPS = r"([{}<>])"  # catch KV/section bracket annotations
     SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator and colon annotation
     SEPARATOR_MARKUP = r"([|])"  # catch separator annotation
-    PRE_PERIOD_SPACES = '\s+\.'
-    PRE_COMMA_SPACES = '\s+,'
+    PRE_PERIOD_SPACES = r'\s+\.'
+    PRE_COMMA_SPACES = r'\s+,'
     SUBSECTION = '(sub)*section'
     SUBSECTION_W_EXTRAS = r'(sub)*section.+'
     SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?);"
@@ -602,14 +602,14 @@ class MetadataExtractor:
             list key_val: list of list, each list contain a full complete control flow metadata line
                         e.g. [['-', 'section level 0', 'Precultures', '', '']],
             str flow_log: log resulted from running this and subsequent functions,
-            bool is_error: flag that indicates whether an error occured.
+            bool is_error: flag that indicates whether an error occurred.
         """
         flow_log = ""
         # print("flow_control_pair: " + str(flow_control_pair))
         is_error = False
         key_val = []
         cf = flow_control_pair[1:-1]
-        cf_split = re.split("\|", cf)
+        cf_split = re.split(r"\|", cf)
         flow_type = cf_split[0]
         flow_type = flow_type.strip()
         flow_type = flow_type.lower()
@@ -967,7 +967,7 @@ class MetadataExtractor:
         flow_logical_operator = cf_split[2]
         key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
-        if re.search("\[.*?\]", flow_compared_value):
+        if re.search(r"\[.*?\]", flow_compared_value):
             key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
             start, end, range_log, range_is_error = cls.process_range(flow_compared_value)
             key_val.append([par_no, CFMetadata.FLOW_ITRTN_STRT.value, start, '', ''])
@@ -1220,7 +1220,7 @@ class MetadataExtractor:
         log = ""
         bracketed_str_source = bracketed_str
         bracketed_str = bracketed_str[1:-1]
-        splitted_metadata = re.split("\|", bracketed_str)
+        splitted_metadata = re.split(r"\|", bracketed_str)
         if len(splitted_metadata) == 2:
             key = splitted_metadata[1]
             val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])  # mvu: measure, value, unit
@@ -1635,7 +1635,7 @@ class GeneralHelper:
         # https://stackoverflow.com/a/31505798/548451
         # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
         latin_alphabets = "([A-Za-z])"
-        openers = "(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+        openers = r"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
         abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
         pref = "(Mr|St|Mrs|Ms|Dr)[.]"
         sites = "[.](com|net|org|io|gov|de|eu)"
@@ -1644,7 +1644,7 @@ class GeneralHelper:
         content = content.replace("\n", " ")
         content = re.sub(pref, "\\1<prd>", content)
         content = re.sub(sites, "<prd>\\1", content)
-        content = re.sub("\s" + latin_alphabets + "[.] ", " \\1<prd> ", content)
+        content = re.sub(r"\s" + latin_alphabets + "[.] ", " \\1<prd> ", content)
         content = re.sub(abbr + " " + openers, "\\1<stop> \\2", content)
         content = re.sub(latin_alphabets + "[.]" + latin_alphabets + "[.]" + latin_alphabets
                          + "[.]", "\\1<prd>\\2<prd>\\3<prd>", content)
@@ -2122,7 +2122,7 @@ class TextCleaner:
         :param str key: The string to remove colons from.
         :return: str stripped_key: The string with all colons removed.
         """
-        stripped_key = re.sub('\:', '', key)
+        stripped_key = re.sub(r'\:', '', key)
         return stripped_key
 
     @classmethod
