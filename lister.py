@@ -95,7 +95,7 @@ class MiscAlertMsg(Enum):
     NON_TWO_COLS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
                                 "This linked item is skipped. Please recheck and consider using two columns to " \
                                 "allow key-value format."
-    NO_HTML_LINE_CONTENT = "WARNING: No HTML line content is found. This can be caused by an empty paragraph. " \
+    NO_HTML_LINE_CONTENT = "WARNING: No HTML line content is found. This can be caused by an empty paragraph. "
 
 
 class RegexPatterns(Enum):
@@ -156,13 +156,13 @@ class ApiAccess:
         try:
             api_item_response = api_instance.get_item(resource_id, format='json')
         except ApiException as e:
-            reason, code, message, description = cls.parseApiException(e)
+            reason, code, message, description = cls.parse_api_exception(e)
             log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(resource_id, reason, code, message, description)
             print(log)
         return api_item_response, log
 
     @classmethod
-    def parseApiException(cls, e: ApiException) -> Tuple[str, str, str, str]:
+    def parse_api_exception(cls, e: ApiException) -> Tuple[str, str, str, str]:
         """
         Parse an ApiException and return the error details.
         """
@@ -214,13 +214,11 @@ class ApiAccess:
         :param exp: An eLabFTW API's Experiment object containing experiment information.
         :return: A list of lists containing experiment information in the form of par.no-key-value-measure-units.
         """
-        nkvmu_pairs = []
-        nkvmu_pairs.append(["", "metadata section", "Experiment Info", "", ""])
-        nkvmu_pairs.append(["", "title", exp.__dict__["_title"], "", ""])
-        nkvmu_pairs.append(["", "creation date", exp.__dict__["_created_at"], "", ""])
-        nkvmu_pairs.append(["", "category", exp.__dict__["_type"], "", ""])
-        nkvmu_pairs.append(["", "author", exp.__dict__["_fullname"], "", ""])
-        nkvmu_pairs.append(["", "tags", exp.__dict__["_tags"], "", ""])
+        nkvmu_pairs = [["", "metadata section", "Experiment Info", "", ""],
+                       ["", "title", exp.__dict__["_title"], "", ""],
+                       ["", "creation date", exp.__dict__["_created_at"], "", ""],
+                       ["", "category", exp.__dict__["_type"], "", ""],
+                       ["", "author", exp.__dict__["_fullname"], "", ""], ["", "tags", exp.__dict__["_tags"], "", ""]]
         return nkvmu_pairs
 
     @classmethod
@@ -242,7 +240,7 @@ class ApiAccess:
         try:
             exp_response = api_instance.get_experiment(id, format='json')
         except ApiException as e:
-            reason, code, message, description = cls.parseApiException(e)
+            reason, code, message, description = cls.parse_api_exception(e)
             log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
             print(log)
         return exp_response
@@ -269,9 +267,8 @@ class ApiAccess:
             try:
                 for image in images:
                     upl_long_name = cls.get_attachment_long_name(image['src'])
-                    result = {'image_path': "", 'upl_long_name': "", 'upl_id': "", 'real_name': "", 'hash': ""}
-                    result["image_path"] = image['src']
-                    result["upl_long_name"] = upl_long_name
+                    result = {'image_path': "", 'upl_long_name': "", 'upl_id': "", 'real_name': "", 'hash': "",
+                              "image_path": image['src'], "upl_long_name": upl_long_name}
                     matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
                     result['upl_id'] = matched_upl.__dict__['_id']
                     result['real_name'] = matched_upl.__dict__['_real_name']
@@ -454,7 +451,7 @@ class GUIHelper:
         """
 
         input_file = PathHelper.manage_input_path() + "config.json"
-        print("CONFIG FILE: %s" % (input_file))
+        print("CONFIG FILE: %s" % input_file)
         # using ...with open... allows file to be closed automatically.
         with open(input_file, encoding="utf-8") as json_data_file:
             data = json.load(json_data_file)
@@ -706,7 +703,6 @@ class MetadataExtractor:
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
-
     @classmethod
     def process_linked_resource_item_apiv2(cls, apiv2client: elabapi_python.ApiClient, id: int) -> (
             Tuple)[Union[List[List[str]], str], str]:
@@ -823,23 +819,23 @@ class MetadataExtractor:
             Serializer.write_log(overall_log, path)
 
         except ApiException as e:
-            reason, code, message, description = ApiAccess.parseApiException(e)
+            reason, code, message, description = ApiAccess.parse_api_exception(e)
             exp_log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
             print(exp_log)
             Serializer.write_log(exp_log, path)
-
-
 
     # only process the comment that is within (key value measure unit) pairs and remove its content
     # (unless if it is begun with "!")
     @classmethod
     def process_internal_comment(cls, str_with_brackets: str) -> Tuple[str, str]:
         """
-        Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the trailing comments.
+        Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the
+        trailing comments.
 
         Internal comment refers to any comment that is available within a fragment of a lister bracket annotation.
         Internal comment will not be bypassed to the metadata output.
-        However, internal comment is important to be provided to make the experiment clear-text readable in the docx output.
+        However, internal comment is important to be provided to make the experiment clear-text readable in the
+        docx output.
 
         :param str str_with_brackets: a lister bracket annotation fragment with a comment.
         :returns: tuple (actual_fragment, internal_comment)
@@ -1189,7 +1185,7 @@ class MetadataExtractor:
                         else:
                             unit = kvmu_set[3]
                         nk_pair = [par_no, key]
-                        if (nk_pair in nk_pairs):
+                        if nk_pair in nk_pairs:
                             log = log + MiscAlertMsg.SIMILAR_PAR_KEY_FOUND.value.format(nk_pair) + "\n"
                         if cls.is_explicit_key(key):
                             key = TextCleaner.strip_colon(key)
@@ -1561,7 +1557,7 @@ class Validator:
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
             range_error_log, is_range_error = cls.validate_range(cf_split[2])
-            if is_range_error == True:  # check whether it is a valid range
+            if is_range_error is True:  # check whether it is a valid range
                 is_error = True
                 log = log + range_error_log + "\n"
             if not cls.is_valid_iteration_operator(cf_split[3]):  # check whether it is a valid operator
@@ -1709,7 +1705,6 @@ class GeneralHelper:
             else:
                 return s.isdigit()
 
-
     # helper function to print dataframe, used for development and debugging
     @classmethod
     def print_whole_df(cls, df: pd.DataFrame) -> None:
@@ -1848,7 +1843,7 @@ class DocxHelper:
                             processed_subcontent = processed_subcontent.replace(formula, '')
                             docx_formula, docx_formula_log = cls.latex_formula_to_docx(stripped_formula)
                             log = log + docx_formula_log
-                            if docx_formula != None:
+                            if docx_formula is not None:
                                 p._element.append(docx_formula)
                                 p.add_run(TextCleaner.remove_extra_spaces(processed_subcontent))
                     else:
@@ -1892,7 +1887,7 @@ class DocxHelper:
                     if re.match(RegexPatterns.SUBSECTION.value, line, re.IGNORECASE):
                         section_toggle = True
                         subsection_level = line.count("sub")
-                    elif (section_toggle):
+                    elif section_toggle:
                         # do not use get_section_title() here as it will remove the first word of the line.
                         # the 'section' part have already been removed in this span section.
                         if subsection_level == 0:
@@ -2022,6 +2017,7 @@ class DocxHelper:
         :param Document document: the document object that is being modified.
         :param str real_name: real name of the image when it was uploaded to eLabFTW.
         :param str path: path to the image/attachment.
+        :param str hash: hash of the image.
         """
         log = ""
         if real_name:
@@ -2208,7 +2204,7 @@ class PathHelper:
         if platform.system() == "Darwin":
             home = str(Path.home())
             output_path = home + "/Apps/lister/output/" + file_name
-            print("OUTPUT PATH: %s" % (output_path))
+            print("OUTPUT PATH: %s" % output_path)
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         else:
             current_path = pathlib.Path().resolve()
@@ -2247,7 +2243,7 @@ class PathHelper:
         :param path: The path to check and create if necessary.
         """
         if not os.path.isdir(path):
-            print("Output path %s is not available, creating the path directory..." % (path))
+            print("Output path %s is not available, creating the path directory..." % path)
             os.makedirs(path)
 
     @classmethod
