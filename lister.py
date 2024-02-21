@@ -202,7 +202,7 @@ class ApiAccess:
         """
         exp = self.get_exp(apiv2client, exp_item_no)
         if exp is None:
-            raise ValueError("Failed to retrieve experiment entry")
+            raise ValueError("Failed to retrieve experiment entry.")
         exp_title = exp.__dict__["_title"]
         return exp_title
 
@@ -705,6 +705,7 @@ class MetadataExtractor:
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
+
     @classmethod
     def process_linked_resource_item_apiv2(cls, apiv2client: elabapi_python.ApiClient, id: int) -> (
             Tuple)[Union[List[List[str]], str], str]:
@@ -757,63 +758,75 @@ class MetadataExtractor:
         overall_log = ""
 
         exp_instance = elabapi_python.ExperimentsApi(apiv2client)
-        exp_response = exp_instance.get_experiment(int(exp_no))
+        # exp_response = exp_instance.get_experiment(int(exp_no))
 
-        linked_resources = exp_response.__dict__['_items_links']
-        # get the IDs of the linked resources
-        linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
-
-        # get the respective category of the linked resources
-        id_and_category = {}
-        excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
-
-        # this will only work with elabapi-python 0.4.1.
-        # unfortunately the response from the API is not consistent between versions, so it may be a good idea to fix
-        # the version of elabapi-python to specific version in the requirements.txt in the future.
-
-        # for linked_resource in linked_resources:
-        # id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
-
-        print("---------------- linked_resource_ids: ---------------- ")
-        pprint(linked_resource_ids)
-
-        for linked_resource_id in linked_resource_ids:
-            # get the linked resource item by ID
-            linked_resource, resource_log = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
-            overall_log = overall_log + "\n" + resource_log
-            # pprint(linked_resource)
-            if linked_resource is not None:
-                id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
-        # pprint(id_and_category)
-
-        filtered_id_and_category = {key: value for key, value in id_and_category.items() if value.lower() not in
-                                    [item.lower() for item in excluded_item_types]}
-        # pprint(filtered_id_and_category)
-
-        overall_nkvmu = []
-        # the 'key' here is the ID of the resource item.
-        for key in filtered_id_and_category:
-            resource_item_nkvmu_metadata, log = MetadataExtractor.process_linked_resource_item_apiv2(apiv2client, key)
-            overall_log = overall_log + "\n" + log
-            overall_nkvmu.extend(resource_item_nkvmu_metadata)
-
-        exp_nkvmu_info_v2 = ApiAccess.get_exp_info(exp_response)
-        overall_nkvmu.extend(exp_nkvmu_info_v2)
-        exp_nkvmu, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
-        overall_log = overall_log + "\n" + log
-        overall_nkvmu.extend(exp_nkvmu)
-
-        log = ApiAccess.get_save_attachments(path, apiv2client, int(exp_no))
-        overall_log = overall_log + "\n" + log
-        docx_log = Serializer.write_to_docx(exp_response, path)
+        print("------------------------------")
+        print("Accessing experiment with ID: " + str(exp_no))
         try:
-            overall_log = overall_log + "\n" + docx_log
-        except:
-            pass
+            exp_response = exp_instance.get_experiment(int(exp_no))
+            linked_resources = exp_response.__dict__['_items_links']
+            # get the IDs of the linked resources
+            linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
 
-        Serializer.write_to_json(overall_nkvmu, exp_response, path)
-        Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
-        Serializer.write_log(overall_log, path)
+            # get the respective category of the linked resources
+            id_and_category = {}
+            excluded_item_types = ["MM", "Publication", "Protocols", "Protocol", "Methods", "Method", "Recipe"]
+
+            # this will only work with elabapi-python 0.4.1.
+            # unfortunately the response from the API is not consistent between versions, so it may be a good idea to fix
+            # the version of elabapi-python to specific version in the requirements.txt in the future.
+            # for linked_resource in linked_resources:
+            # id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
+
+            print("---------------- linked_resource_ids: ---------------- ")
+            pprint(linked_resource_ids)
+
+            for linked_resource_id in linked_resource_ids:
+                # get the linked resource item by ID
+                linked_resource, resource_log = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
+                overall_log = overall_log + "\n" + resource_log
+                # pprint(linked_resource)
+                if linked_resource is not None:
+                    id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
+            # pprint(id_and_category)
+
+            filtered_id_and_category = {key: value for key, value in id_and_category.items() if value.lower() not in
+                                        [item.lower() for item in excluded_item_types]}
+            # pprint(filtered_id_and_category)
+
+            overall_nkvmu = []
+            # the 'key' here is the ID of the resource item.
+            for key in filtered_id_and_category:
+                resource_item_nkvmu_metadata, log = MetadataExtractor.process_linked_resource_item_apiv2(apiv2client,
+                                                                                                         key)
+                overall_log = overall_log + "\n" + log
+                overall_nkvmu.extend(resource_item_nkvmu_metadata)
+
+            exp_nkvmu_info_v2 = ApiAccess.get_exp_info(exp_response)
+            overall_nkvmu.extend(exp_nkvmu_info_v2)
+            exp_nkvmu, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
+            overall_log = overall_log + "\n" + log
+            overall_nkvmu.extend(exp_nkvmu)
+
+            log = ApiAccess.get_save_attachments(path, apiv2client, int(exp_no))
+            overall_log = overall_log + "\n" + log
+            docx_log = Serializer.write_to_docx(exp_response, path)
+            try:
+                overall_log = overall_log + "\n" + docx_log
+            except:
+                pass
+
+            Serializer.write_to_json(overall_nkvmu, exp_response, path)
+            Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
+            Serializer.write_log(overall_log, path)
+
+        except ApiException as e:
+            reason, code, message, description = ApiAccess.parseApiException(e)
+            exp_log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
+            print(exp_log)
+            Serializer.write_log(exp_log, path)
+
+
 
     # only process the comment that is within (key value measure unit) pairs and remove its content
     # (unless if it is begun with "!")
@@ -2062,7 +2075,6 @@ class TextCleaner:
         :return: str word without colons.
         """
         if re.search(RegexPatterns.SORROUNDED_W_COLONS.value, word):
-            # TODO: make the unicode character below properly printed as relevant symbol of utf-8 in console
             print("Surrounding colons in the value/measure/unit {} is removed".format(word).encode("utf-8"))
             word = word[1:-1]  # if there are colons surrounding the word remains, remove it
         return word
@@ -2274,7 +2286,6 @@ def main():
     global output_fname  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
-    log = ""
 
     # suppress the redundant window pop up on macOS as a workaround, see
     # https://stackoverflow.com/questions/72636873/app-package-built-by-pyinstaller-fails-after-it-uses-tqdm
