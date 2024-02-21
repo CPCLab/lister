@@ -95,6 +95,7 @@ class MiscAlertMsg(Enum):
     NON_TWO_COLS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
                                 "This linked item is skipped. Please recheck and consider using two columns to " \
                                 "allow key-value format."
+    NO_HTML_LINE_CONTENT = "WARNING: No HTML line content is found. This can be caused by an empty paragraph. " \
 
 
 class RegexPatterns(Enum):
@@ -138,7 +139,7 @@ class ArgNum(Enum):
 class ApiAccess:
 
     @classmethod
-    def get_resource_item(self, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[
+    def get_resource_item(cls, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[
         elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resourece  item ID and API v2 client.
@@ -155,7 +156,7 @@ class ApiAccess:
         try:
             api_item_response = api_instance.get_item(resource_id, format='json')
         except ApiException as e:
-            reason, code, message, description = self.parseApiException(e)
+            reason, code, message, description = cls.parseApiException(e)
             log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(resource_id, reason, code, message, description)
             print(log)
         return api_item_response, log
@@ -191,7 +192,7 @@ class ApiAccess:
         return splitted_path[1]  # strip first 19 chars to get the long_name field in the upload dictionary
 
     @classmethod
-    def get_exp_title(self, apiv2client, exp_item_no: int) -> str:
+    def get_exp_title(cls, apiv2client, exp_item_no: int) -> str:
         """
         Get the title of an experiment from eLabFTW using apiv2client object the experiment item number.
 
@@ -199,14 +200,14 @@ class ApiAccess:
         :param int exp_item_no: eLabFTW experiment item number
         :return: Experiment title as a string
         """
-        exp = self.get_exp(apiv2client, exp_item_no)
+        exp = cls.get_exp(apiv2client, exp_item_no)
         if exp is None:
             raise ValueError("Failed to retrieve experiment entry.")
         exp_title = exp.__dict__["_title"]
         return exp_title
 
     @classmethod
-    def get_exp_info(self, exp: dict) -> List[List[str]]:
+    def get_exp_info(cls, exp: dict) -> List[List[str]]:
         """
         Get experiment information and return it as a list of lists.
 
@@ -223,7 +224,7 @@ class ApiAccess:
         return nkvmu_pairs
 
     @classmethod
-    def get_exp(self, apiv2client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
+    def get_exp(cls, apiv2client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
         """
         Get an eLab experiment using the provided API client and experiment ID.
 
@@ -241,13 +242,13 @@ class ApiAccess:
         try:
             exp_response = api_instance.get_experiment(id, format='json')
         except ApiException as e:
-            reason, code, message, description = self.parseApiException(e)
+            reason, code, message, description = cls.parseApiException(e)
             log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
             print(log)
         return exp_response
 
     @classmethod
-    def get_attachment_ids(self, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
+    def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
     list[Union[str, TypedDict]]]:
         """
         Get upload id from given experiment and content.
@@ -267,7 +268,7 @@ class ApiAccess:
         if len(uploads) > 0:
             try:
                 for image in images:
-                    upl_long_name = self.get_attachment_long_name(image['src'])
+                    upl_long_name = cls.get_attachment_long_name(image['src'])
                     result = {'image_path': "", 'upl_long_name': "", 'upl_id': "", 'real_name': "", 'hash': ""}
                     result["image_path"] = image['src']
                     result["upl_long_name"] = upl_long_name
@@ -733,7 +734,7 @@ class MetadataExtractor:
             if df_col_no != 2:
                 log = MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
                 print(log)
-                resource_item_nkvmu_metadata = ""
+                resource_item_nkvmu_metadata = None
                 pass
             else:
                 df.columns = ["metadata section", category]
@@ -742,6 +743,7 @@ class MetadataExtractor:
                 filtered_df = df.fillna('')  # fill empty cells with empty string
                 resource_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
         except ApiException as e:
+            resource_item_nkvmu_metadata = ""
             log = "Exception when calling ItemsApi->getItem: %s\n" % e
             print(log)
         return resource_item_nkvmu_metadata, log
@@ -1029,6 +1031,7 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_fname)
             print(log)
+            range_values = None
             # exit()
         else:
             range_values = re.split("-", flow_range[1:-1])
@@ -1279,6 +1282,10 @@ class MetadataExtractor:
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
             multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
+        else:
+            multi_nkvmu_pair = None
+            log = MiscAlertMsg.NO_HTML_LINE_CONTENT.value
+            print(log)
         return multi_nkvmu_pair, log
 
 
@@ -1685,7 +1692,8 @@ class GeneralHelper:
         return [i.strip() for i in text.split(default_sep)]
 
     # Used in several control flow validation functions.
-    def is_num(s: str) -> bool:
+    @classmethod
+    def is_num(cls, s: str) -> bool:
         """
         Check if the given string represents a number (integer or float).
 
@@ -1701,8 +1709,10 @@ class GeneralHelper:
             else:
                 return s.isdigit()
 
+
     # helper function to print dataframe, used for development and debugging
-    def print_whole_df(df: pd.DataFrame) -> None:
+    @classmethod
+    def print_whole_df(cls, df: pd.DataFrame) -> None:
         """
         Print the entire DataFrame without truncation.
         """
@@ -2030,11 +2040,11 @@ class DocxHelper:
 class TextCleaner:
 
     @classmethod
-    def get_nonempty_body_tags(cls, exp: BeautifulSoup) -> List:
+    def get_nonempty_body_tags(cls, exp: dict) -> List:
         """
         Clean up the source-html from empty-content html tags.
 
-        :param bs4.soup exp: beautifulSoup4.soup experiment object.
+        :param dict exp: a dictionary of experiment object.
         :return: list tagged_contents: list of non-empty html tags as well as new lines.
         """
         html_body = exp.__dict__["_body"]
