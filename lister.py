@@ -158,7 +158,6 @@ class ApiAccess:
             reason, code, message, description = self.parseApiException(e)
             log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(resource_id, reason, code, message, description)
             print(log)
-            # TODO: append this log into the log file
         return api_item_response, log
 
     @classmethod
@@ -244,7 +243,6 @@ class ApiAccess:
         except ApiException as e:
             reason, code, message, description = self.parseApiException(e)
             log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
-            # TODO: append this log into the log file
             print(log)
         return exp_response
 
@@ -262,6 +260,7 @@ class ApiAccess:
             str real_name: the name of the file when it was uploaded to eLabFTW.
             str hash: the hash of the file when it was uploaded to eLabFTW.
         """
+        log = ""
         images = content.find_all('img')
         uploads = exp.__dict__['_uploads']
         results = []
@@ -279,13 +278,11 @@ class ApiAccess:
                     results.append(result)
             except Exception as e:
                 log = MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format("NULL", str(e))
-                # results = ['']
-                # TODO: append this log into the log file
                 print(log)
                 print("Attachment download is skipped...")
                 # The dictionary 'result' already has default values set, so no need to set them again here
                 pass
-        return results
+        return results, log
 
     @classmethod
     def get_apiv2endpoint(cls, apiv1endpoint: str) -> str:
@@ -449,7 +446,8 @@ class GUIHelper:
         :returns: tuple (token, endpoint, output_file_name, exp_no)
             str token: eLabFTW API Token,
             str endpoint: eLabFTW API endpoint URL,
-            str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation, log file),
+            str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation,
+                                  log file),
             int exp_no: the parsed experiment ID (int).
             int resource_item_no: the parsed resource/container item ID (int).
         """
@@ -483,13 +481,14 @@ class Serializer:
         """
         document = Document()
         all_references = []
+        log = ""
         tagged_contents = TextCleaner.get_nonempty_body_tags(exp)
         watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
         for content in tagged_contents:  # iterate over list of tags
             if isinstance(content, Tag):
                 if len(content.select("img")) > 0:
                     # upl_id, real_name, hash = ApiAccess.get_attachment_ids(exp, content)
-                    image_ids = ApiAccess.get_attachment_ids(exp, content)
+                    image_ids, log = ApiAccess.get_attachment_ids(exp, content)
                     for image_id in image_ids:
                         # print(str(image_id['real_name']), path)
                         DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
@@ -501,7 +500,7 @@ class Serializer:
                     print("A table is found, writing to docx...")
                     DocxHelper.add_table_to_doc(document, content)
                 if content.name == "img":
-                    image_ids = ApiAccess.get_attachment_ids(exp, content)
+                    image_ids, log = ApiAccess.get_attachment_ids(exp, content)
                     for image_id in image_ids:
                         # print(str(image_id['real_name']), path)
                         DocxHelper.add_img_to_doc(document, image_id['real_name'], path, image_id['hash'])
@@ -510,6 +509,7 @@ class Serializer:
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
         document.save(path + '/' + PathHelper.derive_fname_from_exp(exp) + '.docx')
+        return log
 
     # Used to serialize extracted metadata to json file.
     @classmethod
