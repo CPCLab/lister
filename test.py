@@ -579,7 +579,7 @@ class Test_lister(unittest.TestCase):
         self.assertTrue(is_error)
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_metadata')
+    # @patch('lister.MetadataExtractor.conv_bracketed_string_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -597,7 +597,7 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""], ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketedstring_to_metadata')
+    # @patch('lister.MetadataExtractor.conv_bracketed_string_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -672,19 +672,19 @@ class Test_lister(unittest.TestCase):
     def test_conv_bracketedstring_to_kvmu(self):
         # Test a string with key and value
         kvmu = "{value|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
+        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "", ""))
         # Test a string with value, unit, and key
         kvmu = "{value|unit|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
+        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "unit", ""))
         # Test a string with measure, unit, value, and key
         kvmu = "{measure|unit|value|key}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
+        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "measure", "unit", ""))
         # Test a string with no separators
         kvmu = "{value}"
-        result = lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
+        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
         expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
                             "Otherwise please check this pair: {0}."
@@ -692,7 +692,7 @@ class Test_lister(unittest.TestCase):
         # Test a string with too many separators
         with self.assertRaises(SystemExit):
             kvmu = "{measure|unit|value|key|extra}"
-            lister.MetadataExtractor.conv_bracketedstring_to_metadata(kvmu)
+            lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
 
     # @patch('latex2mathml.converter.convert')
     # @patch('lxml.etree.fromstring')
