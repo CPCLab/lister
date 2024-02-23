@@ -135,12 +135,42 @@ class ArgNum(Enum):
     ARG_NUM_SECTION = 2
 
 
+# -------------------------------------------- Exception classes ------------------------------------------------------
+
+class LoggingError(Exception):
+    """Exception raised for errors in the logging process.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(self, message="Log message cannot be created properly."):
+        self.message = message
+        super().__init__(self.message)
+
+
+class IterationMagnitudeError(Exception):
+    """Exception raised for errors in the iteration magnitude during processing."""
+
+    def __init__(self, message="Iteration magnitude error: magnitude for the iteration is not found.", errors=None):
+        super().__init__(message)
+        self.errors = errors
+
+
+class IterationTypeError(Exception):
+    """Exception raised for errors in the type of the iteration during processing."""
+
+    def __init__(self, message="Iteration type is invalid.", errors=None):
+        super().__init__(message)
+        self.errors = errors
+
+
 # -------------------------------------------- API Access-related Class -----------------------------------------------
 class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[
-        elabapi_python.Item, str]:
+                elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -247,7 +277,7 @@ class ApiAccess:
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-    list[Union[str, TypedDict]]]:
+                list[Union[str, TypedDict]]]:
         """
         Get upload id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -574,6 +604,8 @@ class Serializer:
 
 
 # ---------------------------------------------- Metadata Extraction Class --------------------------------------------
+
+
 class MetadataExtractor:
 
     @classmethod
@@ -811,8 +843,8 @@ class MetadataExtractor:
             docx_log = Serializer.write_to_docx(exp_response, path)
             try:
                 overall_log = overall_log + "\n" + docx_log
-            except:
-                pass
+            except LoggingError as e:
+                print(f"An error occurred during the creation of log file for docx serialization: {e}")
 
             Serializer.write_to_json(overall_nkvmu, exp_response, path)
             Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
@@ -1073,15 +1105,17 @@ class MetadataExtractor:
         try:
             flow_operation = cf_split[3]
             key_val.append([par_no, CFMetadata.FLOW_OPRTN.value, flow_operation, '', ''])
-        except:
+        except IterationTypeError as e:
             is_error = True
+            print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split))
             for_log = for_log + "\n" + MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split)
         try:
             flow_magnitude = cf_split[4]
             key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
-        except:
+        except IterationMagnitudeError as e:
             is_error = True
+            print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
             for_log = for_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, for_log, is_error
@@ -1116,8 +1150,9 @@ class MetadataExtractor:
         try:
             flow_magnitude = cf_split[2]
             key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude])
-        except:
+        except IterationMagnitudeError as e:
             is_error = True
+            print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
             iterate_log = iterate_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
         return key_val, iterate_log, is_error
@@ -1975,7 +2010,7 @@ class DocxHelper:
             transform = etree.XSLT(xslt)
             new_dom = transform(tree)
             docx_formula = new_dom.getroot()
-        except Exception as e:
+        except FileNotFoundError:
             docx_formula = None
             log = log + MiscAlertMsg.MISSING_MML2OMML.value
             print(log)
@@ -2183,7 +2218,8 @@ class PathHelper:
         The title is then slugified to create a file name.
 
         :param Union[elabapi_python.Experiment, Dict] exp: The experiment to derive the file name from.
-                                                           It Can be a dictionary or an object with a "_title" attribute.
+                                                           It Can be a dictionary or an object with a "_title"
+                                                           attribute.
         :return: str fname_from_exp: The derived file name.
         """
         if isinstance(exp, dict):
