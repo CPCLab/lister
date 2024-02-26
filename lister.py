@@ -36,21 +36,21 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 class CFMetadata(Enum):
     STEP_TYPE = "step type"
     FLOW_TYPE = "flow type"
-    FLOW_PARAM = "flow parameter"
-    FLOW_LGCL_OPRTR = "flow logical parameter"
-    FLOW_CMPRD_VAL = "flow compared value"
+    FLOW_PARAMETER = "flow parameter"
+    FLOW_LOGICAL_OPERATOR = "flow logical parameter"
+    FLOW_COMPARED_VALUE = "flow compared value"
     FLOW_RANGE = "flow range"
-    FLOW_OPRTN = "flow operation"
-    FLOW_MGNTD = "flow magnitude"
+    FLOW_OPERATION = "flow operation"
+    FLOW_MAGNITUDE = "flow magnitude"
     FLOW_SECTION = "section"
-    FLOW_ITRTN_STRT = "start iteration value"
-    FLOW_ITRTN_END = "end iteration value"
+    FLOW_ITERATION_START = "start iteration value"
+    FLOW_ITERATION_END = "end iteration value"
 
 
 class BracketPairErrorMsg(Enum):
     IMPROPER_COMMENT_BRACKET = "ERROR: Mismatch between '(' and ')'. Check line "
     IMPROPER_RANGE_BRACKET = "ERROR: Mismatch between '[' and ']'.  Check line "
-    IMPROPER_KV_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
+    IMPROPER_KEY_VALUE_BRACKET = "ERROR: Mismatch between '{' and '}'.  Check line "
     IMPROPER_FLOW_BRACKET = "ERROR: Mismatch between '<' and '>'.  Check line "
 
 
@@ -62,37 +62,37 @@ class MiscAlertMsg(Enum):
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     UNRECOGNIZED_FLOW_TYPE = "WARNING: The flow type is not recognized. " \
                              "Please check the flow type {0} in the following set of values: {1}."
-    RANGE_NOT_TWO_ARGS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
+    RANGE_NOT_TWO_ARGUMENTS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
                          "Please check the following set of values: {0}."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
                         "Check the following part: {0}."
     INVALID_ITERATION_OPERATOR = "ERROR: {0} is not a valid iteration operators. Only +, -, *, / and %% " \
                                  "are supported.Check the following part: {1}."
-    IMPROPER_ARGNO = "ERROR: Expected number of arguments in the '{0}' statement is {1}, but {2} was found." \
+    IMPROPER_ARGUMENT_NO = "ERROR: Expected number of arguments in the '{0}' statement is {1}, but {2} was found." \
                      "Check the following part: '{3}'"
-    ITRTN_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
+    ITERATION_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, " \
                           "please check the following part: {0}."
     INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is not accessible using the current user's API Token. " \
                             "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
                             "message: {3}, description: {4} Parsing this resource is skipped."
-    INACCESSIBLE_EXP = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token. " \
+    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token. " \
                        "Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
                        "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. " \
                             "Please make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
                               "\n {1}. \n Try contacting eLabFTW administrator reporting the exception mentioned."
-    INVALID_KV_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
+    INVALID_METADATA_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
                                 "(key-value-measure-unit). There are {0} element(s) found in this key-value set: {1}."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
-                            "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
+                            "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the metadata. " \
                             "Otherwise please check this pair: {0}."
     MISSING_MML2OMML = "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file " \
                        "requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as " \
                        "config.json file. It is currently downloadable from " \
                        "https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise,  formula parsing is disabled."
-    NON_TWO_COLS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
+    NON_TWO_COLUMNS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
                                 "This linked item is skipped. Please recheck and consider using two columns to " \
                                 "allow key-value format."
     NO_HTML_LINE_CONTENT = "WARNING: No HTML line content is found. This can be caused by an empty paragraph. "
@@ -100,9 +100,9 @@ class MiscAlertMsg(Enum):
 
 class RegexPatterns(Enum):
     EXPLICIT_KEY = r':.+?:'  # catch explicit key which indicated within ":" sign
-    SURROUNDED_W_COLONS = r'^:.+?:$'  # catch explicit key which indicated within ":" sign
-    KV_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KV or control flow
-    KV = r'\{.+?\}'  # find any occurrences of KV
+    SURROUNDED_WITH_COLONS = r'^:.+?:$'  # catch explicit key which indicated within ":" sign
+    KEY_VALUE_OR_FLOW = r'\{.+?\}|<.+?>'  # find any occurrences of either KEY_VALUE or control flow
+    KEY_VALUE = r'\{.+?\}'  # find any occurrences of KEY_VALUE
     FLOW = r'<.+?>'  # find any occurrences of control flows
     DOI = r"\b(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?![\"&\'<>])\S)+)\b"  # catch DOI
     COMMENT = r"\(.+?\)"  # define regex for parsing comment
@@ -111,8 +111,8 @@ class RegexPatterns(Enum):
     COMMENT_VISIBLE = r"\(:(.+?):\)"
     # COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = r"\(_.+?_\)"
-    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KV pairs (the key, tolerating trailing spaces)
-    BRACKET_MARKUPS = r"([{}<>])"  # catch KV/section bracket annotations
+    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KEY_VALUE pairs (the key, tolerating trailing spaces)
+    BRACKET_MARKUPS = r"([{}<>])"  # catch KEY_VALUE/section bracket annotations
     SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator and colon annotation
     SEPARATOR_MARKUP = r"([|])"  # catch separator annotation
     PRE_PERIOD_SPACES = r'\s+\.'
@@ -169,18 +169,18 @@ class IterationTypeError(Exception):
 class ApiAccess:
 
     @classmethod
-    def get_resource_item(cls, apiv2client: elabapi_python.api_client, resource_id: int) -> tuple[
+    def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
                 elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
-        :param apiv2client: The API v2 client.
+        :param api_v2_client: The API v2 client.
         :param resource_id: The item ID.
         :return: The item (resource) content.
         """
         log = ""
         api_item_response = None
-        api_instance = elabapi_python.ItemsApi(apiv2client)
+        api_instance = elabapi_python.ItemsApi(api_v2_client)
         print("------------------------------")
         print("Accessing resource item with ID: " + str(resource_id))
         try:
@@ -222,56 +222,56 @@ class ApiAccess:
         return split_path[1]  # strip first 19 chars to get the long_name field in the upload dictionary
 
     @classmethod
-    def get_exp_title(cls, apiv2client, exp_item_no: int) -> str:
+    def get_exp_title(cls, api_v2_client, exp_item_no: int) -> str:
         """
-        Get the title of an experiment from eLabFTW using apiv2client object the experiment item number.
+        Get the title of an experiment from eLabFTW using api_v2_client object the experiment item number.
 
-        :param apiv2client: eLabFTW API v2 client object
+        :param api_v2_client: eLabFTW API v2 client object
         :param int exp_item_no: eLabFTW experiment item number
         :return: Experiment title as a string
         """
-        exp = cls.get_exp(apiv2client, exp_item_no)
+        exp = cls.get_exp(api_v2_client, exp_item_no)
         if exp is None:
             raise ValueError("Failed to retrieve experiment entry.")
         exp_title = exp.__dict__["_title"]
         return exp_title
 
     @classmethod
-    def get_exp_info(cls, exp: dict) -> List[List[str]]:
+    def get_exp_info(cls, experiment: dict) -> List[List[str]]:
         """
         Get experiment information and return it as a list of lists.
 
-        :param exp: An eLabFTW APIs Experiment object containing experiment information.
+        :param experiment: An eLabFTW APIs Experiment object containing experiment information.
         :return: A list of lists containing experiment information in the form of par.no-key-value-measure-units.
         """
-        nkvmu_pairs = [["", "metadata section", "Experiment Info", "", ""],
-                       ["", "title", exp.__dict__["_title"], "", ""],
-                       ["", "creation date", exp.__dict__["_created_at"], "", ""],
-                       ["", "category", exp.__dict__["_type"], "", ""],
-                       ["", "author", exp.__dict__["_fullname"], "", ""], ["", "tags", exp.__dict__["_tags"], "", ""]]
-        return nkvmu_pairs
+        metadata_pairs = [["", "metadata section", "Experiment Info", "", ""],
+                          ["", "title", experiment.__dict__["_title"], "", ""],
+                          ["", "creation date", experiment.__dict__["_created_at"], "", ""],
+                          ["", "category", experiment.__dict__["_type"], "", ""],
+                          ["", "author", experiment.__dict__["_fullname"], "", ""], ["", "tags", experiment.__dict__["_tags"], "", ""]]
+        return metadata_pairs
 
     @classmethod
-    def get_exp(cls, apiv2client: elabapi_python.ApiClient, id: int) -> elabapi_python.Experiment:
+    def get_exp(cls, api_v2_client: elabapi_python.ApiClient, experiment_id: int) -> elabapi_python.Experiment:
         """
         Get an eLab experiment using the provided API client and experiment ID.
 
-        :param elabapi_python.ApiClient apiv2client: The eLab API client instance.
-        :param int id: The ID of the experiment to retrieve.
+        :param elabapi_python.ApiClient api_v2_client: The eLab API client instance.
+        :param int experiment_id: The ID of the experiment to retrieve.
         :return: elabapi_python.Experiment exp_response: The retrieved eLab experiment.
 
         This method uses the provided eLab API client to fetch an experiment with the given ID.
         If an ApiException occurs, it prints the exception message and continues.
         """
         exp_response = None
-        api_instance = elabapi_python.ExperimentsApi(apiv2client)
+        api_instance = elabapi_python.ExperimentsApi(api_v2_client)
         print("------------------------------")
-        print("Accessing experiment with ID: " + str(id))
+        print("Accessing experiment with ID: " + str(experiment_id))
         try:
-            exp_response = api_instance.get_experiment(id, format='json')
+            exp_response = api_instance.get_experiment(experiment_id, format='json')
         except ApiException as e:
             reason, code, message, description = cls.parse_api_exception(e)
-            log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
+            log = MiscAlertMsg.INACCESSIBLE_EXPERIMENT.value.format(experiment_id, reason, code, message, description)
             print(log)
         return exp_response
 
@@ -279,13 +279,13 @@ class ApiAccess:
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
                 list[Union[str, TypedDict]]]:
         """
-        Get upload id from given experiment and content.
+        Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
         :param bs4.element.Tag content: a bs4 Tag object containing <h1>/<p><img alt=... src=...> Tag that provides the
                 link to a particular image file.
         :return: dictionary with keys 'upl_id', 'real_name', and 'hash'
             WHERE
-            str upl_id: upload id of the image attachment, used to access the image through API,
+            str upl_id: upload experiment_id of the image attachment, used to access the image through API,
             str real_name: the name of the file when it was uploaded to eLabFTW.
             str hash: the hash of the file when it was uploaded to eLabFTW.
         """
@@ -313,19 +313,19 @@ class ApiAccess:
         return results, log
 
     @classmethod
-    def get_apiv2endpoint(cls, apiv1endpoint: str) -> str:
+    def get_api_v2_endpoint(cls, api_v1_endpoint: str) -> str:
         """
         Convert a version 1 API endpoint to a version 2 API endpoint.
 
-        :param str apiv1endpoint: version 1 API endpoint.
+        :param str api_v1_endpoint: version 1 API endpoint.
         :return: str v2endpoint: version 2 API endpoint.
         """
-        v2endpoint = re.sub(r'http://', 'https://', apiv1endpoint)
-        v2endpoint = re.sub(r'/v1', '/v2', v2endpoint)
-        return v2endpoint
+        v2_endpoint = re.sub(r'http://', 'https://', api_v1_endpoint)
+        v2_endpoint = re.sub(r'/v1', '/v2', v2_endpoint)
+        return v2_endpoint
 
     @classmethod
-    def create_apiv2client(cls, endpoint: str, token: str) -> elabapi_python.ApiClient:
+    def create_api_v2_client(cls, endpoint: str, token: str) -> elabapi_python.ApiClient:
         """
         Create an API v2 client with the given endpoint and token.
 
@@ -334,24 +334,24 @@ class ApiAccess:
         :return: The API v2 client.
         :rtype: elabapi_python.ApiClient.
         """
-        endpoint_v2 = cls.get_apiv2endpoint(endpoint)
-        apiv2config = elabapi_python.Configuration()
-        apiv2config.api_key['api_key'] = token
-        apiv2config.api_key_prefix['api_key'] = 'Authorization'
-        apiv2config.host = endpoint_v2
-        apiv2config.debug = False
-        apiv2config.verify_ssl = False
-        apiv2_client = elabapi_python.ApiClient(apiv2config)
-        apiv2_client.set_default_header(header_name='Authorization', header_value=token)
-        return apiv2_client
+        endpoint_v2 = cls.get_api_v2_endpoint(endpoint)
+        api_v2_config = elabapi_python.Configuration()
+        api_v2_config.api_key['api_key'] = token
+        api_v2_config.api_key_prefix['api_key'] = 'Authorization'
+        api_v2_config.host = endpoint_v2
+        api_v2_config.debug = False
+        api_v2_config.verify_ssl = False
+        api_v2_client = elabapi_python.ApiClient(api_v2_config)
+        api_v2_client.set_default_header(header_name='Authorization', header_value=token)
+        return api_v2_client
 
     @classmethod
-    def get_save_attachments(cls, path: str, apiv2client: elabapi_python.ApiClient, exp_id: int) -> str:
+    def get_save_attachments(cls, path: str, api_v2_client: elabapi_python.ApiClient, exp_id: int) -> str:
         """
         Get a list of attachments in the experiment entry and download these attachments, and return the logs as string.
 
         :param str path: the path for downloading the attached files, typically named based on experiment title or ID.
-        :param elabapi_python.ApiClient apiv2client: The API v2 client object.
+        :param elabapi_python.ApiClient api_v2_client: The API v2 client object.
         :param int exp_id: The experiment ID.
 
         :return log:  The log as a string.
@@ -359,15 +359,15 @@ class ApiAccess:
 
         log = ""
 
-        experimentsApi = elabapi_python.ExperimentsApi(apiv2client)
-        uploadsApi = elabapi_python.UploadsApi(apiv2client)
-        exp = experimentsApi.get_experiment(int(exp_id))
+        experiments_api = elabapi_python.ExperimentsApi(api_v2_client)
+        uploads_api = elabapi_python.UploadsApi(api_v2_client)
+        exp = experiments_api.get_experiment(int(exp_id))
 
         upload_saving_path = path + '/' + 'attachments'
         sanitized_upload_saving_path = sanitize_filepath(upload_saving_path, platform='auto')
         PathHelper.check_and_create_path(sanitized_upload_saving_path)
 
-        for upload in uploadsApi.read_uploads('experiments', exp.id):
+        for upload in uploads_api.read_uploads('experiments', exp.id):
             with open(sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name, 'wb') as file:
                 print(
                     "Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id),
@@ -375,7 +375,7 @@ class ApiAccess:
                                                                                        upload_saving_path +
                                                                                        "/" + upload.real_name))
                 file.write(
-                    uploadsApi.read_upload('experiments', exp.id, upload.id, format='binary',
+                    uploads_api.read_upload('experiments', exp.id, upload.id, format='binary',
                                            _preload_content=False).data)
                 file.flush()
         return log
@@ -400,7 +400,7 @@ class GUIHelper:
         - str token,
         - bool uploadToggle.
         """
-        token, endpoint, output_file_name, exp_no, resource_item_no = self.parse_cfg()
+        token, endpoint, output_file_name, experiment_no, resource_item_no = self.parse_cfg()
         settings_msg = ('Please ensure to enter the fields below properly, or ask your eLabFTW admin if you '
                         'have questions.')
         parser = GooeyParser(description=settings_msg)
@@ -416,7 +416,7 @@ class GUIHelper:
                                                                           'initial_selection': 0})
         radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
                                  help='Name files and folders based on experiment title')
-        radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+        radio_group.add_argument("-i", "--experiment_id", metavar="ID", action="store_true",
                                  help='Name files and folders based on the experiment ID')
 
         io_args.add_argument('base_output_dir', metavar='Base output directory',
@@ -424,7 +424,7 @@ class GUIHelper:
                              default=base_output_path, widget='DirChooser')
         elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
         elabftw_args.add_argument('exp_no', metavar='eLabFTW experiment ID',
-                                  help='Integer indicated in the URL of the experiment', default=exp_no, type=int)
+                                  help='Integer indicated in the URL of the experiment', default=experiment_no, type=int)
         elabftw_args.add_argument('endpoint', metavar="eLabFTW API endpoint URL",
                                   help='Ask your eLabFTW admin to provide the endpoint URL for you', default=endpoint,
                                   type=str)
@@ -442,7 +442,7 @@ class GUIHelper:
         radio_group.add_argument("-t", "--title", metavar="Title", action="store_true",
                                  help='Name files and folders based on container type + title, including the '
                                       'underlying experiments')
-        radio_group.add_argument("-i", "--id", metavar="ID", action="store_true",
+        radio_group.add_argument("-i", "--experiment_id", metavar="ID", action="store_true",
                                  help='Name files and folders based on container type + ID, including the '
                                       'underlying experiments')
 
@@ -515,7 +515,7 @@ class Serializer:
         for content in tagged_contents:  # iterate over a list of tags
             if isinstance(content, Tag):
                 if len(content.select("img")) > 0:
-                    # upl_id, real_name, hash = ApiAccess.get_attachment_ids(exp, content)
+                    # upl_id, real_name, hash = ApiAccess.get_attachment_ids(experiment, content)
                     image_ids, log = ApiAccess.get_attachment_ids(exp, content)
                     for image_id in image_ids:
                         # print(str(image_id['real_name']), path)
@@ -567,17 +567,17 @@ class Serializer:
             f.write(log_text)
 
     @classmethod
-    def write_to_xlsx(cls, nkvmu: List, exp: dict, path: str) -> None:
+    def write_to_xlsx(cls, metadata_set: List, exp: dict, path: str) -> None:
         """
         Write extracted order/key/value/measure/unit to an Excel file.
 
-        :param list nkvmu: list containing the order (paragraph number)/key/value/measure/unit to be written.
+        :param list metadata_set: list containing the order (paragraph number)/key/value/measure/unit to be written.
         :param dict exp: an experiment object.
         :param str path: the path for writing the xlsx file, typically named based on experiment title or ID.
         """
         PathHelper.check_and_create_path(path)
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-        # json.dump(list, open(path + '/' + derive_fname_from_exp(exp) + ".json", 'w', encoding="utf-8"),
+        # json.dump(list, open(path + '/' + derive_fname_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
         # ensure_ascii=False)
         # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
         with xlsxwriter.Workbook(path + '/' + PathHelper.derive_fname_from_exp(exp) + ".xlsx") as workbook:
@@ -592,7 +592,7 @@ class Serializer:
             worksheet.set_column('B:B', 18)
             worksheet.set_column('C:C', 30)
             worksheet.set_column('D:E', 15)
-            for row_no, data in enumerate(nkvmu):
+            for row_no, data in enumerate(metadata_set):
                 key = data[1]
                 # do not use regex here, or it will be very slow
                 # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
@@ -716,11 +716,11 @@ class MetadataExtractor:
         return key_val, section_log, is_error
 
     @classmethod
-    def process_ref_resource_item(cls, apiv2client: elabapi_python.ApiClient, item_api_response) -> None:
+    def process_ref_resource_item(cls, apiV2client: elabapi_python.ApiClient, item_api_response) -> None:
         """
         Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
-        :param apiv2client: An instance of the API v2 client object, containing eLabFTW API-related information.
+        :param apiV2client: An instance of the API v2 client object, containing eLabFTW API-related information.
         :param item_api_response: The API response of the reference resource item.
         :return: None
         """
@@ -731,22 +731,22 @@ class MetadataExtractor:
             experiments = item_api_response.__dict__["_experiments_links"]
             for experiment in experiments:
                 exp_path = output_path + PathHelper.slugify(experiment.__dict__["_title"])
-                cls.process_experiment(apiv2client, experiment.__dict__["_itemid"], exp_path)
+                cls.process_experiment(apiV2client, experiment.__dict__["_itemid"], exp_path)
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
     @classmethod
-    def process_linked_resource_item_apiv2(cls, apiv2client: elabapi_python.ApiClient, id: int) -> (
+    def process_linked_resource_item_apiV2(cls, apiV2client: elabapi_python.ApiClient, id: int) -> (
             Tuple)[Union[List[List[str]], str], str]:
         """
         Process a linked resource item and return its metadata and log.
 
-        :param elabapi_python.ApiClient apiv2client: An instance of the API v2 client object, containing eLabFTW
+        :param elabapi_python.ApiClient apiV2client: An instance of the API v2 client object, containing eLabFTW
         API-related information.
         :param id: The ID of the linked resource item.
         :return: A tuple containing the resource item metadata and log.
         """
-        api_instance = elabapi_python.ItemsApi(apiv2client)
+        api_instance = elabapi_python.ItemsApi(apiV2client)
 
         try:
             # Read an item
@@ -760,34 +760,34 @@ class MetadataExtractor:
             df_col_no = df.shape[1]
             log = ""
             if df_col_no != 2:
-                log = MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
+                log = MiscAlertMsg.NON_TWO_COLUMNS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
                 print(log)
-                resource_item_nkvmu_metadata = None
+                resource_item_metadata_set = None
                 pass
             else:
                 df.columns = ["metadata section", category]
                 df.insert(loc=0, column="", value="")
                 df = df.reindex(df.columns.tolist() + ['', ''], axis=1)  # add two empty columns
                 filtered_df = df.fillna('')  # fill empty cells with empty string
-                resource_item_nkvmu_metadata = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
+                resource_item_metadata_set = [filtered_df.columns.values.tolist()] + filtered_df.values.tolist()
         except ApiException as e:
-            resource_item_nkvmu_metadata = ""
+            resource_item_metadata_set = ""
             log = "Exception when calling ItemsApi->getItem: %s\n" % e
             print(log)
-        return resource_item_nkvmu_metadata, log
+        return resource_item_metadata_set, log
 
     @classmethod
-    def process_experiment(cls, apiv2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
+    def process_experiment(cls, apiV2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
         """
         Process an experiment and save its information to various formats.
 
-        :param elabapi_python.ApiClient apiv2client: The API v2 client.
+        :param elabapi_python.ApiClient apiV2client: The API v2 client.
         :param int exp_no: The experiment number.
         :param str path: The path for saving the output files.
         """
         overall_log = ""
 
-        exp_instance = elabapi_python.ExperimentsApi(apiv2client)
+        exp_instance = elabapi_python.ExperimentsApi(apiV2client)
         # exp_response = exp_instance.get_experiment(int(exp_no))
 
         print("------------------------------")
@@ -813,7 +813,7 @@ class MetadataExtractor:
 
             for linked_resource_id in linked_resource_ids:
                 # get the linked resource item by ID
-                linked_resource, resource_log = ApiAccess.get_resource_item(apiv2client, linked_resource_id)
+                linked_resource, resource_log = ApiAccess.get_resource_item(apiV2client, linked_resource_id)
                 overall_log = overall_log + "\n" + resource_log
                 # pprint(linked_resource)
                 if linked_resource is not None:
@@ -824,21 +824,21 @@ class MetadataExtractor:
                                         [item.lower() for item in excluded_item_types]}
             # pprint(filtered_id_and_category)
 
-            overall_nkvmu = []
+            overall_metadata_set = []
             # the 'key' here is the ID of the resource item.
             for key in filtered_id_and_category:
-                resource_item_nkvmu_metadata, log = MetadataExtractor.process_linked_resource_item_apiv2(apiv2client,
-                                                                                                         key)
+                resource_item_metadata_set, log = MetadataExtractor.process_linked_resource_item_apiV2(apiV2client,
+                                                                                                       key)
                 overall_log = overall_log + "\n" + log
-                overall_nkvmu.extend(resource_item_nkvmu_metadata)
+                overall_metadata_set.extend(resource_item_metadata_set)
 
-            exp_nkvmu_info_v2 = ApiAccess.get_exp_info(exp_response)
-            overall_nkvmu.extend(exp_nkvmu_info_v2)
-            exp_nkvmu, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
+            exp_metadata_info = ApiAccess.get_exp_info(exp_response)
+            overall_metadata_set.extend(exp_metadata_info)
+            exp_metadata_set, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
             overall_log = overall_log + "\n" + log
-            overall_nkvmu.extend(exp_nkvmu)
+            overall_metadata_set.extend(exp_metadata_set)
 
-            log = ApiAccess.get_save_attachments(path, apiv2client, int(exp_no))
+            log = ApiAccess.get_save_attachments(path, apiV2client, int(exp_no))
             overall_log = overall_log + "\n" + log
             docx_log = Serializer.write_to_docx(exp_response, path)
             try:
@@ -846,13 +846,13 @@ class MetadataExtractor:
             except LoggingError as e:
                 print(f"An error occurred during the creation of log file for docx serialization: {e}")
 
-            Serializer.write_to_json(overall_nkvmu, exp_response, path)
-            Serializer.write_to_xlsx(overall_nkvmu, exp_response, path)
+            Serializer.write_to_json(overall_metadata_set, exp_response, path)
+            Serializer.write_to_xlsx(overall_metadata_set, exp_response, path)
             Serializer.write_log(overall_log, path)
 
         except ApiException as e:
             reason, code, message, description = ApiAccess.parse_api_exception(e)
-            exp_log = MiscAlertMsg.INACCESSIBLE_EXP.value.format(id, reason, code, message, description)
+            exp_log = MiscAlertMsg.INACCESSIBLE_EXPERIMENT.value.format(id, reason, code, message, description)
             print(exp_log)
             Serializer.write_log(exp_log, path)
 
@@ -906,7 +906,7 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
         return key_val, log, is_error
 
     @classmethod
@@ -933,11 +933,11 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
-        key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
     @classmethod
@@ -964,11 +964,11 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
-        key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
     @classmethod
@@ -995,17 +995,17 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
         flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LGCL_OPRTR.value, flow_logical_operator, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
         flow_compared_value = cf_split[3]
         if re.search(r"\[.*?\]", flow_compared_value):
             key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
             start, end, range_log, range_is_error = cls.process_range(flow_compared_value)
-            key_val.append([par_no, CFMetadata.FLOW_ITRTN_STRT.value, start, '', ''])
-            key_val.append([par_no, CFMetadata.FLOW_ITRTN_END.value, end, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
         else:
-            key_val.append([par_no, CFMetadata.FLOW_CMPRD_VAL.value, flow_compared_value, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
         return key_val, log, is_error
 
     @classmethod
@@ -1092,7 +1092,7 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
         flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAM.value, flow_param, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
         flow_range = cf_split[2]
         key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_range, '', ''])
         start, end, range_log, is_range_error = cls.process_range(flow_range)
@@ -1100,19 +1100,19 @@ class MetadataExtractor:
             for_log = for_log + "\n" + range_log
             print(range_log)
             is_error = True
-        key_val.append([par_no, CFMetadata.FLOW_ITRTN_STRT.value, start, '', ''])
-        key_val.append([par_no, CFMetadata.FLOW_ITRTN_END.value, end, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
+        key_val.append([par_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
         try:
             flow_operation = cf_split[3]
-            key_val.append([par_no, CFMetadata.FLOW_OPRTN.value, flow_operation, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_OPERATION.value, flow_operation, '', ''])
         except IterationTypeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
-            print(MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split))
-            for_log = for_log + "\n" + MiscAlertMsg.ITRTN_OPERATION_NOT_EXIST.value.format(cf_split)
+            print(MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(cf_split))
+            for_log = for_log + "\n" + MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(cf_split)
         try:
             flow_magnitude = cf_split[4]
-            key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude, '', ''])
+            key_val.append([par_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude, '', ''])
         except IterationMagnitudeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
@@ -1146,10 +1146,10 @@ class MetadataExtractor:
         flow_type = cf_split[0]
         key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
         flow_operation = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_OPRTN.value, flow_operation])
+        key_val.append([par_no, CFMetadata.FLOW_OPERATION.value, flow_operation])
         try:
             flow_magnitude = cf_split[2]
-            key_val.append([par_no, CFMetadata.FLOW_MGNTD.value, flow_magnitude])
+            key_val.append([par_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude])
         except IterationMagnitudeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
@@ -1170,10 +1170,10 @@ class MetadataExtractor:
             str log: log from running subsequent functions.
         """
         par_no = 0
-        nkvmu_pairs = []
-        nkvmu_header = ["", "metadata section", "Experiment Context", "", ""]
-        nkvmu_pairs.append(nkvmu_header)
-        nk_pairs = []
+        metadata_pairs = []
+        metadata_header = ["", "metadata section", "Experiment Context", "", ""]
+        metadata_pairs.append(metadata_header)
+        paragraph_key_pairs = []
         log = ""
         for line in lines:
             internal_comments = []
@@ -1185,56 +1185,56 @@ class MetadataExtractor:
                 # write_log(log, output_path+output_fname)
                 break
 
-            # Extract KV and flow metadata
-            kv_and_flow_pairs = re.findall(RegexPatterns.KV_OR_FLOW.value, line)
+            # Extract KEY_VALUE and flow metadata
+            key_value_and_flow_pairs = re.findall(RegexPatterns.KEY_VALUE_OR_FLOW.value, line)
             para_len = len(GeneralHelper.split_into_sentences(line))
             if para_len > 0:
                 par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
-            for kv_and_flow_pair in kv_and_flow_pairs:
-                if re.match(RegexPatterns.KV.value, kv_and_flow_pair):
-                    kvmu_set = cls.conv_bracketed_string_to_metadata(
-                        kv_and_flow_pair)  # returns tuple with key, value, measure, unit, log
+            for key_value_and_flow_pair in key_value_and_flow_pairs:
+                if re.match(RegexPatterns.KEY_VALUE.value, key_value_and_flow_pair):
+                    # returns tuple with key, value, measure, unit, log
+                    metadata_set = cls.conv_bracketed_string_to_metadata(key_value_and_flow_pair)
                     # measure, unit, log could be empty
-                    if kvmu_set[4] != "":
-                        log = log + "\n" + kvmu_set[4]
-                    if kvmu_set[0] != "" and kvmu_set[1] != "":
-                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[0]):
-                            key, comment = cls.process_internal_comment(kvmu_set[0])
+                    if metadata_set[4] != "":
+                        log = log + "\n" + metadata_set[4]
+                    if metadata_set[0] != "" and metadata_set[1] != "":
+                        if re.search(RegexPatterns.COMMENT.value, metadata_set[0]):
+                            key, comment = cls.process_internal_comment(metadata_set[0])
                             internal_comments.append(comment)
                         else:
-                            key = kvmu_set[0]
-                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[1]):
-                            val, comment = cls.process_internal_comment(kvmu_set[1])
+                            key = metadata_set[0]
+                        if re.search(RegexPatterns.COMMENT.value, metadata_set[1]):
+                            val, comment = cls.process_internal_comment(metadata_set[1])
                             internal_comments.append(comment)
                         else:
-                            val = kvmu_set[1]
-                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[2]):
-                            measure, comment = cls.process_internal_comment(kvmu_set[2])
+                            val = metadata_set[1]
+                        if re.search(RegexPatterns.COMMENT.value, metadata_set[2]):
+                            measure, comment = cls.process_internal_comment(metadata_set[2])
                             internal_comments.append(comment)
                         else:
-                            measure = kvmu_set[2]
-                        if re.search(RegexPatterns.COMMENT.value, kvmu_set[3]):
-                            unit, comment = cls.process_internal_comment(kvmu_set[3])
+                            measure = metadata_set[2]
+                        if re.search(RegexPatterns.COMMENT.value, metadata_set[3]):
+                            unit, comment = cls.process_internal_comment(metadata_set[3])
                             internal_comments.append(comment)
                         else:
-                            unit = kvmu_set[3]
-                        nk_pair = [par_no, key]
-                        if nk_pair in nk_pairs:
-                            log = log + MiscAlertMsg.SIMILAR_PAR_KEY_FOUND.value.format(nk_pair) + "\n"
+                            unit = metadata_set[3]
+                        paragraph_key_pair = [par_no, key]
+                        if paragraph_key_pair in paragraph_key_pairs:
+                            log = log + MiscAlertMsg.SIMILAR_PAR_KEY_FOUND.value.format(paragraph_key_pair) + "\n"
                         if cls.is_explicit_key(key):
                             key = TextCleaner.strip_colon(key)
-                        nkvmu_pair = [par_no, key, val, measure, unit]
-                        nk_pairs.append(nk_pair)
-                        nkvmu_pairs.append(nkvmu_pair)
-                if re.match(RegexPatterns.FLOW.value, kv_and_flow_pair):
-                    flow_metadata, flow_log, is_flow_error = cls.extract_flow_type(par_no, kv_and_flow_pair)
+                        metadata_pair = [par_no, key, val, measure, unit]
+                        paragraph_key_pairs.append(paragraph_key_pair)
+                        metadata_pairs.append(metadata_pair)
+                if re.match(RegexPatterns.FLOW.value, key_value_and_flow_pair):
+                    flow_metadata, flow_log, is_flow_error = cls.extract_flow_type(par_no, key_value_and_flow_pair)
                     log = log + flow_log  # + "\n"
                     if is_flow_error:
                         # write_log(log, output_path+output_fname)
                         break
-                    nkvmu_pairs.extend(flow_metadata)
+                    metadata_pairs.extend(flow_metadata)
         print(log)
-        return nkvmu_pairs, internal_comments, log
+        return metadata_pairs, internal_comments, log
 
     # parse an opened document, first draft of sop
     @classmethod
@@ -1278,8 +1278,8 @@ class MetadataExtractor:
             print(MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source))
             log = MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source)
         else:
-            log = MiscAlertMsg.INVALID_KV_SET_ELEMENT_NO.value.format(len(splitted_metadata),
-                                                                      str(bracketed_str_source))
+            log = MiscAlertMsg.INVALID_METADATA_SET_ELEMENT_NO.value.format(len(splitted_metadata),
+                                                                            str(bracketed_str_source))
             raise SystemExit(log)
         key = key.strip()
         val = val.strip()
@@ -1295,9 +1295,9 @@ class MetadataExtractor:
                 [-, section level, section name, '', ''].
 
         :param str html_content: body of the html content, extracted from eLabFTW API experiment.
-        :return: tuple (multi_nkvmu_pair, log)
+        :return: tuple (multi_metadata_pair, log)
             WHERE
-            list multi_nkvmu_pair is a list of a list with
+            list multi_metadata_pair is a list of a list with
                 [order, key, value, measure (if applicable), unit (if applicable)] or
                 [-, section level, section name, '', ''],
             str log is a string log returned from the respectively-executed functions.
@@ -1311,12 +1311,12 @@ class MetadataExtractor:
         # print("Detected encoding:", detected_encoding)
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
-            multi_nkvmu_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
+            multi_metadata_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
         else:
-            multi_nkvmu_pair = None
+            multi_metadata_pair = None
             log = MiscAlertMsg.NO_HTML_LINE_CONTENT.value
             print(log)
-        return multi_nkvmu_pair, log
+        return multi_metadata_pair, log
 
 
 class Validator:
@@ -1354,7 +1354,7 @@ class Validator:
         is_error = False
         if text.count("{") != text.count("}"):
             is_error = True
-            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_KV_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_KEY_VALUE_BRACKET.value, str(par_no), text)
         if text.count("<") != text.count(">"):
             is_error = True
             log = base_error_warning % (BracketPairErrorMsg.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
@@ -1418,7 +1418,7 @@ class Validator:
                 is_error = True
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_WHILE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1447,7 +1447,7 @@ class Validator:
                 is_error = True
                 log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
         else:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_FOREACH.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1480,7 +1480,7 @@ class Validator:
                 is_error = True
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_IF.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1518,7 +1518,7 @@ class Validator:
                 is_error = True
                 log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
         else:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_ELSEIF.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1542,7 +1542,7 @@ class Validator:
         is_error = False
         elements = len(cf_split)
         if elements != ArgNum.ARG_NUM_ELSE.value:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_ELSE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1569,7 +1569,7 @@ class Validator:
                 log = log + MiscAlertMsg.RANGE_NOT_NUMBERS.value.format(flow_range) + "\n"
         else:
             is_error = True
-            log = log + MiscAlertMsg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
+            log = log + MiscAlertMsg.RANGE_NOT_TWO_ARGUMENTS.value.format(flow_range) + "\n"
         return log, is_error
 
     # Used in process_for().
@@ -1600,7 +1600,7 @@ class Validator:
                 log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[3],
                                                                                  cf_split) + "\n"
         else:  # if the number of parameters is invalid
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_FOR.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1627,7 +1627,7 @@ class Validator:
                 log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1],
                                                                                  cf_split) + "\n"
         else:  # if the number of parameters is invalid
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_ITERATE.value, elements,
                 cf_split) + "\n"
             is_error = True
@@ -1649,7 +1649,7 @@ class Validator:
         is_error = False
         elements = len(cf_split)
         if elements != ArgNum.ARG_NUM_SECTION.value:
-            log = log + MiscAlertMsg.IMPROPER_ARGNO.value.format(
+            log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
                 cf_split[0].upper(), ArgNum.ARG_NUM_SECTION.value,
                 elements, cf_split) + "\n"
             is_error = True
@@ -1945,7 +1945,7 @@ class DocxHelper:
                         styled_text = p.add_run(TextCleaner.remove_extra_spaces(line))
                         styled_text.italic = True
                     else:
-                        # print("NON SUBSECT/HEADING/COLOR/FSTYLE : " + line)
+                        # print("NON SUBSECTION/HEADING/COLOR/FSTYLE : " + line)
                         p.add_run(TextCleaner.remove_extra_spaces(line))
                 # check if it is a bold format
                 elif subcontent.name == "strong":
@@ -1959,7 +1959,7 @@ class DocxHelper:
                     super_text = p.add_run(TextCleaner.remove_extra_spaces(line))
                     super_text.font.superscript = True
                 else:
-                    # print("NON SUP/STRONG/SPAN/EM/SUB/SECT/SUBSECT : " + line)
+                    # print("NON SUP/STRONG/SPAN/EM/SUB/SECTION/SUBSECTION : " + line)
                     p.add_run(TextCleaner.remove_extra_spaces(line))
 
         else:
@@ -2051,7 +2051,7 @@ class DocxHelper:
     @classmethod
     def add_img_to_doc(cls, document: Document, real_name: str, path: str, hash: str) -> None:
         """
-        Add image to the document file, based on upload id and image name when it was uploaded.
+        Add image to the document file, based on upload experiment_id and image name when it was uploaded.
 
         :param Document document: the document object that is being modified.
         :param str real_name: real name of the image when it was uploaded to eLabFTW.
@@ -2119,7 +2119,7 @@ class TextCleaner:
         :param str word: string with or without colons.
         :return: str word without colons.
         """
-        if re.search(RegexPatterns.SURROUNDED_W_COLONS.value, word):
+        if re.search(RegexPatterns.SURROUNDED_WITH_COLONS.value, word):
             print("Surrounding colons in the value/measure/unit {} is removed".format(word).encode("utf-8"))
             word = word[1:-1]  # if there are colons surrounding the word remains, remove it
         return word
@@ -2343,22 +2343,22 @@ def main():
 
     args = gui_helper.parse_gooey_args()
     base_output_path = args.base_output_dir
-    apiv2endpoint = ApiAccess.get_apiv2endpoint(args.endpoint)
-    apiv2client = ApiAccess.create_apiv2client(apiv2endpoint, args.token)
+    api_v2_endpoint = ApiAccess.get_api_v2_endpoint(args.endpoint)
+    api_v2_client = ApiAccess.create_api_v2_client(api_v2_endpoint, args.token)
 
     if args.command == 'parse_resource':
-        item_api_response, resource_log = ApiAccess.get_resource_item(apiv2client, args.resource_item_no)
+        item_api_response, resource_log = ApiAccess.get_resource_item(api_v2_client, args.resource_item_no)
         cat = item_api_response.__dict__["_category_title"]
         title = item_api_response.__dict__["_title"]
-        if args.id:
+        if args.experiment_id:
             output_fname = PathHelper.slugify(cat) + "_" + str(args.resource_item_no)
         elif args.title:
             output_fname = PathHelper.slugify(cat) + "_" + PathHelper.slugify(title)
     elif args.command == 'parse_experiment':
-        if args.id:
+        if args.experiment_id:
             output_fname = PathHelper.slugify("experiment") + "_" + str(args.exp_no)
         elif args.title:
-            title = ApiAccess.get_exp_title(apiv2client, args.exp_no)
+            title = ApiAccess.get_exp_title(api_v2_client, args.exp_no)
             output_fname = PathHelper.slugify("experiment") + "_" + PathHelper.slugify(title)
     print("The output is written to %s directory" % output_fname)
 
@@ -2371,10 +2371,10 @@ def main():
 
     if args.command == 'parse_experiment':
         print("Processing an experiment...")
-        MetadataExtractor.process_experiment(apiv2client, args.exp_no, output_path)
+        MetadataExtractor.process_experiment(api_v2_client, args.exp_no, output_path)
     elif args.command == 'parse_resource':
         print("Processing a resource...")
-        MetadataExtractor.process_ref_resource_item(apiv2client, item_api_response)
+        MetadataExtractor.process_ref_resource_item(api_v2_client, item_api_response)
 
 
 if __name__ == "__main__":

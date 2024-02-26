@@ -159,17 +159,17 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(result, mock_response)
 
     # def test_get_attachment_id(self):
-    #     exp = {
+    #     experiment = {
     #         "uploads": [
-    #             {"id": "1", "real_name": "attachment1.txt", "long_name": "long_name_1"},
-    #             {"id": "2", "real_name": "attachment2.txt", "long_name": "long_name_2"}
+    #             {"experiment_id": "1", "real_name": "attachment1.txt", "long_name": "long_name_1"},
+    #             {"experiment_id": "2", "real_name": "attachment2.txt", "long_name": "long_name_2"}
     #         ]
     #     }
     #     content = MagicMock()
     #     content.img = {"src": "some_url?file=long_name_1"}
     #     expected_upl_id = "1"
     #     expected_real_name = "attachment1.txt"
-    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(exp, content)
+    #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(experiment, content)
     #     self.assertEqual(upl_id, expected_upl_id)
     #     self.assertEqual(real_name, expected_real_name)
 
@@ -178,7 +178,7 @@ class Test_lister(unittest.TestCase):
     #     # Mock the get_attachment_long_name response
     #     mock_get_attachment_long_name.return_value = "long_name"
     #     # Create a mock experiment with a mock upload
-    #     mock_exp = {"_uploads": [MagicMock(_long_name="long_name", _id="id", _real_name="real_name")]}
+    #     mock_exp = {"_uploads": [MagicMock(_long_name="long_name", _id="experiment_id", _real_name="real_name")]}
     #     # Create a mock Tag with a mock img
     #     mock_tag = MagicMock()
     #     mock_img = MagicMock()
@@ -186,22 +186,22 @@ class Test_lister(unittest.TestCase):
     #     # mock_img["src"] = "src"
     #     mock_tag.img = mock_img
     #     print("mock_exp")
-    #     print([MagicMock(_long_name="long_name", _id="id", _real_name="real_name")].__str__())
+    #     print([MagicMock(_long_name="long_name", _id="experiment_id", _real_name="real_name")].__str__())
     #     # Call the method under test
     #     upl_id, real_name = lister.ApiAccess.get_attachment_ids(mock_exp, mock_tag)
     #     # Assert that the method returns the correct upload ID and real name
-    #     self.assertEqual(upl_id, "id")
+    #     self.assertEqual(upl_id, "experiment_id")
     #     self.assertEqual(real_name, "real_name")
 
     def test_get_api_v2endpoint(self):
         v1endpoint = 'http://example.com/v1'
         expected_v2endpoint = 'https://example.com/v2'
-        self.assertEqual(lister.ApiAccess.get_apiv2endpoint(v1endpoint), expected_v2endpoint)
+        self.assertEqual(lister.ApiAccess.get_api_v2_endpoint(v1endpoint), expected_v2endpoint)
 
     def test_create_apiv2_client(self):
         endpoint = 'http://example.com/v1'
         token = 'test_token'
-        apiv2_client = lister.ApiAccess.create_apiv2client(endpoint, token)
+        apiv2_client = lister.ApiAccess.create_api_v2_client(endpoint, token)
         self.assertIsInstance(apiv2_client, elabapi_python.ApiClient)
         self.assertEqual(apiv2_client.configuration.host, 'https://example.com/v2')
         self.assertEqual(apiv2_client.configuration.api_key['api_key'], token)
@@ -243,8 +243,8 @@ class Test_lister(unittest.TestCase):
     # def test_get_and_save_attachments(self, mock_open, mock_isdir, mock_check_and_create_path):
     #     manager = MagicMock()
     #     uploads = [
-    #         {"id": "1", "real_name": "attachment1.txt"},
-    #         {"id": "2", "real_name": "attachment2.txt"}
+    #         {"experiment_id": "1", "real_name": "attachment1.txt"},
+    #         {"experiment_id": "2", "real_name": "attachment2.txt"}
     #     ]
     #     path = '/path/to/directory'
     #     mock_isdir.return_value = True
@@ -425,9 +425,9 @@ class Test_lister(unittest.TestCase):
     #         "body": "<table><tr><td>Key</td><td>Value</td></tr></table>",
     #         "category": "TestCategory"
     #     }
-    #     id = 1
+    #     experiment_id = 1
     #
-    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, experiment_id)
     #
     #     self.assertEqual(log, "")
     #     self.assertEqual(resource_item_nkvmu_metadata, [
@@ -441,9 +441,9 @@ class Test_lister(unittest.TestCase):
     #         "body": "<table><tr><td>Key</td><td>Value</td><td>Extra</td></tr></table>",
     #         "category": "TestCategory"
     #     }
-    #     id = 1
-    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, id)
-    #     expected_log = lister.MiscAlertMsg.NON_TWO_COLS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
+    #     experiment_id = 1
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, experiment_id)
+    #     expected_log = lister.MiscAlertMsg.NON_TWO_COLUMNS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
     #     self.assertEqual(log, expected_log)
     #     self.assertEqual(resource_item_nkvmu_metadata, "")
 
@@ -461,7 +461,7 @@ class Test_lister(unittest.TestCase):
     #     # Create a mock API client
     #     mock_apiv2client = Mock()
     #     # Call the method under test
-    #     result, _ = lister.MetadataExtractor.process_linked_resource_item_apiv2(mock_apiv2client, 1)
+    #     result, _ = lister.MetadataExtractor.process_linked_resource_item_apiV2(mock_apiv2client, 1)
     #     # Assert that the method returns the correct metadata
     #     expected_result = [['', 'metadata section', 'Test Category', '', ''], ['', 'key1', 'value1', '', ''],
     #                        ['', 'key2', 'value2', '', '']]
@@ -475,7 +475,7 @@ class Test_lister(unittest.TestCase):
     #     mock_apiv2client = Mock()
     #     # Call the method under test and assert that it raises an error
     #     with self.assertRaises(ApiException):
-    #         lister.MetadataExtractor.process_linked_resource_item_apiv2(mock_apiv2client, 1)
+    #         lister.MetadataExtractor.process_linked_resource_item_apiV2(mock_apiv2client, 1)
 
     # TODO: test_process_experiment_v2()
 
@@ -686,7 +686,7 @@ class Test_lister(unittest.TestCase):
         kvmu = "{value}"
         result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
         expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
-                            "mathematical formula, which is okay and hence no KV pair is written to the metadata. " \
+                            "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the metadata. " \
                             "Otherwise please check this pair: {0}."
         self.assertEqual(result, ("", "", "", "", expected_log.format(kvmu)))
         # Test a string with too many separators
@@ -808,7 +808,7 @@ class Test_lister(unittest.TestCase):
         # Test invalid input
         cf_split = ["else", "extra_arg"]
         log, is_error = lister.Validator.validate_else(cf_split)
-        expected_log = lister.MiscAlertMsg.IMPROPER_ARGNO.value.format(
+        expected_log = lister.MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
             cf_split[0].upper(), lister.ArgNum.ARG_NUM_ELSE.value, len(cf_split), cf_split)
         self.assertEqual(log, expected_log + "\n")
         self.assertTrue(is_error)
@@ -822,7 +822,7 @@ class Test_lister(unittest.TestCase):
     def test_validate_range_invalid_not_two_args(self):
         flow_range = "[1-5-10]"
         log, is_error = lister.Validator.validate_range(flow_range)
-        expected_log = lister.MiscAlertMsg.RANGE_NOT_TWO_ARGS.value.format(flow_range) + "\n"
+        expected_log = lister.MiscAlertMsg.RANGE_NOT_TWO_ARGUMENTS.value.format(flow_range) + "\n"
         self.assertEqual(log, expected_log)
         self.assertTrue(is_error)
 
@@ -1152,9 +1152,9 @@ class Test_lister(unittest.TestCase):
     # ------- PathHelper -------
 
     # def test_derive_fname_from_exp(self):
-    #     exp = {"title": "Example Experiment Title"}
+    #     experiment = {"title": "Example Experiment Title"}
     #     expected_fname = "example-experiment-title"
-    #     self.assertEqual(lister.PathHelper.derive_fname_from_exp(exp), expected_fname)
+    #     self.assertEqual(lister.PathHelper.derive_fname_from_exp(experiment), expected_fname)
 
     def test_derive_fname_from_exp_v2(self):
         # Test with a dictionary
