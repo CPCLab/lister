@@ -62,39 +62,40 @@ class MiscAlertMsg(Enum):
                             "Only 'e', 'ne', 'lt', 'lte', 'gt', 'gte' and 'between' are supported."
     UNRECOGNIZED_FLOW_TYPE = "WARNING: The flow type is not recognized. " \
                              "Please check the flow type {0} in the following set of values: {1}."
-    RANGE_NOT_TWO_ARGUMENTS = "ERROR: There should only be two numerical arguments on a range separated by a dash (-). " \
-                         "Please check the following set of values: {0}."
+    RANGE_NOT_TWO_ARGUMENTS = "ERROR: There should only be two numerical arguments on a range separated by a dash " \
+                              "(-). Please check the following set of values: {0}."
     RANGE_NOT_NUMBERS = "ERROR: The range values should only contain numbers." \
                         "Check the following part: {0}."
     INVALID_ITERATION_OPERATOR = "ERROR: {0} is not a valid iteration operators. Only +, -, *, / and %% " \
                                  "are supported.Check the following part: {1}."
     IMPROPER_ARGUMENT_NO = "ERROR: Expected number of arguments in the '{0}' statement is {1}, but {2} was found." \
-                     "Check the following part: '{3}'"
+                           "Check the following part: '{3}'"
     ITERATION_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, " \
                           "please check the following part: {0}."
     INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is not accessible using the current user's API Token. " \
                             "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
                             "message: {3}, description: {4} Parsing this resource is skipped."
-    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token. " \
-                       "Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
-                       "message: {3}, description: {4} Parsing this experiment is skipped."
+    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token." \
+                              " Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
+                              "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. " \
                             "Please make sure that this is intended."
     INACCESSIBLE_ATTACHMENT = "WARNING: File with name '{0}' is not accessible, with the exception: " \
                               "\n {1}. \n Try contacting eLabFTW administrator reporting the exception mentioned."
-    INVALID_METADATA_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) or four " \
-                                "(key-value-measure-unit). There are {0} element(s) found in this key-value set: {1}."
+    INVALID_METADATA_SET_ELEMENT_NO = "ERROR: The number of key value element set must be either two (key-value) " \
+                                      "or four (key-value-measure-unit). There are {0} element(s) found in this " \
+                                      "key-value set: {1}."
     SINGLE_PAIRED_BRACKET = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
-                            "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the metadata. " \
-                            "Otherwise please check this pair: {0}."
+                            "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the " \
+                            "metadata. Otherwise please check this pair: {0}."
     MISSING_MML2OMML = "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file " \
                        "requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as " \
                        "config.json file. It is currently downloadable from " \
                        "https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise,  formula parsing is disabled."
-    NON_TWO_COLUMNS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of 2. " \
-                                "This linked item is skipped. Please recheck and consider using two columns to " \
-                                "allow key-value format."
+    NON_TWO_COLUMNS_LINKED_TABLE = "WARNING: The linked category '{0}' has a table that with {1} column instead of " \
+                                   "2. This linked item is skipped. Please recheck and consider using two columns to " \
+                                   "allow key-value format."
     NO_HTML_LINE_CONTENT = "WARNING: No HTML line content is found. This can be caused by an empty paragraph. "
 
 
@@ -111,7 +112,8 @@ class RegexPatterns(Enum):
     COMMENT_VISIBLE = r"\(:(.+?):\)"
     # COMMENT_VISIBLE = "\(:.+?:\)"
     COMMENT_INVISIBLE = r"\(_.+?_\)"
-    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"  # catch the end part of KEY_VALUE pairs (the key, tolerating trailing spaces)
+    # catch the end part of KEY_VALUE pairs (the key, tolerating trailing spaces)
+    SEPARATOR_AND_KEY = r"\|(\s*\w\s*\.*)+\}"
     BRACKET_MARKUPS = r"([{}<>])"  # catch KEY_VALUE/section bracket annotations
     SEPARATOR_COLON_MARKUP = r"([|:])"  # catch separator and colon annotation
     SEPARATOR_MARKUP = r"([|])"  # catch separator annotation
@@ -170,7 +172,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-                elabapi_python.Item, str]:
+        elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -248,7 +250,8 @@ class ApiAccess:
                           ["", "title", experiment.__dict__["_title"], "", ""],
                           ["", "creation date", experiment.__dict__["_created_at"], "", ""],
                           ["", "category", experiment.__dict__["_type"], "", ""],
-                          ["", "author", experiment.__dict__["_fullname"], "", ""], ["", "tags", experiment.__dict__["_tags"], "", ""]]
+                          ["", "author", experiment.__dict__["_fullname"], "", ""],
+                          ["", "tags", experiment.__dict__["_tags"], "", ""]]
         return metadata_pairs
 
     @classmethod
@@ -271,13 +274,14 @@ class ApiAccess:
             exp_response = api_instance.get_experiment(experiment_id, format='json')
         except ApiException as e:
             reason, code, message, description = cls.parse_api_exception(e)
-            log = MiscAlertMsg.INACCESSIBLE_EXPERIMENT.value.format(experiment_id, reason, code, message, description)
+            log = MiscAlertMsg.INACCESSIBLE_EXPERIMENT.value.format(experiment_id, reason, code,
+                                                                    message, description)
             print(log)
         return exp_response
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-                list[Union[str, TypedDict]]]:
+    list[Union[str, TypedDict]]]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -376,7 +380,7 @@ class ApiAccess:
                                                                                        "/" + upload.real_name))
                 file.write(
                     uploads_api.read_upload('experiments', exp.id, upload.id, format='binary',
-                                           _preload_content=False).data)
+                                            _preload_content=False).data)
                 file.flush()
         return log
 
@@ -388,7 +392,7 @@ class GUIHelper:
            navigation="TABBED")
     def parse_gooey_args(self) -> Namespace:
         """
-        Get arguments from an existing JSON config to be passed to Gooey's interface.
+        Get arguments from an existing JSON config to be passed to python Gooey library interface.
         Manual debugging (i.e., printout) is necessary when Gooey is used.
 
         :returns: args WHERE argparse.Namespace args is an object containing several attributes:
@@ -424,7 +428,8 @@ class GUIHelper:
                              default=base_output_path, widget='DirChooser')
         elabftw_args = elab_arg_parser.add_argument_group("eLabFTW Arguments", gooey_options={'columns': 2})
         elabftw_args.add_argument('exp_no', metavar='eLabFTW experiment ID',
-                                  help='Integer indicated in the URL of the experiment', default=experiment_no, type=int)
+                                  help='Integer indicated in the URL of the experiment',
+                                  default=experiment_no, type=int)
         elabftw_args.add_argument('endpoint', metavar="eLabFTW API endpoint URL",
                                   help='Ask your eLabFTW admin to provide the endpoint URL for you', default=endpoint,
                                   type=str)
@@ -471,12 +476,12 @@ class GUIHelper:
         The directory is OS-dependent. On Windows/Linux, it is in the same folder as the script/executables.
         On macOS, it is in the users' Apps/lister/config.json file.
 
-        :returns: tuple (token, endpoint, output_file_name, exp_no)
+        :returns: tuple (token, endpoint, output_file_name, experiment_id)
             str token: eLabFTW API Token,
             str endpoint: eLabFTW API endpoint URL,
             str output_file_name: filename to be used for all the outputs (xlsx/json metadata, docx documentation,
                                   log file),
-            int exp_no: the parsed experiment ID (int).
+            int experiment_id: the parsed experiment ID (int).
             int resource_item_no: the parsed resource/container item ID (int).
         """
 
@@ -487,10 +492,10 @@ class GUIHelper:
             data = json.load(json_data_file)
         token = data['elabftw']['token']
         endpoint = data['elabftw']['endpoint']
-        exp_no = data['elabftw']['exp_no']
+        experiment_id = data['elabftw']['exp_no']
         output_file_name = data['elabftw']['output_file_name']
         resource_item_no = data['elabftw']['resource_item_no']
-        return token, endpoint, output_file_name, exp_no, resource_item_no
+        return token, endpoint, output_file_name, experiment_id, resource_item_no
 
 
 # -------------------------------------------- File serialization Class ------------------------------------------------
@@ -536,7 +541,7 @@ class Serializer:
             document.add_heading("Reference", level=1)
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
-        document.save(path + '/' + PathHelper.derive_fname_from_exp(exp) + '.docx')
+        document.save(path + '/' + PathHelper.derive_filename_from_experiment(exp) + '.docx')
         return log
 
     # Used to serialize extracted metadata to json file.
@@ -548,12 +553,12 @@ class Serializer:
         :param exp: The experiment title or ID.
         :param path: The path for writing the JSON file.
         """
-        filename = f"{PathHelper.derive_fname_from_exp(exp)}.json"
+        filename = f"{PathHelper.derive_filename_from_experiment(exp)}.json"
         with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
             json.dump(lst, f, ensure_ascii=False)
 
     # Used to write into the log file.
-    # def write_log(log, full_path=output_path_and_fname):
+    # def write_log(log, full_path=output_path_and_filename):
     @classmethod
     def write_log(cls, log_text: str, path: str) -> None:
         """
@@ -577,10 +582,10 @@ class Serializer:
         """
         PathHelper.check_and_create_path(path)
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
-        # json.dump(list, open(path + '/' + derive_fname_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
+        # json.dump(list, open(path + '/' + derive_filename_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
         # ensure_ascii=False)
-        # with xlsxwriter.Workbook(path + output_fname + ".xlsx") as workbook:
-        with xlsxwriter.Workbook(path + '/' + PathHelper.derive_fname_from_exp(exp) + ".xlsx") as workbook:
+        # with xlsxwriter.Workbook(path + output_filename + ".xlsx") as workbook:
+        with xlsxwriter.Workbook(path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx") as workbook:
             # formatting cells
             header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
             default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
@@ -623,15 +628,15 @@ class MetadataExtractor:
             return False
 
     @classmethod
-    def extract_flow_type(cls, par_no: int, flow_control_pair: str) -> Tuple[List[List], str, bool]:
+    def extract_flow_type(cls, paragraph_no: int, flow_control_pair: str) -> Tuple[List[List], str, bool]:
         """
         Extracts the type of flow found on any annotation with angle brackets, which can be control flow or sectioning.
 
-        :param int par_no: paragraph number on where the control flow fragment string was found.
+        :param int paragraph_no: paragraph number on where the control flow fragment string was found.
         :param str flow_control_pair: the control-flow pair string to be extracted for metadata.
-        :returns: tuple (key_val, flow_log, is_error)
+        :returns: tuple (key_value, flow_log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full complete control flow metadata line
+            list key_value: list of list, each list contains a full complete control flow metadata line
                         e.g. [['-', 'section level 0', 'Precultures', '', '']],
             str flow_log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
@@ -639,88 +644,89 @@ class MetadataExtractor:
         flow_log = ""
         # print("flow_control_pair: " + str(flow_control_pair))
         is_error = False
-        key_val = []
+        key_value = []
         cf = flow_control_pair[1:-1]
-        cf_split = re.split(r"\|", cf)
-        flow_type = cf_split[0]
+        control_flow_split = re.split(r"\|", cf)
+        flow_type = control_flow_split[0]
         flow_type = flow_type.strip()
         flow_type = flow_type.lower()
         if flow_type == "for each":
-            key_val, log, is_error = cls.process_foreach(par_no, cf_split)
+            key_value, log, is_error = cls.process_foreach(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "while":
-            key_val, log, is_error = cls.process_while(par_no, cf_split)
+            key_value, log, is_error = cls.process_while(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "if":
-            key_val, log, is_error = cls.process_if(par_no, cf_split)
+            key_value, log, is_error = cls.process_if(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "else if" or flow_type == "elif":
-            key_val, log, is_error = cls.process_elseif(par_no, cf_split)
+            key_value, log, is_error = cls.process_elseif(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "else":
-            key_val, log, is_error = cls.process_else(par_no, cf_split)
+            key_value, log, is_error = cls.process_else(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "for":
-            key_val, log, is_error = cls.process_for(par_no, cf_split)
+            key_value, log, is_error = cls.process_for(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         # elif flow_type.casefold() == "section".casefold():
         elif re.match(RegexPatterns.SUBSECTION.value, flow_type, flags=re.IGNORECASE):
-            key_val, log, is_error = cls.process_section(cf_split)
+            key_value, log, is_error = cls.process_section(control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         elif flow_type == "iterate":
-            key_val, log, is_error = cls.process_iterate(par_no, cf_split)
+            key_value, log, is_error = cls.process_iterate(paragraph_no, control_flow_split)
             if log != "":
                 flow_log = flow_log + "\n" + log
         else:
             is_error = True
-            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(cf_split[0].upper(), cf_split)  # + "\n"
+            log = MiscAlertMsg.UNRECOGNIZED_FLOW_TYPE.value.format(control_flow_split[0].upper(),
+                                                                   control_flow_split)  # + "\n"
             print(log)
             flow_log = flow_log + "\n" + log
             # print(flow_log)
-        # print("key_val: " + str(key_val) + "\n\n")
-        return key_val, flow_log, is_error
+        # print("key_value: " + str(key_value) + "\n\n")
+        return key_value, flow_log, is_error
 
     @classmethod
-    def process_section(cls, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_section(cls, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key value based on a section to a full section metadata entry
 
-        :param list cf_split: list of strings split e.g., ['Section', 'Remarks']
-        :returns: tuple (key_val, log, is_error)
+        :param list control_flow_split: list of strings split e.g., ['Section', 'Remarks']
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full section-metadata line
+            list key_value: list of list, each list contains a full section-metadata line
                         e.g. [['-', 'section level 0', 'Precultures', '', '']],
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
+        key_value = []
         section_log = ""
         is_error = False
-        log, is_sect_error = Validator.validate_section(cf_split)
+        log, is_sect_error = Validator.validate_section(control_flow_split)
         if is_sect_error:
             is_error = True
             section_log = section_log + "\n" + log
             exit()
         else:
-            section_keyword = cf_split[0].lower()
+            section_keyword = control_flow_split[0].lower()
             section_level = section_keyword.count("sub")
-            key_val.append(
-                ["-", CFMetadata.FLOW_SECTION.value + " level " + str(section_level), cf_split[1], '', ''])
-        return key_val, section_log, is_error
+            key_value.append(
+                ["-", CFMetadata.FLOW_SECTION.value + " level " + str(section_level), control_flow_split[1], '', ''])
+        return key_value, section_log, is_error
 
     @classmethod
-    def process_ref_resource_item(cls, apiV2client: elabapi_python.ApiClient, item_api_response) -> None:
+    def process_ref_resource_item(cls, api_v2_client: elabapi_python.ApiClient, item_api_response) -> None:
         """
         Process reference resource item, using the initial resource ID for that container item (e.g., publication).
 
-        :param apiV2client: An instance of the API v2 client object, containing eLabFTW API-related information.
+        :param api_v2_client: An instance of the API v2 client object, containing eLabFTW API-related information.
         :param item_api_response: The API response of the reference resource item.
         :return: None
         """
@@ -731,22 +737,22 @@ class MetadataExtractor:
             experiments = item_api_response.__dict__["_experiments_links"]
             for experiment in experiments:
                 exp_path = output_path + PathHelper.slugify(experiment.__dict__["_title"])
-                cls.process_experiment(apiV2client, experiment.__dict__["_itemid"], exp_path)
+                cls.process_experiment(api_v2_client, experiment.__dict__["_itemid"], exp_path)
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
     @classmethod
-    def process_linked_resource_item_apiV2(cls, apiV2client: elabapi_python.ApiClient, id: int) -> (
-            Tuple)[Union[List[List[str]], str], str]:
+    def process_linked_resource_item_api_v2(cls, api_v2_client: elabapi_python.ApiClient, id: int) -> \
+            Tuple[Union[List[List[str]], str], str]:
         """
         Process a linked resource item and return its metadata and log.
 
-        :param elabapi_python.ApiClient apiV2client: An instance of the API v2 client object, containing eLabFTW
+        :param elabapi_python.ApiClient api_v2_client: An instance of the API v2 client object, containing eLabFTW
         API-related information.
         :param id: The ID of the linked resource item.
         :return: A tuple containing the resource item metadata and log.
         """
-        api_instance = elabapi_python.ItemsApi(apiV2client)
+        api_instance = elabapi_python.ItemsApi(api_v2_client)
 
         try:
             # Read an item
@@ -777,24 +783,24 @@ class MetadataExtractor:
         return resource_item_metadata_set, log
 
     @classmethod
-    def process_experiment(cls, apiV2client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
+    def process_experiment(cls, api_v2_client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
         """
         Process an experiment and save its information to various formats.
 
-        :param elabapi_python.ApiClient apiV2client: The API v2 client.
+        :param elabapi_python.ApiClient api_v2_client: The API v2 client.
         :param int exp_no: The experiment number.
         :param str path: The path for saving the output files.
         """
         overall_log = ""
 
-        exp_instance = elabapi_python.ExperimentsApi(apiV2client)
-        # exp_response = exp_instance.get_experiment(int(exp_no))
+        experiment_instance = elabapi_python.ExperimentsApi(api_v2_client)
+        # experiment_response = experiment_instance.get_experiment(int(exp_no))
 
         print("------------------------------")
         print("Accessing experiment with ID: " + str(exp_no))
         try:
-            exp_response = exp_instance.get_experiment(int(exp_no))
-            linked_resources = exp_response.__dict__['_items_links']
+            experiment_response = experiment_instance.get_experiment(int(exp_no))
+            linked_resources = experiment_response.__dict__['_items_links']
             # get the IDs of the linked resources
             linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
 
@@ -813,7 +819,7 @@ class MetadataExtractor:
 
             for linked_resource_id in linked_resource_ids:
                 # get the linked resource item by ID
-                linked_resource, resource_log = ApiAccess.get_resource_item(apiV2client, linked_resource_id)
+                linked_resource, resource_log = ApiAccess.get_resource_item(api_v2_client, linked_resource_id)
                 overall_log = overall_log + "\n" + resource_log
                 # pprint(linked_resource)
                 if linked_resource is not None:
@@ -827,27 +833,28 @@ class MetadataExtractor:
             overall_metadata_set = []
             # the 'key' here is the ID of the resource item.
             for key in filtered_id_and_category:
-                resource_item_metadata_set, log = MetadataExtractor.process_linked_resource_item_apiV2(apiV2client,
-                                                                                                       key)
+                resource_item_metadata_set, log = MetadataExtractor.process_linked_resource_item_api_v2(api_v2_client,
+                                                                                                        key)
                 overall_log = overall_log + "\n" + log
                 overall_metadata_set.extend(resource_item_metadata_set)
 
-            exp_metadata_info = ApiAccess.get_exp_info(exp_response)
-            overall_metadata_set.extend(exp_metadata_info)
-            exp_metadata_set, log = MetadataExtractor.conv_html_to_metadata(exp_response.__dict__["_body"])
+            experiment_metadata_info = ApiAccess.get_exp_info(experiment_response)
+            overall_metadata_set.extend(experiment_metadata_info)
+            experiment_metadata_set, log = (MetadataExtractor.conv_html_to_metadata
+                                            (experiment_response.__dict__["_body"]))
             overall_log = overall_log + "\n" + log
-            overall_metadata_set.extend(exp_metadata_set)
+            overall_metadata_set.extend(experiment_metadata_set)
 
-            log = ApiAccess.get_save_attachments(path, apiV2client, int(exp_no))
+            log = ApiAccess.get_save_attachments(path, api_v2_client, int(exp_no))
             overall_log = overall_log + "\n" + log
-            docx_log = Serializer.write_to_docx(exp_response, path)
+            docx_log = Serializer.write_to_docx(experiment_response, path)
             try:
                 overall_log = overall_log + "\n" + docx_log
             except LoggingError as e:
                 print(f"An error occurred during the creation of log file for docx serialization: {e}")
 
-            Serializer.write_to_json(overall_metadata_set, exp_response, path)
-            Serializer.write_to_xlsx(overall_metadata_set, exp_response, path)
+            Serializer.write_to_json(overall_metadata_set, experiment_response, path)
+            Serializer.write_to_xlsx(overall_metadata_set, experiment_response, path)
             Serializer.write_log(overall_log, path)
 
         except ApiException as e:
@@ -859,7 +866,7 @@ class MetadataExtractor:
     # only process the comment within (key value measure unit) pairs and remove its content
     # (unless if it is begun with "!")
     @classmethod
-    def process_internal_comment(cls, str_with_brackets: str) -> Tuple[str, str]:
+    def process_internal_comment(cls, string_with_brackets: str) -> Tuple[str, str]:
         """
         Separates actual part of a lister bracket annotation fragment (key/value/measure/unit) with the
         trailing comments.
@@ -869,170 +876,170 @@ class MetadataExtractor:
         However, internal comment is important to be provided to make the experiment clear-text readable in the
         docx output.
 
-        :param str str_with_brackets: a lister bracket annotation fragment with a comment.
+        :param str string_with_brackets: a lister bracket annotation fragment with a comment.
         :returns: tuple (actual_fragment, internal_comment)
             WHERE
             str actual_fragment:  string containing the actual element of metadata, it can be either
                                   key/value/measure/unit,
             str internal_comment: string containing the comment part of the string fragment, with brackets retained.
         """
-        comment = re.search(RegexPatterns.COMMENT.value, str_with_brackets)
+        comment = re.search(RegexPatterns.COMMENT.value, string_with_brackets)
         comment = comment.group(0)
-        remains = str_with_brackets.replace(comment, '')
+        remains = string_with_brackets.replace(comment, '')
         actual_fragment, internal_comment = remains.strip(), comment.strip()
         return actual_fragment, internal_comment
 
     @classmethod
-    def process_foreach(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_foreach(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Converts key-value based on foreach control-metadata entry.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
-        log, is_error = Validator.validate_foreach(cf_split)
+        key_value = []
+        log, is_error = Validator.validate_foreach(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             exit()
         step_type = "iteration"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        return key_val, log, is_error
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        flow_param = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+        return key_value, log, is_error
 
     @classmethod
-    def process_while(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_while(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key value based on while control-metadata entry.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
-        log, is_error = Validator.validate_while(cf_split)
+        key_value = []
+        log, is_error = Validator.validate_while(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             exit()
         step_type = "iteration"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
-        flow_compared_value = cf_split[3]
-        key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
-        return key_val, log, is_error
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        flow_param = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+        flow_logical_operator = control_flow_split[2]
+        key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
+        flow_compared_value = control_flow_split[3]
+        key_value.append([paragraph_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
+        return key_value, log, is_error
 
     @classmethod
-    def process_if(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_if(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key-value based on if control-metadata entry.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
-        log, is_error = Validator.validate_if(cf_split)
+        key_value = []
+        log, is_error = Validator.validate_if(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
-        flow_compared_value = cf_split[3]
-        key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
-        return key_val, log, is_error
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        flow_param = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+        flow_logical_operator = control_flow_split[2]
+        key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
+        flow_compared_value = control_flow_split[3]
+        key_value.append([paragraph_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
+        return key_value, log, is_error
 
     @classmethod
-    def process_elseif(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_elseif(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key-value based on else-if control-metadata entry.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurs.
         """
-        key_val = []
-        log, is_error = Validator.validate_elseif(cf_split)
+        key_value = []
+        log, is_error = Validator.validate_elseif(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        flow_logical_operator = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
-        flow_compared_value = cf_split[3]
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        flow_param = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+        flow_logical_operator = control_flow_split[2]
+        key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
+        flow_compared_value = control_flow_split[3]
         if re.search(r"\[.*?\]", flow_compared_value):
-            key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
+            key_value.append([paragraph_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
             start, end, range_log, range_is_error = cls.process_range(flow_compared_value)
-            key_val.append([par_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
-            key_val.append([par_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
+            key_value.append([paragraph_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
+            key_value.append([paragraph_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
         else:
-            key_val.append([par_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
-        return key_val, log, is_error
+            key_value.append([paragraph_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
+        return key_value, log, is_error
 
     @classmethod
-    def process_else(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_else(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key value based on else control-metadata entry.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        print(cf_split)
-        key_val = []
-        log, is_error = Validator.validate_else(cf_split)
+        print(control_flow_split)
+        key_value = []
+        log, is_error = Validator.validate_else(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             exit()
         step_type = "conditional"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        return key_val, log, is_error
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        return key_value, log, is_error
 
     @classmethod
     def process_range(cls, flow_range: str) -> Tuple[float, float, str, bool]:
@@ -1049,14 +1056,14 @@ class MetadataExtractor:
          the log message as a string, and a boolean indicating whether an error occurred during processing.
 
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list range_values: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
         log, is_error = "", False
         log, is_error = Validator.validate_range(flow_range)
         if is_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(log)
             range_values = None
             # exit()
@@ -1065,97 +1072,97 @@ class MetadataExtractor:
         return float(range_values[0]), float(range_values[1]), log, is_error
 
     @classmethod
-    def process_for(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_for(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key value based on for control-metadata entry. Please consult LISTER documentation on GitHub.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
+        key_value = []
         for_log = ""
         is_error = False
-        for_validation_log, is_for_error = Validator.validate_for(cf_split)
+        for_validation_log, is_for_error = Validator.validate_for(control_flow_split)
         if is_for_error:
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             for_log = for_log + "\n" + for_validation_log
             is_error = True
             print(for_validation_log)
             # exit()
         step_type = "iteration"
-        key_val.append([par_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        flow_range = cf_split[2]
-        key_val.append([par_no, CFMetadata.FLOW_RANGE.value, flow_range, '', ''])
+        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+        flow_param = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+        flow_range = control_flow_split[2]
+        key_value.append([paragraph_no, CFMetadata.FLOW_RANGE.value, flow_range, '', ''])
         start, end, range_log, is_range_error = cls.process_range(flow_range)
         if is_range_error:
             for_log = for_log + "\n" + range_log
             print(range_log)
             is_error = True
-        key_val.append([par_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
-        key_val.append([par_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
+        key_value.append([paragraph_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
+        key_value.append([paragraph_no, CFMetadata.FLOW_ITERATION_END.value, end, '', ''])
         try:
-            flow_operation = cf_split[3]
-            key_val.append([par_no, CFMetadata.FLOW_OPERATION.value, flow_operation, '', ''])
+            flow_operation = control_flow_split[3]
+            key_value.append([paragraph_no, CFMetadata.FLOW_OPERATION.value, flow_operation, '', ''])
         except IterationTypeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
-            print(MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(cf_split))
-            for_log = for_log + "\n" + MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(cf_split)
+            print(MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(control_flow_split))
+            for_log = for_log + "\n" + MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(control_flow_split)
         try:
-            flow_magnitude = cf_split[4]
-            key_val.append([par_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude, '', ''])
+            flow_magnitude = control_flow_split[4]
+            key_value.append([paragraph_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude, '', ''])
         except IterationMagnitudeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
-            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
-            for_log = for_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
-        return key_val, for_log, is_error
+            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split))
+            for_log = for_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split)
+        return key_value, for_log, is_error
 
     # should happen only after having 'while' iterations to provide additional steps on the iterator
     @classmethod
-    def process_iterate(cls, par_no: int, cf_split: List[str]) -> Tuple[List[List], str, bool]:
+    def process_iterate(cls, paragraph_no: int, control_flow_split: List[str]) -> Tuple[List[List], str, bool]:
         """
         Convert key value based on while control-metadata entry. Please consult LISTER documentation on GitHub.
 
-        :param int par_no: paragraph number where string fragment containing the referred pair was found.
-        :param list cf_split: list of split string.
-        :returns: tuple (key_val, log, is_error)
+        :param int paragraph_no: paragraph number where string fragment containing the referred pair was found.
+        :param list control_flow_split: list of split string.
+        :returns: tuple (key_value, log, is_error)
             WHERE
-            list key_val: list of list, each list contains a full control-flow metadata,
+            list key_value: list of list, each list contains a full control-flow metadata,
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        key_val = []
+        key_value = []
         iterate_log = ""
         is_error = False
-        log, is_error = Validator.validate_iterate(cf_split)
+        log, is_error = Validator.validate_iterate(control_flow_split)
         if is_error:
             iterate_log = iterate_log + "\n" + log
-            # write_log(log, output_path+output_fname)
+            # write_log(log, output_path+output_filename)
             print(iterate_log)
             # exit()
-        flow_type = cf_split[0]
-        key_val.append([par_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
-        flow_operation = cf_split[1]
-        key_val.append([par_no, CFMetadata.FLOW_OPERATION.value, flow_operation])
+        flow_type = control_flow_split[0]
+        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
+        flow_operation = control_flow_split[1]
+        key_value.append([paragraph_no, CFMetadata.FLOW_OPERATION.value, flow_operation])
         try:
-            flow_magnitude = cf_split[2]
-            key_val.append([par_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude])
+            flow_magnitude = control_flow_split[2]
+            key_value.append([paragraph_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude])
         except IterationMagnitudeError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
-            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split))
-            iterate_log = iterate_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(cf_split)
-        return key_val, iterate_log, is_error
+            print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split))
+            iterate_log = iterate_log + "\n" + MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split)
+        return key_value, iterate_log, is_error
 
     @classmethod
     def parse_lines_to_metadata(cls, lines: List[str]) -> Tuple[List, List[str], str]:
@@ -1163,13 +1170,14 @@ class MetadataExtractor:
         Get a list of metadata pairs [order, key, value, measure, unit] or ['-', sec. level, section name, '', '']
         from nbsp-clean lines.
         :param list lines: list of lines cleaned up from nbsp.
-        :return: tuple (nkvmu_pairs, internal_comments, log)
+        :return: tuple (metadata_pairs, internal_comments, log)
             WHERE
-            list nkvmu_pairs: list of [order, key, value, measure, unit] or ['-', section level, section name, '', ''],
+            list metadata_pairs: list of [order, key, value, measure, unit] or
+                                ['-', section level, section name, '', ''],
             str internal_comments: placeholder for found internal comments within key-value pairs - currently unused,
             str log: log from running subsequent functions.
         """
-        par_no = 0
+        paragraph_no = 0
         metadata_pairs = []
         metadata_header = ["", "metadata section", "Experiment Context", "", ""]
         metadata_pairs.append(metadata_header)
@@ -1179,21 +1187,22 @@ class MetadataExtractor:
             internal_comments = []
 
             # Check bracketing validity
-            bracketing_log, is_bracket_error = Validator.check_bracket_num(par_no, line)
+            bracketing_log, is_bracket_error = Validator.check_bracket_num(paragraph_no, line)
             log = log + bracketing_log  # + "\n"
             if is_bracket_error:
-                # write_log(log, output_path+output_fname)
+                # write_log(log, output_path+output_filename)
                 break
 
             # Extract KEY_VALUE and flow metadata
             key_value_and_flow_pairs = re.findall(RegexPatterns.KEY_VALUE_OR_FLOW.value, line)
             para_len = len(GeneralHelper.split_into_sentences(line))
             if para_len > 0:
-                par_no = par_no + 1  # count paragraph index, starting from 1 only if it consists at least a sentence
+                # count paragraph index, starting from 1 only if it consists at least a sentence
+                paragraph_no = paragraph_no + 1
             for key_value_and_flow_pair in key_value_and_flow_pairs:
                 if re.match(RegexPatterns.KEY_VALUE.value, key_value_and_flow_pair):
                     # returns tuple with key, value, measure, unit, log
-                    metadata_set = cls.conv_bracketed_string_to_metadata(key_value_and_flow_pair)
+                    metadata_set = cls.convert_bracketed_string_to_metadata(key_value_and_flow_pair)
                     # measure, unit, log could be empty
                     if metadata_set[4] != "":
                         log = log + "\n" + metadata_set[4]
@@ -1218,19 +1227,20 @@ class MetadataExtractor:
                             internal_comments.append(comment)
                         else:
                             unit = metadata_set[3]
-                        paragraph_key_pair = [par_no, key]
+                        paragraph_key_pair = [paragraph_no, key]
                         if paragraph_key_pair in paragraph_key_pairs:
                             log = log + MiscAlertMsg.SIMILAR_PAR_KEY_FOUND.value.format(paragraph_key_pair) + "\n"
                         if cls.is_explicit_key(key):
                             key = TextCleaner.strip_colon(key)
-                        metadata_pair = [par_no, key, val, measure, unit]
+                        metadata_pair = [paragraph_no, key, val, measure, unit]
                         paragraph_key_pairs.append(paragraph_key_pair)
                         metadata_pairs.append(metadata_pair)
                 if re.match(RegexPatterns.FLOW.value, key_value_and_flow_pair):
-                    flow_metadata, flow_log, is_flow_error = cls.extract_flow_type(par_no, key_value_and_flow_pair)
+                    flow_metadata, flow_log, is_flow_error = cls.extract_flow_type(paragraph_no,
+                                                                                   key_value_and_flow_pair)
                     log = log + flow_log  # + "\n"
                     if is_flow_error:
-                        # write_log(log, output_path+output_fname)
+                        # write_log(log, output_path+output_filename)
                         break
                     metadata_pairs.extend(flow_metadata)
         print(log)
@@ -1238,15 +1248,15 @@ class MetadataExtractor:
 
     # parse an opened document, first draft of sop
     @classmethod
-    def conv_bracketed_string_to_metadata(cls, bracketed_str: str) -> Tuple[str, str, str, str, str]:
+    def convert_bracketed_string_to_metadata(cls, bracketed_str: str) -> Tuple[str, str, str, str, str]:
         """
         Extract lines to a tuple containing key, value, measure, and log.
 
         :param str bracketed_str: a string fragment with a single lister bracketing annotation.
-        :returns: tuple (key, val, measure, unit, log)
+        :returns: tuple (key, value, measure, unit, log)
             WHERE
             str key: the key portion of the string fragment,
-            str val: the val portion of the string fragment,
+            str value: the value portion of the string fragment,
             str measure: the measure portion of the string fragment,
             str unit: the unit portion of the string fragment,
             str log: log resulted from executing this and underlying functions.
@@ -1254,38 +1264,38 @@ class MetadataExtractor:
         log = ""
         bracketed_str_source = bracketed_str
         bracketed_str = bracketed_str[1:-1]
-        splitted_metadata = re.split(r"\|", bracketed_str)
-        if len(splitted_metadata) == 2:
-            key = splitted_metadata[1]
-            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])  # mvu: measure, value, unit
+        split_metadata = re.split(r"\|", bracketed_str)
+        if len(split_metadata) == 2:
+            key = split_metadata[1]
+            value = TextCleaner.strip_unwanted_mvu_colons(split_metadata[0])  # mvu: measure, value, unit
             measure = ""
             unit = ""
-        elif len(splitted_metadata) == 3:
-            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])
-            unit = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[1])
-            key = splitted_metadata[2]
+        elif len(split_metadata) == 3:
+            value = TextCleaner.strip_unwanted_mvu_colons(split_metadata[0])
+            unit = TextCleaner.strip_unwanted_mvu_colons(split_metadata[1])
+            key = split_metadata[2]
             measure = ""
-        elif len(splitted_metadata) == 4:
-            measure = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[0])
-            unit = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[1])
-            key = splitted_metadata[3]
-            val = TextCleaner.strip_unwanted_mvu_colons(splitted_metadata[2])
-        elif len(splitted_metadata) == 1:
+        elif len(split_metadata) == 4:
+            measure = TextCleaner.strip_unwanted_mvu_colons(split_metadata[0])
+            unit = TextCleaner.strip_unwanted_mvu_colons(split_metadata[1])
+            key = split_metadata[3]
+            value = TextCleaner.strip_unwanted_mvu_colons(split_metadata[2])
+        elif len(split_metadata) == 1:
             key = ""
-            val = ""
+            value = ""
             measure = ""
             unit = ""
             print(MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source))
             log = MiscAlertMsg.SINGLE_PAIRED_BRACKET.value.format(bracketed_str_source)
         else:
-            log = MiscAlertMsg.INVALID_METADATA_SET_ELEMENT_NO.value.format(len(splitted_metadata),
+            log = MiscAlertMsg.INVALID_METADATA_SET_ELEMENT_NO.value.format(len(split_metadata),
                                                                             str(bracketed_str_source))
             raise SystemExit(log)
         key = key.strip()
-        val = val.strip()
+        value = value.strip()
         measure = measure.strip()
         unit = unit.strip()
-        return key, val, measure, unit, log
+        return key, value, measure, unit, log
 
     @classmethod
     def conv_html_to_metadata(cls, html_content: str) -> Tuple[List, str]:
@@ -1338,11 +1348,11 @@ class Validator:
         return tagged_contents
 
     @classmethod
-    def check_bracket_num(cls, par_no: int, text: str) -> Tuple[str, bool]:
+    def check_bracket_num(cls, paragraph_no: int, text: str) -> Tuple[str, bool]:
         """
         Check if there is any bracketing error over the text line
 
-        :param int par_no: paragraph number for the referred line
+        :param int paragraph_no: paragraph number for the referred line
         :param str text: string of the line
         :return: tuple (log, is_error)
             WHERE
@@ -1354,16 +1364,16 @@ class Validator:
         is_error = False
         if text.count("{") != text.count("}"):
             is_error = True
-            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_KEY_VALUE_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_KEY_VALUE_BRACKET.value, str(paragraph_no), text)
         if text.count("<") != text.count(">"):
             is_error = True
-            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_FLOW_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_FLOW_BRACKET.value, str(paragraph_no), text)
         if text.count("[") != text.count("]"):
             is_error = True
-            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_RANGE_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_RANGE_BRACKET.value, str(paragraph_no), text)
         if text.count("(") != text.count(")"):
             is_error = True
-            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_COMMENT_BRACKET.value, str(par_no), text)
+            log = base_error_warning % (BracketPairErrorMsg.IMPROPER_COMMENT_BRACKET.value, str(paragraph_no), text)
         # print(log)
         return log, is_error
 
@@ -1398,10 +1408,10 @@ class Validator:
             return False
 
     @classmethod
-    def validate_while(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_while(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the while command in the given list of strings.
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1409,18 +1419,20 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_WHILE.value:
-            if GeneralHelper.is_num(cf_split[1]):
+            if GeneralHelper.is_num(control_flow_split[1]):
                 is_error = True
-                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
-            if not cls.is_valid_comparative_operator(cf_split[2]):
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(control_flow_split[1],
+                                                                        control_flow_split) + "\n"
+            if not cls.is_valid_comparative_operator(control_flow_split[2]):
                 is_error = True
-                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(control_flow_split[2],
+                                                                            control_flow_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_WHILE.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_WHILE.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         # note that the last value (comparison point is not yet checked as it can be a digit, binary or possibly
         # other things)
@@ -1428,11 +1440,11 @@ class Validator:
 
     # Used in process_foreach()
     @classmethod
-    def validate_foreach(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_foreach(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the foreach command in the given list of strings.
 
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1440,29 +1452,30 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_FOREACH.value:
-            if GeneralHelper.is_num(cf_split[1]):  # or
+            if GeneralHelper.is_num(control_flow_split[1]):  # or
                 # https://stackoverflow.com/questions/36330860/pythonically-check-if-a-variable-name-is-valid
                 is_error = True
-                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(control_flow_split[1],
+                                                                        control_flow_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_FOREACH.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_FOREACH.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         return log, is_error
 
     # Used in process_if().
     @classmethod
-    def validate_if(cls, cf_split):
+    def validate_if(cls, control_flow_split):
         """
         Validate the structure of an IF statement.
 
         This function checks the number of elements, the validity of the comparative operator,
         and the argument types in the provided IF statement.
 
-        :param list cf_split: A list of elements in the IF statement.
+        :param list control_flow_split: A list of elements in the IF statement.
         :return: tuple (log, is_error)
             WHERE
             str log: A log message.
@@ -1471,18 +1484,20 @@ class Validator:
 
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_IF.value:
-            if GeneralHelper.is_num(cf_split[1]):
+            if GeneralHelper.is_num(control_flow_split[1]):
                 is_error = True
-                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
-            if not cls.is_valid_comparative_operator(cf_split[2]):
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(control_flow_split[1],
+                                                                        control_flow_split) + "\n"
+            if not cls.is_valid_comparative_operator(control_flow_split[2]):
                 is_error = True
-                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(control_flow_split[2],
+                                                                            control_flow_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_IF.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_IF.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         # note that the last value (comparison point) is not yet checked as it can be a digit, binary or possibly
         # other things
@@ -1494,14 +1509,14 @@ class Validator:
     # to refactor.
     # For now, these validation functions are provided individually.
     @classmethod
-    def validate_elseif(cls, cf_split):
+    def validate_elseif(cls, control_flow_split):
         """
         Validate the structure of an ELSEIF statement.
 
         This class method checks the number of elements, the validity of the comparative operator,
         and the argument types in the provided ELSEIF statement.
 
-        :param list cf_split: A list of elements in the ELSEIF statement.
+        :param list control_flow_split: A list of elements in the ELSEIF statement.
         :return: tuple (log, is_error)
             WHERE
             str log: A log message.
@@ -1509,18 +1524,20 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_ELSEIF.value:
-            if GeneralHelper.is_num(cf_split[1]):
+            if GeneralHelper.is_num(control_flow_split[1]):
                 is_error = True
-                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
-            if not cls.is_valid_comparative_operator(cf_split[2]):
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(control_flow_split[1],
+                                                                        control_flow_split) + "\n"
+            if not cls.is_valid_comparative_operator(control_flow_split[2]):
                 is_error = True
-                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(cf_split[2], cf_split) + "\n"
+                log = log + MiscAlertMsg.UNRECOGNIZED_OPERATOR.value.format(control_flow_split[2],
+                                                                            control_flow_split) + "\n"
         else:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_ELSEIF.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_ELSEIF.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         # note that the last value (comparison point is not yet checked as it can be a digit, binary or possibly
         # other things)
@@ -1528,11 +1545,11 @@ class Validator:
 
     # Used in else().
     @classmethod
-    def validate_else(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_else(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the else command in the given list of strings.
 
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1540,11 +1557,11 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements != ArgNum.ARG_NUM_ELSE.value:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_ELSE.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_ELSE.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         return log, is_error
 
@@ -1574,11 +1591,11 @@ class Validator:
 
     # Used in process_for().
     @classmethod
-    def validate_for(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_for(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the 'for' iteration in the given list of strings.
 
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1586,33 +1603,34 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_FOR.value:  # validating the number of arguments in FOR
-            if GeneralHelper.is_num(cf_split[1]):  # in case 2nd argument is number, throw an error
+            if GeneralHelper.is_num(control_flow_split[1]):  # in case 2nd argument is number, throw an error
                 is_error = True
-                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(cf_split[1], cf_split) + "\n"
-            range_error_log, is_range_error = cls.validate_range(cf_split[2])
+                log = log + MiscAlertMsg.ARGUMENT_MISMATCH.value.format(control_flow_split[1],
+                                                                        control_flow_split) + "\n"
+            range_error_log, is_range_error = cls.validate_range(control_flow_split[2])
             if is_range_error is True:  # check whether it is a valid range
                 is_error = True
                 log = log + range_error_log + "\n"
-            if not cls.is_valid_iteration_operator(cf_split[3]):  # check whether it is a valid operator
+            if not cls.is_valid_iteration_operator(control_flow_split[3]):  # check whether it is a valid operator
                 is_error = True
-                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[3],
-                                                                                 cf_split) + "\n"
+                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(control_flow_split[3],
+                                                                                 control_flow_split) + "\n"
         else:  # if the number of parameters is invalid
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_FOR.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_FOR.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         return log, is_error
 
     # Used in process_iterate().
     @classmethod
-    def validate_iterate(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_iterate(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the iterate command in the given list of strings.
 
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1620,26 +1638,26 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements == ArgNum.ARG_NUM_ITERATE.value:
-            if not cls.is_valid_iteration_operator(cf_split[1]):
+            if not cls.is_valid_iteration_operator(control_flow_split[1]):
                 is_error = True
-                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(cf_split[1],
-                                                                                 cf_split) + "\n"
+                log = log + MiscAlertMsg.INVALID_ITERATION_OPERATOR.value.format(control_flow_split[1],
+                                                                                 control_flow_split) + "\n"
         else:  # if the number of parameters is invalid
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_ITERATE.value, elements,
-                cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_ITERATE.value, elements,
+                control_flow_split) + "\n"
             is_error = True
         return log, is_error
 
     # Used in process_section().
     @classmethod
-    def validate_section(cls, cf_split: List[str]) -> Tuple[str, bool]:
+    def validate_section(cls, control_flow_split: List[str]) -> Tuple[str, bool]:
         """
         Validate the section command in the given list of strings.
 
-        :param List[str] cf_split: List of strings containing the command and its arguments.
+        :param List[str] control_flow_split: List of strings containing the command and its arguments.
         :return: tuple (log, is_error)
             WHERE
             str log: error log (if any)
@@ -1647,11 +1665,11 @@ class Validator:
         """
         log = ""
         is_error = False
-        elements = len(cf_split)
+        elements = len(control_flow_split)
         if elements != ArgNum.ARG_NUM_SECTION.value:
             log = log + MiscAlertMsg.IMPROPER_ARGUMENT_NO.value.format(
-                cf_split[0].upper(), ArgNum.ARG_NUM_SECTION.value,
-                elements, cf_split) + "\n"
+                control_flow_split[0].upper(), ArgNum.ARG_NUM_SECTION.value,
+                elements, control_flow_split) + "\n"
             is_error = True
         return log, is_error
 
@@ -1671,21 +1689,21 @@ class GeneralHelper:
         # (CC-BY-SA), see https://stackoverflow.com/help/licensing.
         latin_alphabets = "([A-Za-z])"
         openers = r"(Mr|Mrs|Ms|Dr|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-        abbr = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-        pref = "(Mr|St|Mrs|Ms|Dr)[.]"
+        abbreviations = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+        prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
         sites = "[.](com|net|org|io|gov|de|eu)"
-        suff = "(Inc|Ltd|Jr|Sr|Co)"
+        suffixes = "(Inc|Ltd|Jr|Sr|Co)"
         content = " " + content + "  "
         content = content.replace("\n", " ")
-        content = re.sub(pref, "\\1<prd>", content)
+        content = re.sub(prefixes, "\\1<prd>", content)
         content = re.sub(sites, "<prd>\\1", content)
         content = re.sub(r"\s" + latin_alphabets + "[.] ", " \\1<prd> ", content)
-        content = re.sub(abbr + " " + openers, "\\1<stop> \\2", content)
+        content = re.sub(abbreviations + " " + openers, "\\1<stop> \\2", content)
         content = re.sub(latin_alphabets + "[.]" + latin_alphabets + "[.]" + latin_alphabets
                          + "[.]", "\\1<prd>\\2<prd>\\3<prd>", content)
         content = re.sub(latin_alphabets + "[.]" + latin_alphabets + "[.]", "\\1<prd>\\2<prd>", content)
-        content = re.sub(" " + suff + "[.] " + openers, " \\1<stop> \\2", content)
-        content = re.sub(" " + suff + "[.]", " \\1<prd>", content)
+        content = re.sub(" " + suffixes + "[.] " + openers, " \\1<stop> \\2", content)
+        content = re.sub(" " + suffixes + "[.]", " \\1<prd>", content)
         content = re.sub(" " + latin_alphabets + "[.]", " \\1<prd>", content)
         if "”" in content:
             content = content.replace(".”", "”.")
@@ -1868,7 +1886,8 @@ class DocxHelper:
             for subcontent in tag_item.contents:
                 # strip_markup_and_explicit_keys()
                 if isinstance(subcontent, Tag):
-                    # print("ORIGINAL CONTENT OF SUBCONTENT.GETTEXT() WITHIN A TAG INSTANCE : " + subcontent.get_text())
+                    # print("ORIGINAL CONTENT OF SUBCONTENT.GETTEXT() WITHIN A TAG INSTANCE : "
+                    # + subcontent.get_text())
                     line, references = TextCleaner.strip_markup_and_explicit_keys(subcontent.get_text())
                     # print("LINE FROM TAG INSTANCE: " + line)
                 else:
@@ -2208,7 +2227,7 @@ class TextCleaner:
 # ------------------------------------------------ Path Helper Class --------------------------------------------------
 class PathHelper:
     @classmethod
-    def derive_fname_from_exp(cls, exp: Union[elabapi_python.Experiment, Dict]) -> str:
+    def derive_filename_from_experiment(cls, experiment: Union[elabapi_python.Experiment, Dict]) -> str:
         """
         Derive a file name from the experiment dictionary.
 
@@ -2217,17 +2236,17 @@ class PathHelper:
         If it's not a dictionary, it retrieves the title from the experiment's attributes.
         The title is then slugified to create a file name.
 
-        :param Union[elabapi_python.Experiment, Dict] exp: The experiment to derive the file name from.
+        :param Union[elabapi_python.Experiment, Dict] experiment: The experiment to derive the file name from.
                                                            It Can be a dictionary or an object with a "_title"
                                                            attribute.
-        :return: str fname_from_exp: The derived file name.
+        :return: str filename_from_exp: The derived file name.
         """
-        if isinstance(exp, dict):
-            exp_title = exp["title"]
+        if isinstance(experiment, dict):
+            experiment_title = experiment["title"]
         else:
-            exp_title = exp.__dict__["_title"]
-        fname_from_exp = PathHelper.slugify(exp_title)
-        return fname_from_exp
+            experiment_title = experiment.__dict__["_title"]
+        filename_from_experiment = PathHelper.slugify(experiment_title)
+        return filename_from_experiment
 
     @classmethod
     def get_default_output_path(cls, file_name: str) -> str:
@@ -2329,7 +2348,7 @@ ref_counter = 0
 
 
 def main():
-    global output_fname  # , input_file
+    global output_filename  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
 
@@ -2351,22 +2370,22 @@ def main():
         cat = item_api_response.__dict__["_category_title"]
         title = item_api_response.__dict__["_title"]
         if args.experiment_id:
-            output_fname = PathHelper.slugify(cat) + "_" + str(args.resource_item_no)
+            output_filename = PathHelper.slugify(cat) + "_" + str(args.resource_item_no)
         elif args.title:
-            output_fname = PathHelper.slugify(cat) + "_" + PathHelper.slugify(title)
+            output_filename = PathHelper.slugify(cat) + "_" + PathHelper.slugify(title)
     elif args.command == 'parse_experiment':
         if args.experiment_id:
-            output_fname = PathHelper.slugify("experiment") + "_" + str(args.exp_no)
+            output_filename = PathHelper.slugify("experiment") + "_" + str(args.exp_no)
         elif args.title:
             title = ApiAccess.get_exp_title(api_v2_client, args.exp_no)
-            output_fname = PathHelper.slugify("experiment") + "_" + PathHelper.slugify(title)
-    print("The output is written to %s directory" % output_fname)
+            output_filename = PathHelper.slugify("experiment") + "_" + PathHelper.slugify(title)
+    print("The output is written to %s directory" % output_filename)
 
-    output_path = PathHelper.manage_output_path(args.base_output_dir, output_fname)
+    output_path = PathHelper.manage_output_path(args.base_output_dir, output_filename)
     PathHelper.check_and_create_path(output_path)
 
     print("base_output_dir: ", base_output_path)
-    print("output_fname: ", output_fname)
+    print("output_filename: ", output_filename)
     print("output_path: ", output_path)
 
     if args.command == 'parse_experiment':

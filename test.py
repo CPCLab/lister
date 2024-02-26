@@ -461,7 +461,7 @@ class Test_lister(unittest.TestCase):
     #     # Create a mock API client
     #     mock_apiv2client = Mock()
     #     # Call the method under test
-    #     result, _ = lister.MetadataExtractor.process_linked_resource_item_apiV2(mock_apiv2client, 1)
+    #     result, _ = lister.MetadataExtractor.process_linked_resource_item_api_v2(mock_apiv2client, 1)
     #     # Assert that the method returns the correct metadata
     #     expected_result = [['', 'metadata section', 'Test Category', '', ''], ['', 'key1', 'value1', '', ''],
     #                        ['', 'key2', 'value2', '', '']]
@@ -475,7 +475,7 @@ class Test_lister(unittest.TestCase):
     #     mock_apiv2client = Mock()
     #     # Call the method under test and assert that it raises an error
     #     with self.assertRaises(ApiException):
-    #         lister.MetadataExtractor.process_linked_resource_item_apiV2(mock_apiv2client, 1)
+    #         lister.MetadataExtractor.process_linked_resource_item_api_v2(mock_apiv2client, 1)
 
     # TODO: test_process_experiment_v2()
 
@@ -579,7 +579,7 @@ class Test_lister(unittest.TestCase):
         self.assertTrue(is_error)
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketed_string_to_metadata')
+    # @patch('lister.MetadataExtractor.convert_bracketed_string_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -597,7 +597,7 @@ class Test_lister(unittest.TestCase):
     #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""], ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
-    # @patch('lister.MetadataExtractor.conv_bracketed_string_to_metadata')
+    # @patch('lister.MetadataExtractor.convert_bracketed_string_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
@@ -672,19 +672,19 @@ class Test_lister(unittest.TestCase):
     def test_conv_bracketedstring_to_kvmu(self):
         # Test a string with key and value
         kvmu = "{value|key}"
-        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
+        result = lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "", ""))
         # Test a string with value, unit, and key
         kvmu = "{value|unit|key}"
-        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
+        result = lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "", "unit", ""))
         # Test a string with measure, unit, value, and key
         kvmu = "{measure|unit|value|key}"
-        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
+        result = lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
         self.assertEqual(result, ("key", "value", "measure", "unit", ""))
         # Test a string with no separators
         kvmu = "{value}"
-        result = lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
+        result = lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
         expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
                             "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the metadata. " \
                             "Otherwise please check this pair: {0}."
@@ -692,7 +692,7 @@ class Test_lister(unittest.TestCase):
         # Test a string with too many separators
         with self.assertRaises(SystemExit):
             kvmu = "{measure|unit|value|key|extra}"
-            lister.MetadataExtractor.conv_bracketed_string_to_metadata(kvmu)
+            lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
 
     # @patch('latex2mathml.converter.convert')
     # @patch('lxml.etree.fromstring')
@@ -1154,17 +1154,17 @@ class Test_lister(unittest.TestCase):
     # def test_derive_fname_from_exp(self):
     #     experiment = {"title": "Example Experiment Title"}
     #     expected_fname = "example-experiment-title"
-    #     self.assertEqual(lister.PathHelper.derive_fname_from_exp(experiment), expected_fname)
+    #     self.assertEqual(lister.PathHelper.derive_filename_from_experiment(experiment), expected_fname)
 
     def test_derive_fname_from_exp_v2(self):
         # Test with a dictionary
         exp_dict = {"title": "My Experiment"}
-        result = lister.PathHelper.derive_fname_from_exp(exp_dict)
+        result = lister.PathHelper.derive_filename_from_experiment(exp_dict)
         self.assertEqual(result, "my-experiment")  # assuming slugify converts "My Experiment" to "my-experiment"
         # Test with an Experiment object
         exp_obj = elabapi_python.Experiment()
         exp_obj.__dict__["_title"] = "Another Experiment"
-        result = lister.PathHelper.derive_fname_from_exp(exp_obj)
+        result = lister.PathHelper.derive_filename_from_experiment(exp_obj)
         self.assertEqual(result, "another-experiment")  # assuming slugify converts "Another Experiment" to "another-experiment"
 
     @patch('os.path.isdir')
