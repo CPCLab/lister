@@ -137,36 +137,6 @@ class ArgNum(Enum):
     ARG_NUM_SECTION = 2
 
 
-# -------------------------------------------- Exception classes ------------------------------------------------------
-
-class LoggingError(Exception):
-    """Exception raised for errors in the logging process.
-
-    Attributes:
-        message -- explanation of the error
-    """
-
-    def __init__(self, message="Log message cannot be created properly."):
-        self.message = message
-        super().__init__(self.message)
-
-
-class IterationMagnitudeError(Exception):
-    """Exception raised for errors in the iteration magnitude during processing."""
-
-    def __init__(self, message="Iteration magnitude error: magnitude for the iteration is not found.", errors=None):
-        super().__init__(message)
-        self.errors = errors
-
-
-class IterationTypeError(Exception):
-    """Exception raised for errors in the type of the iteration during processing."""
-
-    def __init__(self, message="Iteration type is invalid.", errors=None):
-        super().__init__(message)
-        self.errors = errors
-
-
 # -------------------------------------------- API Access-related Class -----------------------------------------------
 class ApiAccess:
 
@@ -848,10 +818,7 @@ class MetadataExtractor:
             log = ApiAccess.get_save_attachments(path, api_v2_client, int(exp_no))
             overall_log = overall_log + "\n" + log
             docx_log = Serializer.write_to_docx(experiment_response, path)
-            try:
-                overall_log = overall_log + "\n" + docx_log
-            except LoggingError as e:
-                print(f"An error occurred during the creation of log file for docx serialization: {e}")
+            overall_log = overall_log + "\n" + docx_log
 
             Serializer.write_to_json(overall_metadata_set, experiment_response, path)
             Serializer.write_to_xlsx(overall_metadata_set, experiment_response, path)
@@ -1112,15 +1079,21 @@ class MetadataExtractor:
         try:
             flow_operation = control_flow_split[3]
             key_value.append([paragraph_no, CFMetadata.FLOW_OPERATION.value, flow_operation, '', ''])
-        except IterationTypeError as e:
+        except KeyError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(control_flow_split))
             for_log = for_log + "\n" + MiscAlertMsg.ITERATION_OPERATION_NOT_EXIST.value.format(control_flow_split)
         try:
+            print(control_flow_split)
+            print(type(control_flow_split))
+            print(len(control_flow_split))
+            # print(len(control_flow_split))
             flow_magnitude = control_flow_split[4]
+            print("flow_magnitude: ")
+            pprint(flow_magnitude)
             key_value.append([paragraph_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude, '', ''])
-        except IterationMagnitudeError as e:
+        except IndexError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split))
@@ -1157,7 +1130,7 @@ class MetadataExtractor:
         try:
             flow_magnitude = control_flow_split[2]
             key_value.append([paragraph_no, CFMetadata.FLOW_MAGNITUDE.value, flow_magnitude])
-        except IterationMagnitudeError as e:
+        except IndexError as e:
             is_error = True
             print(f"Iteration error occurred: {e}")
             print(MiscAlertMsg.MAGNITUDE_NOT_EXIST.value.format(control_flow_split))
