@@ -508,8 +508,9 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(len(key_val), 5, "There should be 5 key-value pairs for valid input")
         # Test case 2: invalid input (wrong number of elements)
         cf_split = ["while", "param", "lt"]
-        with self.assertRaises(SystemExit):
-            lister.MetadataExtractor.process_while(par_no, cf_split)
+        key_val, log, is_error = lister.MetadataExtractor.process_while(par_no, cf_split)
+        self.assertTrue(is_error)
+
 
     def test_process_if(self):
         list1 = ['if', 'membrane simulation', 'e', 'true']

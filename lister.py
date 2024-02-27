@@ -893,16 +893,20 @@ class MetadataExtractor:
         log, is_error = Validator.validate_while(control_flow_split)
         if is_error:
             print(log)
-        step_type = "iteration"
-        key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
-        flow_type = control_flow_split[0]
-        key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
-        flow_param = control_flow_split[1]
-        key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
-        flow_logical_operator = control_flow_split[2]
-        key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
-        flow_compared_value = control_flow_split[3]
-        key_value.append([paragraph_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
+        try:
+            step_type = "iteration"
+            key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
+            flow_type = control_flow_split[0]
+            key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type, '', ''])
+            flow_param = control_flow_split[1]
+            key_value.append([paragraph_no, CFMetadata.FLOW_PARAMETER.value, flow_param, '', ''])
+            flow_logical_operator = control_flow_split[2]
+            key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
+            flow_compared_value = control_flow_split[3]
+            key_value.append([paragraph_no, CFMetadata.FLOW_COMPARED_VALUE.value, flow_compared_value, '', ''])
+        except IndexError as e:
+            is_error = True
+            print(f"Iteration error occurred: {e}")
         return key_value, log, is_error
 
     @classmethod
