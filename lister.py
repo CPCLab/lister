@@ -142,7 +142,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-                          elabapi_python.Item, str]:
+        elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -251,7 +251,7 @@ class ApiAccess:
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-                           list[Union[str, TypedDict]]]:
+    list[Union[str, TypedDict]]]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -271,7 +271,7 @@ class ApiAccess:
             try:
                 for image in images:
                     upl_long_name = cls.get_attachment_long_name(image['src'])
-                    result = {'image_path': "", 'upl_long_name': "", 'upl_id': "", 'real_name': "", 'hash': "",
+                    result = {'upl_id': "", 'real_name': "", 'hash': "",
                               "image_path": image['src'], "upl_long_name": upl_long_name}
                     matched_upl = next(upload for upload in uploads if upload.__dict__['_long_name'] == upl_long_name)
                     result['upl_id'] = matched_upl.__dict__['_id']
@@ -553,7 +553,6 @@ class Serializer:
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
         # json.dump(list, open(path + '/' + derive_filename_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
         # ensure_ascii=False)
-        # with xlsxwriter.Workbook(path + output_filename + ".xlsx") as workbook:
         with xlsxwriter.Workbook(path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx") as workbook:
             # formatting cells
             header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
@@ -709,21 +708,21 @@ class MetadataExtractor:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
     @classmethod
-    def process_linked_resource_item_api_v2(cls, api_v2_client: elabapi_python.ApiClient, id: int) -> \
+    def process_linked_resource_item_api_v2(cls, api_v2_client: elabapi_python.ApiClient, resource_id: int) -> \
             Tuple[Union[List[List[str]], str], str]:
         """
         Process a linked resource item and return its metadata and log.
 
         :param elabapi_python.ApiClient api_v2_client: An instance of the API v2 client object, containing eLabFTW
         API-related information.
-        :param id: The ID of the linked resource item.
+        :param resource_id: The ID of the linked resource item.
         :return: A tuple containing the resource item metadata and log.
         """
         api_instance = elabapi_python.ItemsApi(api_v2_client)
 
         try:
             # Read an item
-            linked_item = api_instance.get_item(id)
+            linked_item = api_instance.get_item(resource_id)
             html_body = getattr(linked_item, 'body')
             # category = getattr(linked_item, 'mainattr_title') # only works for elabapi-python 0.4.1.
             category = getattr(linked_item, 'category_title')
@@ -868,7 +867,6 @@ class MetadataExtractor:
         key_value = []
         log, is_error = Validator.validate_foreach(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
         step_type = "iteration"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
@@ -894,7 +892,6 @@ class MetadataExtractor:
         key_value = []
         log, is_error = Validator.validate_while(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
         step_type = "iteration"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
@@ -924,7 +921,6 @@ class MetadataExtractor:
         key_value = []
         log, is_error = Validator.validate_if(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
@@ -954,7 +950,6 @@ class MetadataExtractor:
         key_value = []
         log, is_error = Validator.validate_elseif(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
@@ -991,7 +986,6 @@ class MetadataExtractor:
         key_value = []
         log, is_error = Validator.validate_else(control_flow_split)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
@@ -1020,7 +1014,6 @@ class MetadataExtractor:
         """
         log, is_error = Validator.validate_range(flow_range)
         if is_error:
-            # write_log(log, output_path+output_filename)
             print(log)
             range_values = None
         else:
@@ -1045,7 +1038,6 @@ class MetadataExtractor:
         is_error = False
         for_validation_log, is_for_error = Validator.validate_for(control_flow_split)
         if is_for_error:
-            # write_log(log, output_path+output_filename)
             for_log = for_log + "\n" + for_validation_log
             is_error = True
             print(for_validation_log)
@@ -1108,7 +1100,6 @@ class MetadataExtractor:
         log, is_error = Validator.validate_iterate(control_flow_split)
         if is_error:
             iterate_log = iterate_log + "\n" + log
-            # write_log(log, output_path+output_filename)
             print(iterate_log)
         flow_type = control_flow_split[0]
         key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
@@ -1150,7 +1141,6 @@ class MetadataExtractor:
             bracketing_log, is_bracket_error = Validator.check_bracket_num(paragraph_no, line)
             log = log + bracketing_log  # + "\n"
             if is_bracket_error:
-                # write_log(log, output_path+output_filename)
                 break
 
             # Extract KEY_VALUE and flow metadata
@@ -1200,7 +1190,6 @@ class MetadataExtractor:
                                                                                    key_value_and_flow_pair)
                     log = log + flow_log  # + "\n"
                     if is_flow_error:
-                        # write_log(log, output_path+output_filename)
                         break
                     metadata_pairs.extend(flow_metadata)
         print(log)
@@ -2192,7 +2181,7 @@ class PathHelper:
         This class method checks if the provided experiment is a dictionary.
         If it is, it retrieves the title from the dictionary.
         If it's not a dictionary, it retrieves the title from the experiment's attributes.
-        The title is then slugified to create a file name.
+        The title is then converted to a slug which will be used as a file name.
 
         :param Union[elabapi_python.Experiment, Dict] experiment: The experiment to derive the file name from.
                                                            It Can be a dictionary or an object with a "_title"
@@ -2306,7 +2295,7 @@ ref_counter = 0
 
 
 def main():
-    global output_filename  # , input_file
+    # global output_filename  # , input_file
     global output_path, base_output_path
     global token, exp_no, endpoint
 
