@@ -142,7 +142,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-        elabapi_python.Item, str]:
+            elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -251,7 +251,7 @@ class ApiAccess:
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-    list[Union[str, TypedDict]]]:
+            list[Union[str, TypedDict]]]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -298,7 +298,7 @@ class ApiAccess:
         return v2_endpoint
 
     @classmethod
-    def create_api_v2_client(cls, endpoint: str, token: str) -> elabapi_python.ApiClient:
+    def create_api_v2_client(cls, api_endpoint: str, token: str) -> elabapi_python.ApiClient:
         """
         Create an API v2 client with the given endpoint and token.
 
@@ -307,7 +307,7 @@ class ApiAccess:
         :return: The API v2 client.
         :rtype: elabapi_python.ApiClient.
         """
-        endpoint_v2 = cls.get_api_v2_endpoint(endpoint)
+        endpoint_v2 = cls.get_api_v2_endpoint(api_endpoint)
         api_v2_config = elabapi_python.Configuration()
         api_v2_config.api_key['api_key'] = token
         api_v2_config.api_key_prefix['api_key'] = 'Authorization'
@@ -748,12 +748,12 @@ class MetadataExtractor:
         return resource_item_metadata_set, log
 
     @classmethod
-    def process_experiment(cls, api_v2_client: elabapi_python.ApiClient, exp_no: int, path: str) -> None:
+    def process_experiment(cls, api_v2_client: elabapi_python.ApiClient, exp_id: int, path: str) -> None:
         """
         Process an experiment and save its information to various formats.
 
         :param elabapi_python.ApiClient api_v2_client: The API v2 client.
-        :param int exp_no: The experiment number.
+        :param int exp_id: The experiment number.
         :param str path: The path for saving the output files.
         """
         overall_log = ""
@@ -762,9 +762,9 @@ class MetadataExtractor:
         # experiment_response = experiment_instance.get_experiment(int(exp_no))
 
         print("------------------------------")
-        print("Accessing experiment with ID: " + str(exp_no))
+        print("Accessing experiment with ID: " + str(exp_id))
         try:
-            experiment_response = experiment_instance.get_experiment(int(exp_no))
+            experiment_response = experiment_instance.get_experiment(int(exp_id))
             linked_resources = experiment_response.__dict__['_items_links']
             # get the IDs of the linked resources
             linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
@@ -810,7 +810,7 @@ class MetadataExtractor:
             overall_log = overall_log + "\n" + log
             overall_metadata_set.extend(experiment_metadata_set)
 
-            log = ApiAccess.get_save_attachments(path, api_v2_client, int(exp_no))
+            log = ApiAccess.get_save_attachments(path, api_v2_client, int(exp_id))
             overall_log = overall_log + "\n" + log
             docx_log = Serializer.write_to_docx(experiment_response, path)
             overall_log = overall_log + "\n" + docx_log
@@ -1100,7 +1100,6 @@ class MetadataExtractor:
         """
         key_value = []
         iterate_log = ""
-        is_error = False
         log, is_error = Validator.validate_iterate(control_flow_split)
         if is_error:
             iterate_log = iterate_log + "\n" + log
@@ -1138,9 +1137,8 @@ class MetadataExtractor:
         metadata_pairs.append(metadata_header)
         paragraph_key_pairs = []
         log = ""
+        internal_comments = []
         for line in lines:
-            internal_comments = []
-
             # Check bracketing validity
             bracketing_log, is_bracket_error = Validator.check_bracket_num(paragraph_no, line)
             log = log + bracketing_log  # + "\n"
@@ -2020,21 +2018,21 @@ class DocxHelper:
                     t.cell(i, j).text = str(df.values[i, j])
 
     @classmethod
-    def add_img_to_doc(cls, document: Document, real_name: str, path: str, hash: str) -> None:
+    def add_img_to_doc(cls, document: Document, real_name: str, path: str, image_hash: str) -> None:
         """
         Add image to the document file, based on upload experiment_id and image name when it was uploaded.
 
         :param Document document: the document object that is being modified.
         :param str real_name: real name of the image when it was uploaded to eLabFTW.
         :param str path: path to the image/attachment.
-        :param str hash: hash of the image.
+        :param str image_hash: hash of the image.
         """
         log = ""
         if real_name:
             img_saving_path = path + '/attachments/'
             sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
             try:
-                document.add_picture(sanitized_img_saving_path + "/" + hash + "_" + real_name,
+                document.add_picture(sanitized_img_saving_path + "/" + image_hash + "_" + real_name,
                                      width=Mm(cls.get_text_width(document)))
             except Exception as e:
                 log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
@@ -2299,7 +2297,7 @@ ref_counter = 0
 
 
 def main():
-    # global output_filename  # , input_file
+    global output_filename
     global output_path, base_output_path
     global token, exp_no, endpoint
 
