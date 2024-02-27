@@ -142,7 +142,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-        elabapi_python.Item, str]:
+                          elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -251,7 +251,7 @@ class ApiAccess:
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-    list[Union[str, TypedDict]]]:
+                           list[Union[str, TypedDict]]]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -283,7 +283,6 @@ class ApiAccess:
                 print(log)
                 print("Attachment download is skipped...")
                 # The dictionary 'result' already has default values set, so no need to set them again here
-                pass
         return results, log
 
     @classmethod
@@ -613,7 +612,6 @@ class MetadataExtractor:
         """
         flow_log = ""
         # print("flow_control_pair: " + str(flow_control_pair))
-        is_error = False
         key_value = []
         cf = flow_control_pair[1:-1]
         control_flow_split = re.split(r"\|", cf)
@@ -683,7 +681,6 @@ class MetadataExtractor:
         if is_sect_error:
             is_error = True
             section_log = section_log + "\n" + log
-            exit()
         else:
             section_keyword = control_flow_split[0].lower()
             section_level = section_keyword.count("sub")
@@ -739,7 +736,6 @@ class MetadataExtractor:
                 log = MiscAlertMsg.NON_TWO_COLUMNS_LINKED_TABLE.value.format(category, df_col_no) + "\n"
                 print(log)
                 resource_item_metadata_set = None
-                pass
             else:
                 df.columns = ["metadata section", category]
                 df.insert(loc=0, column="", value="")
@@ -874,7 +870,6 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
-            exit()
         step_type = "iteration"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -901,7 +896,6 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
-            exit()
         step_type = "iteration"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -932,7 +926,6 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
-            exit()
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -963,7 +956,6 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
-            exit()
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -1001,7 +993,6 @@ class MetadataExtractor:
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
-            exit()
         step_type = "conditional"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -1027,13 +1018,11 @@ class MetadataExtractor:
             str log: log resulted from running this and subsequent functions,
             bool is_error: flag that indicates whether an error occurred.
         """
-        log, is_error = "", False
         log, is_error = Validator.validate_range(flow_range)
         if is_error:
             # write_log(log, output_path+output_filename)
             print(log)
             range_values = None
-            # exit()
         else:
             range_values = re.split("-", flow_range[1:-1])
         return float(range_values[0]), float(range_values[1]), log, is_error
@@ -1060,7 +1049,6 @@ class MetadataExtractor:
             for_log = for_log + "\n" + for_validation_log
             is_error = True
             print(for_validation_log)
-            # exit()
         step_type = "iteration"
         key_value.append([paragraph_no, CFMetadata.STEP_TYPE.value, step_type, '', ''])
         flow_type = control_flow_split[0]
@@ -1122,7 +1110,6 @@ class MetadataExtractor:
             iterate_log = iterate_log + "\n" + log
             # write_log(log, output_path+output_filename)
             print(iterate_log)
-            # exit()
         flow_type = control_flow_split[0]
         key_value.append([paragraph_no, CFMetadata.FLOW_TYPE.value, flow_type + "  (after while)"])
         flow_operation = control_flow_split[1]
@@ -2006,7 +1993,6 @@ class DocxHelper:
             docx_formula = None
             log = log + MiscAlertMsg.MISSING_MML2OMML.value
             print(log)
-            pass
         return docx_formula, log
 
     @classmethod
@@ -2059,7 +2045,6 @@ class DocxHelper:
                                      width=Mm(cls.get_text_width(document)))
             except Exception as e:
                 log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
-                pass
             print(log)
 
 

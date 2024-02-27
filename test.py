@@ -13,8 +13,10 @@ import shutil
 import pandas as pd
 from lxml import etree
 
+
 # import latex2mathml.converter
 # from lister import latex_formula_to_docx, MiscAlertMsg
+
 
 class Test_lister(unittest.TestCase):
 
@@ -83,7 +85,6 @@ class Test_lister(unittest.TestCase):
         # Call the method under test and assert that it raises an error
         with self.assertRaises(ValueError):
             lister.ApiAccess.get_exp_title(mock_apiv2client, 1)
-
 
     # def test_get_exp_title(self):
     #     endpoint = 'http://example.com'
@@ -232,7 +233,9 @@ class Test_lister(unittest.TestCase):
         # Check if the method calls are correct
         mock_experiments_api.return_value.get_experiment.assert_called_once_with(exp_id)
         mock_uploads_api.return_value.read_uploads.assert_called_once_with("experiments", mock_experiment.id)
-        mock_uploads_api.return_value.read_upload.assert_called_once_with("experiments", mock_experiment.id, mock_upload.id, format="binary", _preload_content=False)
+        mock_uploads_api.return_value.read_upload.assert_called_once_with("experiments", mock_experiment.id,
+                                                                          mock_upload.id, format="binary",
+                                                                          _preload_content=False)
         mock_check_and_create_path.assert_called_once_with(path + "/attachments")
         # Check if the log is empty
         self.assertEqual(log, "")
@@ -262,7 +265,8 @@ class Test_lister(unittest.TestCase):
     @patch('lister.sanitize_filepath')
     @patch('elabapi_python.ExperimentsApi')
     @patch('elabapi_python.UploadsApi')
-    def test_get_and_save_attachments_apiv2(self, mock_uploads_api, mock_experiments_api, mock_sanitize_filepath, mock_check_and_create_path):
+    def test_get_and_save_attachments_apiv2(self, mock_uploads_api, mock_experiments_api, mock_sanitize_filepath,
+                                            mock_check_and_create_path):
         path = '/path/to/directory'
         apiv2_client = MagicMock()
         exp_id = 1
@@ -279,9 +283,10 @@ class Test_lister(unittest.TestCase):
 
         # TODO: check the necesssity of the following assertions.
         # mock_uploads_api.read_uploads.assert_called_once_with('experiments', exp_id)
-        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "1", format='binary', _preload_content=False)
-        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "2", format='binary', _preload_content=False)
-
+        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "1", format='binary',
+        #                                               _preload_content=False)
+        # mock_uploads_api.read_upload.assert_any_call('experiments', exp_id, "2", format='binary',
+        #                                               _preload_content=False)
 
     # ------- GUIHelper -------
 
@@ -337,12 +342,9 @@ class Test_lister(unittest.TestCase):
         key = ":example_key:"
         self.assertTrue(lister.MetadataExtractor.is_explicit_key(key))
 
-
     def test_is_explicit_key_false(self):
         key = "not_explicit_key"
         self.assertFalse(lister.MetadataExtractor.is_explicit_key(key))
-
-
 
     def test_extract_flow_type(self):
         par_no = 2
@@ -352,7 +354,7 @@ class Test_lister(unittest.TestCase):
                              [2, 'flow parameter', 'membrane simulation', '', ''],
                              [2, 'flow logical parameter', 'e', '', ''],
                              [2, 'flow compared value', 'true', '', '']]
-        self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, if_str1)[0],processed_if_list)
+        self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, if_str1)[0], processed_if_list)
         # TEST SECTION PARSING
         sect_str0 = '<Section|Preparation and Environment>'
         sect_str1 = '<Subsection|Preparation and Environment>'
@@ -365,8 +367,9 @@ class Test_lister(unittest.TestCase):
             if match:
                 subsection_level = match[0].lower().count("sub")
                 processed_sect_list = \
-                    [['-', 'section level '+str(subsection_level), 'Preparation and Environment', '', '']]
-                self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, sect_str)[0], processed_sect_list)
+                    [['-', 'section level ' + str(subsection_level), 'Preparation and Environment', '', '']]
+                self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, sect_str)[0],
+                                     processed_sect_list)
             else:
                 "Test: no (sub)section found."
             print("SUB COUNT: " + str(subsection_level))
@@ -375,7 +378,8 @@ class Test_lister(unittest.TestCase):
         processed_foreach_list = [[par_no, 'step type', 'iteration', '', ''],
                                   [par_no, 'flow type', 'for each', '', ''],
                                   [par_no, 'flow parameter', 'cycles of minimization', '', '']]
-        self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, foreach_str1)[0], processed_foreach_list)
+        self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, foreach_str1)[0],
+                             processed_foreach_list)
         # TEST WHILE PARSING
         while_str1 = '<while|ph|lte|7>'
         processed_while_list = [[par_no, 'step type', 'iteration', '', ''],
@@ -411,8 +415,6 @@ class Test_lister(unittest.TestCase):
                                [par_no, 'flow type', 'else', '', '']]
         self.assertListEqual(lister.MetadataExtractor.extract_flow_type(par_no, else_str1)[0], processed_else_list)
 
-
-
     def test_process_section(self):
         list1 = ['Section', 'Preparation and Environment']
         processed_list = [['-', 'section level 0', 'Preparation and Environment', '', '']]
@@ -427,7 +429,8 @@ class Test_lister(unittest.TestCase):
     #     }
     #     experiment_id = 1
     #
-    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, experiment_id)
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager,
+    #                                          experiment_id)
     #
     #     self.assertEqual(log, "")
     #     self.assertEqual(resource_item_nkvmu_metadata, [
@@ -442,7 +445,8 @@ class Test_lister(unittest.TestCase):
     #         "category": "TestCategory"
     #     }
     #     experiment_id = 1
-    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager, experiment_id)
+    #     resource_item_nkvmu_metadata, log = lister.MetadataExtractor.process_linked_resource_item(manager,
+    #                                                                                               experiment_id)
     #     expected_log = lister.MiscAlertMsg.NON_TWO_COLUMNS_LINKED_TABLE.value.format("TestCategory", 3) + "\n"
     #     self.assertEqual(log, expected_log)
     #     self.assertEqual(resource_item_nkvmu_metadata, "")
@@ -482,10 +486,9 @@ class Test_lister(unittest.TestCase):
     def test_process_internal_comment(self):
         str1 = "molecular dynamics (MD)"
         comment = '(MD)'
-        remain  = 'molecular dynamics'
+        remain = 'molecular dynamics'
         self.assertEqual(lister.MetadataExtractor.process_internal_comment(str1)[0], remain)
         self.assertEqual(lister.MetadataExtractor.process_internal_comment(str1)[1], comment)
-
 
     def test_process_foreach(self):
         list1 = ['for each', 'cycles of minimization']
@@ -583,7 +586,8 @@ class Test_lister(unittest.TestCase):
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
-    # def test_parse_lines_to_kv_happy_path(self, mock_check_bracket_num, mock_split_into_sentences, mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
+    # def test_parse_lines_to_kv_happy_path(self, mock_check_bracket_num, mock_split_into_sentences,
+    #                       mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
     #     # Arrange
     #     mock_check_bracket_num.return_value = ("", False)
     #     mock_split_into_sentences.return_value = ["sentence1", "sentence2"]
@@ -594,14 +598,16 @@ class Test_lister(unittest.TestCase):
     #     # Act
     #     result = lister.MetadataExtractor.parse_lines_to_metadata(lines)
     #     # Assert
-    #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""], ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
+    #     self.assertEqual(result, ([["-", "section level 0", "Experiment Context", "", ""],
+    #                    ["1", "key", "value", "measure", "unit"]], ["comment", "comment"], ""))
 
     # @patch('lister.MetadataExtractor.process_internal_comment')
     # @patch('lister.MetadataExtractor.convert_bracketed_string_to_metadata')
     # @patch('lister.MetadataExtractor.extract_flow_type')
     # @patch('lister.GeneralHelper.split_into_sentences')
     # @patch('lister.Validator.check_bracket_num')
-    # def test_parse_lines_to_kv_bracket_error(self, mock_check_bracket_num, mock_split_into_sentences, mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
+    # def test_parse_lines_to_kv_bracket_error(self, mock_check_bracket_num, mock_split_into_sentences,
+    # mock_extract_flow_type, mock_conv_bracketedstring_to_kvmu, mock_process_internal_comment):
     #     # Arrange
     #     mock_check_bracket_num.return_value = ("Bracket error", True)
     #     mock_split_into_sentences.return_value = ["sentence1", "sentence2"]
@@ -618,8 +624,8 @@ class Test_lister(unittest.TestCase):
     # @patch('lister.TextCleaner.remove_table_tag')
     # @patch('lister.TextCleaner.process_nbsp')
     # @patch('lister.MetadataExtractor.parse_lines_to_metadata')
-    # def test_conv_html_to_nkvmu_returns_empty_output_when_no_clean_lines(self, mock_parse_lines_to_kv, mock_process_nbsp,
-    #                                                                 mock_remove_table_tag, mock_BeautifulSoup):
+    # def test_conv_html_to_nkvmu_returns_empty_output_when_no_clean_lines(self, mock_parse_lines_to_kv,
+    #                                       mock_process_nbsp, mock_remove_table_tag, mock_BeautifulSoup):
     #     # Mock the BeautifulSoup response
     #     mock_soup = Mock()
     #     mock_BeautifulSoup.return_value = mock_soup
@@ -645,7 +651,7 @@ class Test_lister(unittest.TestCase):
     @patch('lister.TextCleaner.process_nbsp')
     @patch('lister.MetadataExtractor.parse_lines_to_metadata')
     def test_conv_html_to_nkvmu_returns_correct_output(self, mock_parse_lines_to_kv, mock_process_nbsp,
-                                                  mock_remove_table_tag, mock_BeautifulSoup):
+                                                       mock_remove_table_tag, mock_BeautifulSoup):
         # Mock the BeautifulSoup response
         mock_soup = Mock()
         mock_BeautifulSoup.return_value = mock_soup
@@ -655,7 +661,7 @@ class Test_lister(unittest.TestCase):
         mock_process_nbsp.return_value = ["line1", "line2"]
         # Mock the parse_lines_to_metadata response
         mock_parse_lines_to_kv.return_value = (
-        [["-", "section level 0", "Experiment Context", "", ""]], ["comment", "comment"], "")
+            [["-", "section level 0", "Experiment Context", "", ""]], ["comment", "comment"], "")
         # Call the method under test
         result = lister.MetadataExtractor.conv_html_to_metadata("<html></html>")
         # Assert that the method returns the correct output
@@ -686,8 +692,8 @@ class Test_lister(unittest.TestCase):
         kvmu = "{value}"
         result = lister.MetadataExtractor.convert_bracketed_string_to_metadata(kvmu)
         expected_log = "WARNING: A Key-Value split with length = 1 is found. This can be caused by a " \
-                            "mathematical formula, which is okay and hence no KEY_VALUE pair is written to the metadata. " \
-                            "Otherwise please check this pair: {0}."
+                       "mathematical formula, which is okay and hence no KEY_VALUE pair is written to " \
+                       "the metadata. Otherwise please check this pair: {0}."
         self.assertEqual(result, ("", "", "", "", expected_log.format(kvmu)))
         # Test a string with too many separators
         with self.assertRaises(SystemExit):
@@ -709,14 +715,16 @@ class Test_lister(unittest.TestCase):
     #     # Assert that the method returns None for the docx formula and a log message indicating the error
     #     self.assertIsNone(docx_formula)
     #     self.assertEqual(log,
-    #                      "WARNING: Formula is found on the experiment entry. Parsing this formula to docx file requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as config.json file. It is currently downloadable from https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, formula parsing is disabled.")
+    #                      "WARNING: Formula is found on the experiment entry. Parsing this formula to docx
+    #                      file requires MML2OMML.XSL file from Microsoft Office to be put on the same directory as
+    #                      config.json file. It is currently downloadable from
+    #                      https://www.exefiles.com/en/xsl/mml2omml-xsl/, Otherwise, formula parsing is disabled.")
 
     def test_get_section_title_empty(self):
         line = "1."
         expected_title = ""
         result_title = lister.DocxHelper.get_section_title(line)
         self.assertEqual(result_title, expected_title)
-
 
     # ------- Validator -------
 
@@ -1095,13 +1103,15 @@ class Test_lister(unittest.TestCase):
         # Test case 2: HTML with empty tags
         html_content = "<p>This is a test paragraph with <span></span> empty tags.</p>"
         soup = BeautifulSoup(html_content, "html.parser")
-        expected_output = BeautifulSoup("<p>This is a test paragraph with  empty tags.</p>", "html.parser")
+        expected_output = BeautifulSoup("<p>This is a test paragraph with  empty tags.</p>",
+                                        "html.parser")
         # typecasting due to the fact that BeautifulSoup objects are not comparable
         self.assertEqual(str(lister.TextCleaner.remove_empty_tags(soup)), str(expected_output))
         # Test case 3: HTML with nested empty tags
         html_content = "<p>This is a test paragraph with <span><i></i></span> nested empty tags.</p>"
         soup = BeautifulSoup(html_content, "html.parser")
-        expected_output = BeautifulSoup("<p>This is a test paragraph with  nested empty tags.</p>", "html.parser")
+        expected_output = BeautifulSoup("<p>This is a test paragraph with  nested empty tags.</p>",
+                                        "html.parser")
         # typecasting due to the fact that BeautifulSoup objects are not comparable
         self.assertEqual(str(lister.TextCleaner.remove_empty_tags(soup)), str(expected_output))
 
@@ -1126,12 +1136,14 @@ class Test_lister(unittest.TestCase):
         expected_output = soup
         self.assertEqual(lister.TextCleaner.remove_table_tag(soup), expected_output)
         # Test case 2: HTML with one table
-        html_content = "<p>This is a test paragraph with a table.</p><table><tr><td>Cell 1</td><td>Cell 2</td></tr></table>"
+        html_content = ("<p>This is a test paragraph with a table.</p><table><tr><td>Cell 1</td><td>Cell 2</td>"
+                        "</tr></table>")
         soup = BeautifulSoup(html_content, "html.parser")
         expected_output = BeautifulSoup("<p>This is a test paragraph with a table.</p>", "html.parser")
         self.assertEqual(lister.TextCleaner.remove_table_tag(soup), expected_output)
         # Test case 3: HTML with multiple tables
-        html_content = "<p>Paragraph with multiple tables.</p><table><tr><td>Table 1</td></tr></table><table><tr><td>Table 2</td></tr></table>"
+        html_content = ("<p>Paragraph with multiple tables.</p><table><tr><td>Table 1</td></tr></table><table><tr><td>"
+                        "Table 2</td></tr></table>")
         soup = BeautifulSoup(html_content, "html.parser")
         expected_output = BeautifulSoup("<p>Paragraph with multiple tables.</p>", "html.parser")
         self.assertEqual(lister.TextCleaner.remove_table_tag(soup), expected_output)
@@ -1160,12 +1172,14 @@ class Test_lister(unittest.TestCase):
         # Test with a dictionary
         exp_dict = {"title": "My Experiment"}
         result = lister.PathHelper.derive_filename_from_experiment(exp_dict)
-        self.assertEqual(result, "my-experiment")  # assuming slugify converts "My Experiment" to "my-experiment"
+        # assuming slugify converts "My Experiment" to "my-experiment"
+        self.assertEqual(result, "my-experiment")
         # Test with an Experiment object
         exp_obj = elabapi_python.Experiment()
         exp_obj.__dict__["_title"] = "Another Experiment"
         result = lister.PathHelper.derive_filename_from_experiment(exp_obj)
-        self.assertEqual(result, "another-experiment")  # assuming slugify converts "Another Experiment" to "another-experiment"
+        # assuming slugify converts "Another Experiment" to "another-experiment"
+        self.assertEqual(result, "another-experiment")
 
     @patch('os.path.isdir')
     @patch('os.makedirs')
@@ -1240,6 +1254,7 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(lister.PathHelper.slugify('Another_Test_String'), 'another_test_string')
         self.assertEqual(lister.PathHelper.slugify('More-Test_String'), 'more-test_string')
         self.assertEqual(lister.PathHelper.slugify('Test@String'), 'teststring')
+
 
 # NOTE: many of the remaining functions are not tested because they are either too complicated for unit test
 # or require interactions with GUI components. Some of these functions are: write_to_docx(), write_to_json(),
