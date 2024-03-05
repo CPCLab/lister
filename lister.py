@@ -13,6 +13,7 @@ from pathlib import Path
 from pprint import pprint
 from typing import Any, Tuple, List, Dict, Union, TypedDict
 import PyInstaller
+from io import StringIO
 
 import elabapi_python
 import latex2mathml.converter
@@ -142,7 +143,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-            elabapi_python.Item, str]:
+        elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -251,7 +252,7 @@ class ApiAccess:
 
     @classmethod
     def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-            list[Union[str, TypedDict]]]:
+                                                            list[Union[str, TypedDict]]]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -302,7 +303,7 @@ class ApiAccess:
         """
         Create an API v2 client with the given endpoint and token.
 
-        :param endpoint: The API endpoint.
+        :param api_endpoint: The API endpoint.
         :param token: The API token.
         :return: The API v2 client.
         :rtype: elabapi_python.ApiClient.
@@ -727,7 +728,7 @@ class MetadataExtractor:
             # category = getattr(linked_item, 'mainattr_title') # only works for elabapi-python 0.4.1.
             category = getattr(linked_item, 'category_title')
 
-            dfs = pd.read_html(html_body)
+            dfs = pd.read_html(StringIO(html_body))
             df = pd.concat(dfs)
             df_col_no = df.shape[1]
             log = ""
@@ -1995,7 +1996,7 @@ class DocxHelper:
         :param bs4.Elements.Tag content: html table tag.
         """
         html_str_table = str(content.contents)[1:-1]
-        dfs = pd.read_html("<table>" + html_str_table + "</table>")
+        dfs = pd.read_html(StringIO("<table>" + html_str_table + "</table>"))
         # read_html unfortunately does not retain styles/formatting, hence write your own html table parser if
         # formatting needs to be retained.
         df = dfs[0]
