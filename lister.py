@@ -14,7 +14,7 @@ from pprint import pprint
 from typing import Any, Tuple, List, Dict, Union, TypedDict
 import PyInstaller
 from io import StringIO
-
+from charset_normalizer import detect
 import elabapi_python
 import latex2mathml.converter
 import pandas as pd
@@ -337,7 +337,11 @@ class ApiAccess:
         uploads_api = elabapi_python.UploadsApi(api_v2_client)
         exp = experiments_api.get_experiment(int(exp_id))
 
-        upload_saving_path = path + '/' + 'attachments'
+        if platform.system() == "Windows":
+            upload_saving_path = path + '\\' + 'attachments'
+        else:
+            upload_saving_path = path + '/' + 'attachments'
+
         sanitized_upload_saving_path = sanitize_filepath(upload_saving_path, platform='auto')
         PathHelper.check_and_create_path(sanitized_upload_saving_path)
 
@@ -346,9 +350,14 @@ class ApiAccess:
 
         for upload in uploads_api.read_uploads('experiments', exp.id):
             try:
-                with open(sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name, 'wb') as file:
+                if platform.system() == "Windows":
+                    upload_path = sanitized_upload_saving_path + "\\" + upload.hash + "_" + upload.real_name
+                else: # on Unix-based OS
+                    upload_path = sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name
+
+                with open(upload_path, 'wb') as file:
                     print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id),
-                         upload.real_name, upload_saving_path +"/" + upload.real_name))
+                         upload.real_name, upload_path))
                     file.write(uploads_api.read_upload('experiments', exp.id, upload.id, format='binary',
                                                     _preload_content=False).data)
                     file.flush()
@@ -516,7 +525,12 @@ class Serializer:
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
         try:
-            document.save(path + '/' + PathHelper.derive_filename_from_experiment(exp) + '.docx')
+            if platform.system() == "Windows":
+                docx_path = path + "\\" + PathHelper.derive_filename_from_experiment(exp) + '.docx'
+                docx_path = sanitize_filepath(docx_path, platform="auto")
+            else:
+                docx_path = path + '/' + PathHelper.derive_filename_from_experiment(exp) + '.docx'
+            document.save(docx_path)
         except FileNotFoundError as e:
             print("ERROR: DOCX file cannot be written: {0}".format(e))
             log = log + "ERROR: DOCX file cannot be written: {0}".format(e)
@@ -533,7 +547,12 @@ class Serializer:
         """
         filename = f"{PathHelper.derive_filename_from_experiment(exp)}.json"
         try:
-            with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
+            if platform.system() == "Windows":
+                json_path = path + "\\" + filename
+                json_path = sanitize_filepath(json_path, platform="auto")
+            else:
+                json_path = path + '/' + filename
+            with open(json_path, "w", encoding="utf-8") as f:
                 json.dump(lst, f, ensure_ascii=False)
         except FileNotFoundError as e:
             print("ERROR: JSON file cannot be written: {0}".format(e))
@@ -550,7 +569,12 @@ class Serializer:
         log_text = log_text.strip()
         PathHelper.check_and_create_path(path)
         try:
-            with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
+            if platform.system() == "Windows":
+                log_path = path + "\\" + 'lister-report.log'
+                log_path = sanitize_filepath(log_path, platform="auto")
+            else:
+                log_path = path + '/' + 'lister-report.log'
+            with open(log_path, "w", encoding="utf-8") as f:
                 f.write(log_text)
         except FileNotFoundError as e:
             print("ERROR: LOG file cannot be written: {0}".format(e))
@@ -569,7 +593,12 @@ class Serializer:
         # json.dump(list, open(path + '/' + derive_filename_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
         # ensure_ascii=False)
         try:
-            with xlsxwriter.Workbook(path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx") as workbook:
+            if platform.system() == "Windows":
+                xlsx_path = path + "\\" + PathHelper.derive_filename_from_experiment(exp) + ".xlsx"
+                xlsx_path = sanitize_filepath(xlsx_path, platform="auto")
+            else:
+                xlsx_path = path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx"
+            with xlsxwriter.Workbook(xlsx_path) as workbook:
                 # formatting cells
                 header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
                 default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
@@ -585,8 +614,7 @@ class Serializer:
                     key = data[1]
                     # do not use regex here, or it will be very slow
                     # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
-                    if len(key) >= 7 and key[
-                                         0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
+                    if len(key) >= 7 and key[0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
                         worksheet.write_row(row_no + 1, 0, data, section_format)
                     else:
                         try:
@@ -2054,11 +2082,16 @@ class DocxHelper:
         """
         log = ""
         if real_name:
-            img_saving_path = path + '/attachments/'
-            sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
+            if platform.system() == "Windows":
+                img_saving_path = path + '\\attachments\\'
+                sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
+                docx_img_path = sanitized_img_saving_path + "\\" + image_hash + "_" + real_name
+            else:
+                img_saving_path = path + '/attachments/'
+                sanitized_img_saving_path = sanitize_filepath(img_saving_path, platform="auto")
+                docx_img_path = sanitized_img_saving_path + "/" + image_hash + "_" + real_name
             try:
-                document.add_picture(sanitized_img_saving_path + "/" + image_hash + "_" + real_name,
-                                     width=Mm(cls.get_text_width(document)))
+                document.add_picture(docx_img_path, width=Mm(cls.get_text_width(document)))
             except Exception as e:
                 log = log + MiscAlertMsg.INACCESSIBLE_ATTACHMENT.value.format(real_name, str(e))
             print(log)
@@ -2242,6 +2275,7 @@ class PathHelper:
         else:
             current_path = pathlib.Path().resolve()
             if platform.system() == "Windows":
+                # output_path = '\\\\?\\' + str(current_path) + "\output"
                 output_path = str(current_path) + "\output"
             else:
                 output_path = str(current_path) + "/output/"
@@ -2264,7 +2298,14 @@ class PathHelper:
             output_path = dir_name + file_name + "/"
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         else:
-            output_path = dir_name + "/" + file_name + "/"
+
+            if platform.system() == "Windows":
+                # Prepend the '\\?\' prefix to allow long file paths on Windows
+                base_path = dir_name + "\\" + file_name + "\\"
+                output_path = "\\\\?\\" + base_path
+            else:
+                base_path = dir_name + "/" + file_name + "/"
+                output_path = base_path
 
         return output_path
 
