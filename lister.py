@@ -341,17 +341,21 @@ class ApiAccess:
         sanitized_upload_saving_path = sanitize_filepath(upload_saving_path, platform='auto')
         PathHelper.check_and_create_path(sanitized_upload_saving_path)
 
+        # print("LIST OF EXPERIMENT ATTACHMENTS: ")
+        # pprint(uploads_api.read_uploads('experiments', exp.id))
+
         for upload in uploads_api.read_uploads('experiments', exp.id):
-            with open(sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name, 'wb') as file:
-                print(
-                    "Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id),
-                                                                                       upload.real_name,
-                                                                                       upload_saving_path +
-                                                                                       "/" + upload.real_name))
-                file.write(
-                    uploads_api.read_upload('experiments', exp.id, upload.id, format='binary',
-                                            _preload_content=False).data)
-                file.flush()
+            try:
+                with open(sanitized_upload_saving_path + "/" + upload.hash + "_" + upload.real_name, 'wb') as file:
+                    print("Attachment found: ID: {0}, with name {1}. Writing to {2}.".format(str(upload.id),
+                         upload.real_name, upload_saving_path +"/" + upload.real_name))
+                    file.write(uploads_api.read_upload('experiments', exp.id, upload.id, format='binary',
+                                                    _preload_content=False).data)
+                    file.flush()
+            except FileNotFoundError as e:
+                print("ERROR: Attachment not found or not accessible: {0}".format(e))
+                log = log + "Attachment not found or not accessible: {0}".format(e)
+
         return log
 
 
@@ -511,7 +515,11 @@ class Serializer:
             document.add_heading("Reference", level=1)
             for reference in all_references:
                 document.add_paragraph(reference, style='List Number')
-        document.save(path + '/' + PathHelper.derive_filename_from_experiment(exp) + '.docx')
+        try:
+            document.save(path + '/' + PathHelper.derive_filename_from_experiment(exp) + '.docx')
+        except FileNotFoundError as e:
+            print("ERROR: DOCX file cannot be written: {0}".format(e))
+            log = log + "ERROR: DOCX file cannot be written: {0}".format(e)
         return log
 
     # Used to serialize extracted metadata to json file.
@@ -524,8 +532,11 @@ class Serializer:
         :param path: The path for writing the JSON file.
         """
         filename = f"{PathHelper.derive_filename_from_experiment(exp)}.json"
-        with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
-            json.dump(lst, f, ensure_ascii=False)
+        try:
+            with open(f"{path}/{filename}", "w", encoding="utf-8") as f:
+                json.dump(lst, f, ensure_ascii=False)
+        except FileNotFoundError as e:
+            print("ERROR: JSON file cannot be written: {0}".format(e))
 
     # Used to write into the log file.
     # def write_log(log, full_path=output_path_and_filename):
@@ -538,8 +549,11 @@ class Serializer:
         """
         log_text = log_text.strip()
         PathHelper.check_and_create_path(path)
-        with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
-            f.write(log_text)
+        try:
+            with open(f"{path}/lister-report.log", "w", encoding="utf-8") as f:
+                f.write(log_text)
+        except FileNotFoundError as e:
+            print("ERROR: LOG file cannot be written: {0}".format(e))
 
     @classmethod
     def write_to_xlsx(cls, metadata_set: List, exp: dict, path: str) -> None:
@@ -554,27 +568,37 @@ class Serializer:
         header = ["PARAGRAPH NUMBER", "KEY", "VALUE", "MEASURE", "UNIT"]
         # json.dump(list, open(path + '/' + derive_filename_from_exp(experiment) + ".json", 'w', encoding="utf-8"),
         # ensure_ascii=False)
-        with xlsxwriter.Workbook(path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx") as workbook:
-            # formatting cells
-            header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
-            default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
-            section_format = workbook.add_format({'border': 1, 'border_color': '9bbb59', 'bg_color': 'ebf1de'})
-            # creating and formatting worksheet
-            worksheet = workbook.add_worksheet()
-            worksheet.write_row(0, 0, header, header_format)
-            worksheet.set_column('A:A', 19)
-            worksheet.set_column('B:B', 18)
-            worksheet.set_column('C:C', 30)
-            worksheet.set_column('D:E', 15)
-            for row_no, data in enumerate(metadata_set):
-                key = data[1]
-                # do not use regex here, or it will be very slow
-                # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
-                if len(key) >= 7 and key[
-                                     0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
-                    worksheet.write_row(row_no + 1, 0, data, section_format)
-                else:
-                    worksheet.write_row(row_no + 1, 0, data, default_format)
+        try:
+            with xlsxwriter.Workbook(path + '/' + PathHelper.derive_filename_from_experiment(exp) + ".xlsx") as workbook:
+                # formatting cells
+                header_format = workbook.add_format({'bold': True, 'bg_color': '9bbb59', 'font_color': 'ffffff'})
+                default_format = workbook.add_format({'border': 1, 'border_color': '9bbb59'})
+                section_format = workbook.add_format({'border': 1, 'border_color': '9bbb59', 'bg_color': 'ebf1de'})
+                # creating and formatting worksheet
+                worksheet = workbook.add_worksheet()
+                worksheet.write_row(0, 0, header, header_format)
+                worksheet.set_column('A:A', 19)
+                worksheet.set_column('B:B', 18)
+                worksheet.set_column('C:C', 30)
+                worksheet.set_column('D:E', 15)
+                for row_no, data in enumerate(metadata_set):
+                    key = data[1]
+                    # do not use regex here, or it will be very slow
+                    # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
+                    if len(key) >= 7 and key[
+                                         0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
+                        worksheet.write_row(row_no + 1, 0, data, section_format)
+                    else:
+                        try:
+                            worksheet.write_row(row_no + 1, 0, data, default_format)
+                        except xlsxwriter.exceptions.FileCreateError as e:
+                            print(e)
+                           #  print("ERROR: Excel file cannot be written: {0}".format(e))
+        except xlsxwriter.exceptions.FileCreateError as e:
+            print(e)
+
+
+
 
 
 # ---------------------------------------------- Metadata Extraction Class --------------------------------------------
