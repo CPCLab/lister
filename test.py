@@ -1243,11 +1243,11 @@ class Test_lister(unittest.TestCase):
 
     @patch('platform.system')
     def test_manage_output_path_non_darwin(self, mock_system):
-        mock_system.return_value = 'Windows'  # or any other non-Darwin platform
-        dir_name = 'dir/'
+        mock_system.return_value = 'Windows'
+        dir_name = 'dir\\'
         file_name = 'file'
         output_path = lister.PathHelper.manage_output_path(dir_name, file_name)
-        expected_output_path = dir_name + "/" + file_name + "/"
+        expected_output_path = '\\\\?\\' +dir_name + "\\" + file_name + "\\"
         self.assertEqual(output_path, expected_output_path)
 
     def test_slugify(self):
