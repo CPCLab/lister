@@ -14,7 +14,6 @@ from pprint import pprint
 from typing import Any, Tuple, List, Dict, Union, TypedDict
 import PyInstaller
 from io import StringIO
-from charset_normalizer import detect
 import elabapi_python
 import latex2mathml.converter
 import pandas as pd
@@ -1321,8 +1320,6 @@ class MetadataExtractor:
         soup.encoding = "utf-8"
         soup = TextCleaner.remove_table_tag(soup)
 
-        # detected_encoding = soup.encoding
-        # print("Detected encoding:", detected_encoding)
         clean_lines = TextCleaner.process_nbsp(soup)
         if clean_lines is not None:
             multi_metadata_pair, internal_comments, log = MetadataExtractor.parse_lines_to_metadata(clean_lines)
