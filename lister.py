@@ -498,9 +498,17 @@ class Serializer:
         all_references = []
         log = ""
         tagged_contents = TextCleaner.get_nonempty_body_tags(exp)
-        watched_tags = ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
+
+        watched_tags = ['div', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span', 'strong', 'sub', 'em', 'sup']
         for content in tagged_contents:  # iterate over a list of tags
+
             if isinstance(content, Tag):
+
+                if content.name == "div":
+                    print("A div tag is found, unwrapping...")
+                    # print("The content is a div, unwrapping...")
+                    content.unwrap()
+
                 if len(content.select("img")) > 0:
                     # upl_id, real_name, hash = ApiAccess.get_attachment_ids(experiment, content)
                     image_ids, log = ApiAccess.get_attachment_ids(exp, content)
