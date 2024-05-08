@@ -17,8 +17,8 @@ LISTER is an effective tool that simplifies metadata extraction for your eLabFTW
 
 Par. No. | Key | Value | Measure | Unit
 --- | --- | --- | --- | ---
-- | section level 0 | Remarks |  | 
-- | section level 0 | Precultures |  | 
+\- | section level 0 | Remarks |  | 
+\- | section level 0 | Precultures |  | 
 4 | Date of experiment | 29.09.2017 |  | 
 5 | expression strain | P. putida KT2440 pVLT33::pigC |  | 
 5 | negative control | empty vector strain |  | 
