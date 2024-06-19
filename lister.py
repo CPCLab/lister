@@ -121,7 +121,8 @@ class RegexPatterns(Enum):
     PRE_COMMA_SPACES = r'\s+,'
     SUBSECTION = '(sub)*section'
     SUBSECTION_W_EXTRAS = r'(sub)*section.+'
-    SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?);"
+    # SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?);"
+    SPAN_ATTR_VAL = r"(\w+-?\w+):(#?\w+?.?\w+?);"  # catch span attribute value pairs
 
 
 class ArgNum(Enum):
