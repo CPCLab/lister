@@ -844,7 +844,6 @@ class MetadataExtractor:
                     # get the linked resource item by ID
                     linked_resource, resource_log = ApiAccess.get_resource_item(api_v2_client, linked_entytyid)
                     overall_log = overall_log + "\n" + resource_log
-                    pprint(linked_resource)
                     if linked_resource is not None:
                         id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
                         # pprint(id_and_category)
