@@ -73,10 +73,10 @@ class MiscAlertMsg(Enum):
     ITERATION_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, " \
                           "please check the following part: {0}."
-    INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is not accessible using the current user's API Token. " \
+    INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is either unavailable or not accessible using the current user's API Token. " \
                             "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
                             "message: {3}, description: {4} Parsing this resource is skipped."
-    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is not accessible using the current user's API Token." \
+    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is  is either unavailable or not accessible using the current user's API Token." \
                               " Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
                               "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. " \
@@ -764,7 +764,7 @@ class MetadataExtractor:
             experiments = item_api_response.__dict__["_experiments_links"]
             for experiment in experiments:
                 exp_path = output_path + PathHelper.slugify(experiment.__dict__["_title"])
-                cls.process_experiment(api_v2_client, experiment.__dict__["_itemid"], exp_path)
+                cls.process_experiment(api_v2_client, experiment.__dict__["_entityid"], exp_path)
         except ApiException as e:
             print("Exception when calling ItemsApi->getItem: %s\n" % e)
 
@@ -820,15 +820,13 @@ class MetadataExtractor:
         overall_log = ""
 
         experiment_instance = elabapi_python.ExperimentsApi(api_v2_client)
-        # experiment_response = experiment_instance.get_experiment(int(exp_no))
 
         print("------------------------------")
         print("Accessing experiment with ID: " + str(exp_id))
         try:
-            experiment_response = experiment_instance.get_experiment(int(exp_id))
+            experiment_response = experiment_instance.get_experiment(exp_id)
             linked_resources = experiment_response.__dict__['_items_links']
-            # get the IDs of the linked resources
-            linked_resource_ids = [linked_resource.__dict__["_itemid"] for linked_resource in linked_resources]
+            linked_entityids = [linked_resource.__dict__["_entityid"] for linked_resource in linked_resources]
 
             # get the respective category of the linked resources
             id_and_category = {}
@@ -840,17 +838,21 @@ class MetadataExtractor:
             # for linked_resource in linked_resources:
             # id_and_category[linked_resource.__dict__["_itemid"]] = linked_resource.__dict__["_mainattr_title"]
 
-            print("---------------- linked_resource_ids: ---------------- ")
-            pprint(linked_resource_ids)
 
-            for linked_resource_id in linked_resource_ids:
-                # get the linked resource item by ID
-                linked_resource, resource_log = ApiAccess.get_resource_item(api_v2_client, linked_resource_id)
-                overall_log = overall_log + "\n" + resource_log
-                # pprint(linked_resource)
-                if linked_resource is not None:
-                    id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
-            # pprint(id_and_category)
+            for linked_entytyid in linked_entityids:
+                try:
+                    # get the linked resource item by ID
+                    linked_resource, resource_log = ApiAccess.get_resource_item(api_v2_client, linked_entytyid)
+                    overall_log = overall_log + "\n" + resource_log
+                    pprint(linked_resource)
+                    if linked_resource is not None:
+                        id_and_category[linked_resource.__dict__["_id"]] = linked_resource.__dict__["_category_title"]
+                        # pprint(id_and_category)
+                except ApiException as e:
+                    reason, code, message, description = ApiAccess.parse_api_exception(e)
+                    item_log = MiscAlertMsg.INACCESSIBLE_RESOURCE.value.format(id, reason, code, message, description)
+                    print(item_log)
+                    Serializer.write_log(item_log, path)
 
             filtered_id_and_category = {key: value for key, value in id_and_category.items() if value.lower() not in
                                         [item.lower() for item in excluded_item_types]}
