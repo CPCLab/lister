@@ -1033,7 +1033,7 @@ class MetadataExtractor:
         flow_logical_operator = control_flow_split[2]
         key_value.append([paragraph_no, CFMetadata.FLOW_LOGICAL_OPERATOR.value, flow_logical_operator, '', ''])
         flow_compared_value = control_flow_split[3]
-        if re.search(r"\[.*?\]", flow_compared_value):
+        if re.search(r"\[.*?]", flow_compared_value):
             key_value.append([paragraph_no, CFMetadata.FLOW_RANGE.value, flow_compared_value, '', ''])
             start, end, range_log, range_is_error = cls.process_range(flow_compared_value)
             key_value.append([paragraph_no, CFMetadata.FLOW_ITERATION_START.value, start, '', ''])
@@ -2202,7 +2202,7 @@ class TextCleaner:
         :param str key: The string to remove colons from.
         :return: str stripped_key: The string with all colons removed.
         """
-        stripped_key = re.sub(r'\:', '', key)
+        stripped_key = re.sub(r':', '', key)
         return stripped_key
 
     @classmethod
@@ -2278,23 +2278,23 @@ class PathHelper:
         On macOS, it is in the users' Apps/lister/output/ directory.
 
         :param str fname: file name for the output.
-        :return: str output_path: the output path created from appending lister's output home directory and
+        :return: str default_output_path: the output path created from appending lister's output home directory and
                   output file name.
         """
         # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         if platform.system() == "Darwin":
             home = str(Path.home())
-            output_path = home + "/Apps/lister/output/" + fname
-            print("OUTPUT PATH: %s" % output_path)
+            default_output_path = home + "/Apps/lister/output/" + fname
+            print("OUTPUT PATH: %s" % default_output_path)
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         else:
             current_path = pathlib.Path().resolve()
             if platform.system() == "Windows":
                 # output_path = '\\\\?\\' + str(current_path) + "\output"
-                output_path = str(current_path) + "\output"
+                default_output_path = str(current_path) + "\output"
             else:
-                output_path = str(current_path) + "/output/"
-        return output_path
+                default_output_path = str(current_path) + "/output/"
+        return default_output_path
 
     @classmethod
     def manage_output_path(cls, dir_name: str, fname: str) -> str:
@@ -2306,23 +2306,23 @@ class PathHelper:
 
         :param str dir_name: the home directory name for the output.
         :param str fname: the output name.
-        :return: str output_path is the output directory created from appending the home path and output path.
+        :return: str managed_output_path is the output directory created from appending the home path and output path.
         """
         # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         if platform.system() == "Darwin":
-            output_path = dir_name + fname + "/"
+            managed_output_path = dir_name + fname + "/"
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         else:
 
             if platform.system() == "Windows":
                 # Prepend the '\\?\' prefix to allow long file paths on Windows
                 base_path = dir_name + "\\" + fname + "\\"
-                output_path = "\\\\?\\" + base_path
+                managed_output_path = "\\\\?\\" + base_path
             else:
                 base_path = dir_name + "/" + fname + "/"
-                output_path = base_path
+                managed_output_path = base_path
 
-        return output_path
+        return managed_output_path
 
     @classmethod
     def check_and_create_path(cls, path: str) -> None:
@@ -2378,7 +2378,9 @@ ref_counter = 0
 
 
 def main():
-    global output_filename, item_api_response, output_path, base_output_path, api_token, exp_no, endpoint
+    global output_path
+    item_api_response = ""
+    output_filename = ""
 
     # suppress the redundant window pop up on macOS as a workaround, see
     # https://stackoverflow.com/questions/72636873/app-package-built-by-pyinstaller-fails-after-it-uses-tqdm
@@ -2423,6 +2425,6 @@ def main():
         print("Processing a resource...")
         MetadataExtractor.process_ref_resource_item(api_v2_client, item_api_response)
 
-
+output_path = ""
 if __name__ == "__main__":
     main()
