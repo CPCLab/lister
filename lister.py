@@ -15,7 +15,6 @@ from pprint import pprint
 import platform
 import unicodedata
 from multiprocessing import freeze_support
-import PyInstaller
 
 # Third-party imports
 import elabapi_python
