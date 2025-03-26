@@ -127,3 +127,5 @@ config-old.json
 scrappad.py
 config-real.json
 apiv2test.py
+qodana.yaml
+config-20.json

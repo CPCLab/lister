@@ -18,7 +18,7 @@ from lxml import etree
 # from lister import latex_formula_to_docx, MiscAlertMsg
 
 
-class Test_lister(unittest.TestCase):
+class TestLister(unittest.TestCase):
 
     # CFMetadata(Enum)
     # no test here.
@@ -652,10 +652,10 @@ class Test_lister(unittest.TestCase):
     @patch('lister.TextCleaner.process_nbsp')
     @patch('lister.MetadataExtractor.parse_lines_to_metadata')
     def test_conv_html_to_nkvmu_returns_correct_output(self, mock_parse_lines_to_kv, mock_process_nbsp,
-                                                       mock_remove_table_tag, mock_BeautifulSoup):
+                                                       mock_remove_table_tag, mock_beautiful_soup):
         # Mock the BeautifulSoup response
         mock_soup = Mock()
-        mock_BeautifulSoup.return_value = mock_soup
+        mock_beautiful_soup.return_value = mock_soup
         # Mock the remove_table_tag response
         mock_remove_table_tag.return_value = mock_soup
         # Mock the process_nbsp response
@@ -1002,10 +1002,10 @@ class Test_lister(unittest.TestCase):
 
     @patch('bs4.BeautifulSoup')
     @patch('lister.TextCleaner.remove_empty_tags')
-    def test_get_nonempty_body_tags_correct_output(self, mock_remove_empty_tags, mock_BeautifulSoup):
+    def test_get_nonempty_body_tags_correct_output(self, mock_remove_empty_tags, mock_beautiful_soup):
         # Mock the BeautifulSoup response
         mock_soup = MagicMock()
-        mock_BeautifulSoup.return_value = mock_soup
+        mock_beautiful_soup.return_value = mock_soup
         # Mock the remove_empty_tags response
         mock_remove_empty_tags.return_value = mock_soup
         # Create a mock experiment
@@ -1020,9 +1020,9 @@ class Test_lister(unittest.TestCase):
         self.assertEqual(result, expected_result)
 
     @patch('bs4.BeautifulSoup')
-    def test_get_nonempty_body_tags_error_when_body_is_none(self, mock_BeautifulSoup):
+    def test_get_nonempty_body_tags_error_when_body_is_none(self, mock_beautiful_soup):
         # Mock the BeautifulSoup response to return None
-        mock_BeautifulSoup.return_value = None
+        mock_beautiful_soup.return_value = None
         # Create a mock experiment with a None body
         mock_exp = Mock()
         mock_exp.__dict__["_body"] = None

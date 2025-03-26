@@ -1,19 +1,23 @@
+from __future__ import annotations
 import json
-# import elabapy
 import os
-import pathlib
-import platform
 import re
-import unicodedata
 import warnings
+import pathlib
 from argparse import Namespace
 from enum import Enum
-from multiprocessing import freeze_support
 from pathlib import Path
-from pprint import pprint
-from typing import Any, Tuple, List, Dict, Union, TypedDict
-import PyInstaller
+from typing import Any, Dict, List, Tuple, Union, TypedDict
 from io import StringIO
+from pprint import pprint
+
+# Prevent unresolved references
+import platform
+import unicodedata
+from multiprocessing import freeze_support
+import PyInstaller
+
+# Third-party imports
 import elabapi_python
 import latex2mathml.converter
 import pandas as pd
@@ -73,10 +77,12 @@ class MiscAlertMsg(Enum):
     ITERATION_OPERATION_NOT_EXIST = "ERROR: The iteration operation is not found, please check the following part: {0}."
     MAGNITUDE_NOT_EXIST = "ERROR: The magnitude of the iteration flow is not found, " \
                           "please check the following part: {0}."
-    INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is either unavailable or not accessible using the current user's API Token. " \
+    INACCESSIBLE_RESOURCE = "ERROR: Resource with ID '{0}' is either unavailable or not accessible using the " \
+                             "current user's API Token. " \
                             "Please check the resource ID and the user's permission. Reason: {1}, code: {2}, " \
                             "message: {3}, description: {4} Parsing this resource is skipped."
-    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is  is either unavailable or not accessible using the current user's API Token." \
+    INACCESSIBLE_EXPERIMENT = "ERROR: Experiment with ID '{0}' is  is either unavailable or not accessible using " \
+                               "the current user's API Token." \
                               " Please check the experiment ID and the user's permission. Reason: {1}, code: {2}, " \
                               "message: {3}, description: {4} Parsing this experiment is skipped."
     SIMILAR_PAR_KEY_FOUND = "WARNING: A combination of similar paragraph number and key has been found, '{0}'. " \
@@ -143,7 +149,7 @@ class ApiAccess:
 
     @classmethod
     def get_resource_item(cls, api_v2_client: elabapi_python.api_client, resource_id: int) -> tuple[
-        elabapi_python.Item, str]:
+                            elabapi_python.Item, str]:
         """
         Get an item from eLabFTW using the resource item ID and API v2 client.
 
@@ -155,7 +161,7 @@ class ApiAccess:
         api_item_response = None
         api_instance = elabapi_python.ItemsApi(api_v2_client)
         print("------------------------------")
-        print("Accessing resource item with ID: " + str(resource_id))
+        print(f"Accessing resource item with ID: {resource_id}")
         try:
             api_item_response = api_instance.get_item(resource_id, format='json')
         except ApiException as e:
@@ -251,8 +257,8 @@ class ApiAccess:
         return exp_response
 
     @classmethod
-    def get_attachment_ids(cls, exp: Dict, content: Tag) -> Union[list[dict[str, Union[str, Any]]],
-                                                            list[Union[str, TypedDict]]]:
+    def get_attachment_ids(cls, exp: Dict, content: Tag) -> tuple[list[dict[str, str | Any]], str]:
+    # def get_attachment_ids(cls, exp: Dict, content: Tag) -> tuple[list[dict[str, str, str]], str]:
         """
         Get upload experiment_id from given experiment and content.
         :param dict exp: a dictionary containing details of an experiment (html body, status, rating, next step, etc.).
@@ -622,7 +628,8 @@ class Serializer:
                     key = data[1]
                     # do not use regex here, or it will be very slow
                     # if re.match(RegexPatterns.SUBSECTION.value, data[1].lower()):
-                    if len(key) >= 7 and key[0:7].casefold() == "section".casefold() or key.casefold() == "metadata section":
+                    if len(key) >= 7 and key[0:7].casefold() == "section".casefold() or key.casefold() == ("metadata "
+                                                                                                           "section"):
                         worksheet.write_row(row_no + 1, 0, data, section_format)
                     else:
                         try:
@@ -1735,7 +1742,8 @@ class GeneralHelper:
 
     # Used in get_attachment_long_name()
     @classmethod
-    def split_by_separators(cls, text: str, separators: List[str]) -> List[str]:
+    # def split_by_separators(cls, text: str, separators: List[str]) -> List[str]:
+    def split_by_separators(cls, text: str, separators: tuple[str, str]) -> List[str]:
         """
         Split a given text using multiple separators.
 
@@ -1879,7 +1887,7 @@ class DocxHelper:
 
     # TODO: check why some invisible key elements passed the invisibility checks.
     @classmethod
-    def write_tag_to_doc(cls, document: Document, tag_item: Tag) -> List[str]:
+    def write_tag_to_doc(cls, document: Document, tag_item: Tag) -> tuple[list[str], str | Any]:
         """
         writes and format html tag content to a docx document.
         :param Document document: python-docx document instance.
@@ -2263,20 +2271,20 @@ class PathHelper:
         return filename_from_experiment
 
     @classmethod
-    def get_default_output_path(cls, file_name: str) -> str:
+    def get_default_output_path(cls, fname: str) -> str:
         """
         Create an output path based on the home path (OS-dependent) and output file name.
         The home path is OS-dependent. On Windows/Linux, it is in the output directory as the script/executables.
         On macOS, it is in the users' Apps/lister/output/ directory.
 
-        :param str file_name: file name for the output.
+        :param str fname: file name for the output.
         :return: str output_path: the output path created from appending lister's output home directory and
                   output file name.
         """
         # enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         if platform.system() == "Darwin":
             home = str(Path.home())
-            output_path = home + "/Apps/lister/output/" + file_name
+            output_path = home + "/Apps/lister/output/" + fname
             print("OUTPUT PATH: %s" % output_path)
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir.
         else:
@@ -2289,7 +2297,7 @@ class PathHelper:
         return output_path
 
     @classmethod
-    def manage_output_path(cls, dir_name: str, file_name: str) -> str:
+    def manage_output_path(cls, dir_name: str, fname: str) -> str:
         """
         Get the output path according to the respective platform.
 
@@ -2297,21 +2305,21 @@ class PathHelper:
         on Windows/Linux, return the dir_name + output file_name.
 
         :param str dir_name: the home directory name for the output.
-        :param str file_name: the output name.
+        :param str fname: the output name.
         :return: str output_path is the output directory created from appending the home path and output path.
         """
         # on macOS, enforce output path's base to be specific to ~/Apps/lister/ + output + filename
         if platform.system() == "Darwin":
-            output_path = dir_name + file_name + "/"
+            output_path = dir_name + fname + "/"
         # in windows and linux, use the executable's directory as a base to provide the outputs instead of home dir‚
         else:
 
             if platform.system() == "Windows":
                 # Prepend the '\\?\' prefix to allow long file paths on Windows
-                base_path = dir_name + "\\" + file_name + "\\"
+                base_path = dir_name + "\\" + fname + "\\"
                 output_path = "\\\\?\\" + base_path
             else:
-                base_path = dir_name + "/" + file_name + "/"
+                base_path = dir_name + "/" + fname + "/"
                 output_path = base_path
 
         return output_path
@@ -2370,9 +2378,7 @@ ref_counter = 0
 
 
 def main():
-    global output_filename
-    global output_path, base_output_path
-    global token, exp_no, endpoint
+    global output_filename, item_api_response, output_path, base_output_path, api_token, exp_no, endpoint
 
     # suppress the redundant window pop up on macOS as a workaround, see
     # https://stackoverflow.com/questions/72636873/app-package-built-by-pyinstaller-fails-after-it-uses-tqdm
