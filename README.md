@@ -1,19 +1,41 @@
 # LISTER: Life Science Experiment Metadata Parser
 
-This repository contains a set of files to parse documentation of experiments in eLabFTW.
+**TL;DR:** LISTER is a metadata extraction tool that parses experiments from eLabFTW using a simple annotation mechanism. It converts annotated experiment documentation into structured metadata (Excel/JSON) and clean Word documents without annotations. LISTER supports parsing both individual experiments and groups of experiments (containers) with a single click. The extracted metadata improves findability and reproducibility while making experiment documentation more accessible for both humans and machines.
 
-A more detailed explanation regarding LISTER is provided in the following paper: https://pubs.acs.org/doi/10.1021/acs.jcim.3c00744
+TABLE OF CONTENTS
+=================
+# Table of Contents
 
-
-Additional resources are avaible to try out LISTER on your own:
-
-- Demo server for eLabFTW, with contents that can be parsed with LISTER: https://elabftw.pharm.hhu.de/login.php. Please use anonymous login to browse the content.
-- eLabFTW-importable Structure and comments to see how we implement our eLabFTW structure: https://github.com/CPCLab/lister-container.
-- eLabFTW-importable Materials and methods examples, annotated with LISTER annotation rules: https://github.com/CPCLab/materials-and-methods.
+- [LISTER: Life Science Experiment Metadata Parser](#lister-life-science-experiment-metadata-parser)
+  - [Overview](#overview)
+  - [Screenshots](#screenshots)
+    - [User interface](#user-interface)
+    - [eLabFTW annotations](#elabftw-annotations)
+    - [Outputs](#outputs)
+  - [Installing and running LISTER](#installing-and-running-lister)
+    - [Adapting the config.json file](#adapting-the-configjson-file)
+  - [Annotation mechanism](#annotation-mechanism)
+    - [Examples of annotations vs. extracted metadata](#examples-of-annotations-vs-extracted-metadata)
+    - [Supported operators](#supported-operators)
+      - [Logical operator](#logical-operator)
+      - [Iteration operator](#iteration-operator)
+    - [Parsable entries comparison](#parsable-entries-comparison)
+    - [Document validation](#document-validation)
+    - [Image extraction](#image-extraction)
+    - [Recommendations](#recommendations)
+  - [GitHub repository structure](#github-repository-structure)
+  - [Miscellaneous](#miscellaneous)
+    - [Packaging LISTER](#packaging-lister)
+    - [Troubleshooting](#troubleshooting)
+      - [Platform-agnostic Troubleshooting](#platform-agnostic-troubleshooting)
+      - [Windows Troubleshooting](#windows-troubleshooting)
+      - [macOS Troubleshooting](#macos-troubleshooting)
+  - [Additional Resources](#additional-resources)
+  - [Citing LISTER](#citing-lister)
 
 ## Overview
 
-LISTER is an effective tool that simplifies metadata extraction for your eLabFTW experiments, improving the findability and reproducibility of your work. By using LISTER, you can save time and effort in documenting your research and annotating your research data while ensuring that your metadata is well-organized and easily accessible. LISTER formats your metadata in both Excel format, making it easy for humans to read and machines to process, as illustrated in Table 1. 
+LISTER simplifies metadata extraction for eLabFTW experiments, enhancing findability and reproducibility. It saves time in research documentation by organizing metadata into accessible Excel files, making it easy to read for humans and processable by machines, as shown in Table 1.
 
 Par. No. | Key | Value | Measure | Unit
 --- | --- | --- | --- | ---
@@ -30,37 +52,32 @@ Par. No. | Key | Value | Measure | Unit
 
 _Table 1. An example of the extracted metadata from LISTER in tabular Excel format._ 
 
-LISTER's semi-automated metadata extraction is powered by a user-friendly annotation mechanism that empowers experiment documentation writers to effortlessly highlight metadata pairs they consider crucial. The appeal of this annotation system lies in its simplicity and readability for both humans and machines. It works as illustrated in Figure 1.
-
+LISTER's metadata extraction uses a simple annotation mechanism, allowing experiment documentation writers to highlight important metadata pairs. This system is designed to be intuitive and readable for both humans and machines, as shown in Figure 1.
 
 <img src="docs/image5.png"  width="700"/>
 
 _Figure 1. Lightweight annotated experiment document snippets are extracted for (a) metadata in JSON and Excel format and (b) clean Word documentation_
 
-Once the metadata is extracted, LISTER creates a clean Word document along with the metadata extraction. When exporting to a Word document, LISTER removes the annotations and simplifies the content, presenting you with a clean and simplified document that is ready for sharing or publication,  ensuring that others can reproduce your experiments with ease, as illustrated in Figure 2.
-
+LISTER extracts metadata and generates a clean Word document by removing annotations. The resulting document is simplified, making it ready for sharing or publication and ensuring experiments can be easily reproduced, as shown in Figure 2.
 
 
 <img src="docs/image2.png" width="600"/>
 
 _Figure 2. An example of a Word experiment documentation generated by LISTER._ 
 
-LISTER's annotation process can be streamlined by integrating with your eLabFTW implementation's protocol/materials and methods catalog. Our collection of materials and methods is illustrated in Figure 3.  These protocols are pre-annotated using LISTER's annotation scheme (see below for details). When you import these pre-annotated catalog entries into your experiment entries (which can be done with a click in eLabFTW), you **ensure consistency throughout your research documentation without having to write and annotate the documentation from scratch**. The adaptation of the actual value being used, however, has to be done manually.
-
+LISTER's annotation process integrates with eLabFTW's protocol/materials and methods catalog. Pre-annotated protocols using LISTER's annotation scheme (see details in Figure 3 below) can be imported into experiment entries with a single click in eLabFTW. This ensures consistent research documentation without requiring manual annotation from scratch. However, the actual values used must still be manually adapted.
 
 <img src="docs/image1.png" width="700"/>
 
 _Figure 3. A collection of pre-annotated reusable catalog entries that can be imported to relevant experiments._
 
-If your lab's eLabFTW implementation utilizes specific groupings (we coined these groupings as *containers*), such as by *publication*, *project*, *study*, or *system*, LISTER offers a convenient feature that allows you to extract metadata for all experiments within a group with just a single click. Moreover, LISTER provides the flexibility to include additional information related to your groupings (such as a *publication*), further enhancing the context and usability of your extracted metadata. In the following example, LISTER also provides the information of publication's title, authors, journal, status, and DOI for some experiments belonging to a publication along with related *project*, *study*, and *system* information. This is illustrated in Figure 4.
-
+LISTER allows you to extract metadata for all experiments within specific groupings (*containers*) like *publication*, *project*, *study*, or *system* with a single click. It also lets you include additional information about these groupings, such as a *publication's* title, authors, journal, status, and DOI. This enhances the context and usability of the extracted metadata. An example of this feature is shown in Figure 4.
 
 <img src="docs/image3.png" width="900"/>
 
 _Figure 4. A publication consists of several linked experiments, all of which can be extracted for their metadata in a single click._
 
-By embracing a structured approach to your eLabFTW organization, your experiments will remain well-organized and easily accessible. LISTER's one-click metadata parsing for experiments belonging to, for example, a study is an illustration of LISTER's metadata extraction efficiency. With a single click, LISTER generates a comprehensive folder structure where each experiment directory contains a Word document detailing the experiment without bracket annotations, an Excel file with a table of metadata entries, a JSON metadata file, and any attachments you have provided in your corresponding eLabFTW experiment entries. This structured output ensures that your experiment documentation is clear, concise, and ready for research data publication, sharing, and archival. This is illustrated in Figure 5.
-
+LISTER simplifies eLabFTW organization by ensuring experiments are well-structured and accessible. With one click, it generates a folder for each experiment containing a clean Word document (without annotations), an Excel file of metadata, a JSON metadata file, and any provided attachments. This structured output is ready for publication, sharing, and archival, as shown in Figure 5.
 
 <img src="docs/image4.png" width="1200"/>
 
@@ -181,7 +198,7 @@ The annotation mechanism allows extracting metadata from experiment documentatio
   - This is done by using the `<section|section name>` annotation.
   - Multiple subsections are also supported, with e.g., `<subsubsection|section name>`, which will output different sectioning levels in the .xlsx and .json files and different heading levels in the .docx file.
 
-## Examples of annotations vs. extracted metadata
+### Examples of annotations vs. extracted metadata
 
 | **Extracted item**                                                             | **Description**                                                                                                                                                          | **Representation**                                                                     | **Example**                                 | **Extracted order,key, value, and optionally measure, unit in the metadata**                                                                                                                                                                                                                                                                                 |
 | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------- |--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -232,7 +249,7 @@ An iteration operator is used to change the value of a variable in a loop. It is
 
 - `/`: iteration using division
 
-## Parsable entries comparison
+### Parsable-entries comparison
 
 
 |                                      | Instance example                         | Can the table be parsed as metadata?                                                   | Can annotated text be parsed?                                        | Should the the metadata specified before (be it table OR annotated text) be parsed?                              |
@@ -243,7 +260,7 @@ An iteration operator is used to change the value of a variable in a loop. It is
 | Container-instance database entries  | Publication                              | Yes                                                                                    | No, it is deemed to be unnecessary as KV are already in tabular form | Yes                                                                                                              |
 
 
-## Document validation
+### Document validation
 
 LISTER checks and reports the following syntax issues upon parsing:
 
@@ -255,23 +272,24 @@ LISTER checks and reports the following syntax issues upon parsing:
 
 - Invalid control flows.
 
-## Image extraction
+### Image extraction
 
 Images are extracted from the experiment documentation, but there is no metadata or naming scheme for the extracted images.
 
-## Recommendations
+### Recommendations
 
 - Avoid referring to, e.g., a section without explicitly using a key-value pair (avoid, e.g., "*Repeat step 1 with similar parameters*"), as this will make the metadata extraction for that particular implicit step impossible.
 
 - To minimize confusion regarding units of measurement (e.g., `fs` vs `ps`), please explicitly state the units within the value portion of the key-value pair, e.g., `{0.01|ps|gamma_ln}`.
 
-## GitHub repository structure
-
-- The base directory contains the metadata extraction script.
-
-- The output directory contains the extracted metadata: step order – key – value – measure – unit in JSON and XLSX format.
 
 ## Miscellaneous
+
+### GitHub repository structure
+
+- The base directory contains the metadata extraction script.
+- The output directory contains the extracted metadata: step order – key – value – measure – unit in JSON and XLSX format.
+
 
 ### Packaging LISTER
 
@@ -311,18 +329,21 @@ Images are extracted from the experiment documentation, but there is no metadata
 
 - One file version - on the root folder of the repo, run `pyinstaller build-scripts/build-macos-onefile.spec `
 
-## Troubleshooting
+### Troubleshooting
 
-### Generic platform: slow initial execution
+#### Platform-agnostic Troubleshooting
+
+##### Slow Initial Launch
 
 Decompressing a single-executable lister app into a temporary directory likely caused this problem. The multi-file distribution (aka one-directory version) can be used instead, although it is not as tidy as compared to the single-executable LISTER app.
 
-
-### Generic platform: contrast problem with GUI text
+##### GUI Text Contrast
 
 LISTER only supports the default OS' light theme, a custom user/dark theme is therefore not supported.
 
-### Windows: encoding error
+#### Windows Troubleshooting
+
+##### Encoding Error
 
 When the following error `'charmap' codec can't encode characters in position... `appears, open `cmd.exe` as an administrator before running LISTER and type the following:
 
@@ -330,15 +351,18 @@ When the following error `'charmap' codec can't encode characters in position...
 
 `setx PATHEXT "%PATHEXT%;.PY"`
 
-### Windows: packaging failure
+##### Windows: packaging failure
 
 The error `win32ctypes.pywin32.pywintypes.error: (110, 'EndUpdateResourceW', 'The system cannot open the device or file specified.'` happens because of file access problems on Windows. Ensure that  the directory is neither read-only nor auto-synced to cloud storage , exclude the repo folder from antivirus scanning, and/or try removing both the `build` and `dist` directories. Both of these directories are automatically generated upon packaging. Cloud storage synchronization may also be the cause of this issue.
 
-### macOS: dependencies not included
+
+#### macOS Troubleshooting
+
+##### Dependencies Not Included
 
 Please consider using environment management system such as anaconda to package the app. Install conda locally along with the dependencies stated in the `requirements.txt`. In the release, python 3.9.15 was used. LISTER runs fine on macOS v13.0.1 and macOS v10.12.4 within intel machines.
 
-### macOS: unable to get into GUI
+##### Unable to Get Into GUI
 
 Running `lister.py` directly from your IDE on macOS may lead to the following message:
 
@@ -348,7 +372,7 @@ on the main display of your Mac.`
 
 Run the script from terminal using `pythonw lister.py` instead.
 
-### macOS 14: Secure coding is not enabled...
+##### macOS 14: Secure Coding is not Enabled...
 
 The following warning appears when running `lister.py` directly in terminal:
 
@@ -358,13 +382,70 @@ Enable secure coding by implementing NSApplicationDelegate.applicationSupportsSe
 This warning can be ignored and does not affect the functionality of LISTER.
 
 
-### "Client Error: Forbidden for url: ..."
+##### "Client Error: Forbidden for url: ..."
 
 The `requests.exceptions.HTTPError: 403 Client Error: Forbidden for url:...` happens because the specified API token/key does not have access rights to an entry (or its underlying entries). 
 Check that the user with specified token has access to the entries directly linked to the experiments/database items/containers.
 
-### "requests.exceptions.ConnectionError: ..."
+##### "requests.exceptions.ConnectionError: ..."
 
 If the following error: 
 `requests.exceptions.ConnectionError: HTTPConnectionPool(host='..., port=80): Max retries exceeded with url: ... (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at ...>: Failed to establish a new connection: [Errno 61] Connection refused'))`
 occurs, use `https` instead of `http` as an API endpoint. 
+
+---
+# Additional Resources
+
+Some resources are avaible to try out LISTER on your own:
+
+- eLabFTW-importable Structure and comments to see how we implement our eLabFTW structure: https://github.com/CPCLab/lister-container.
+- eLabFTW-importable Materials and methods examples, annotated with LISTER annotation rules: https://github.com/CPCLab/materials-and-methods.
+
+# Citing LISTER
+
+BibTex:
+
+```bibtex
+`@article{doi:10.1021/acs.jcim.3c00744,
+author = {Musyaffa, Fathoni A. and Rapp, Kirsten and Gohlke, Holger},
+title = {LISTER: Semiautomatic Metadata Extraction from Annotated Experiment Documentation in eLabFTW},
+journal = {Journal of Chemical Information and Modeling},
+volume = {63},
+number = {20},
+pages = {6224-6238},
+year = {2023},
+doi = {10.1021/acs.jcim.3c00744},
+    note ={PMID: 37773594},
+URL = {https://doi.org/10.1021/acs.jcim.3c00744},
+eprint = {https://doi.org/10.1021/acs.jcim.3c00744}
+}`
+```
+
+
+RIS:
+
+```ris
+TY  - JOUR
+T1  - LISTER: Semiautomatic Metadata Extraction from Annotated Experiment Documentation in eLabFTW
+AU  - Musyaffa, Fathoni A.
+AU  - Rapp, Kirsten
+AU  - Gohlke, Holger
+Y1  - 2023/10/23
+PY  - 2023
+DA  - 2023/10/23
+N1  - doi: 10.1021/acs.jcim.3c00744
+DO  - 10.1021/acs.jcim.3c00744
+T2  - Journal of Chemical Information and Modeling
+JF  - Journal of Chemical Information and Modeling
+JO  - J. Chem. Inf. Model.
+SP  - 6224
+EP  - 6238
+VL  - 63
+IS  - 20
+PB  - American Chemical Society
+SN  - 1549-9596
+M3  - doi: 10.1021/acs.jcim.3c00744
+UR  - https://doi.org/10.1021/acs.jcim.3c00744
+ER  - 
+```
+
