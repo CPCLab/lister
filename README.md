@@ -1,9 +1,16 @@
 # LISTER: Life Science Experiment Metadata Parser
 
-**TL;DR:** LISTER is a metadata extraction tool that parses experiments from eLabFTW using a simple annotation mechanism. It converts annotated experiment documentation into structured metadata (Excel/JSON) and clean Word documents without annotations. LISTER supports parsing both individual experiments and groups of experiments (containers) with a single click. The extracted metadata improves findability and reproducibility while making experiment documentation more accessible for both humans and machines.
+**TL;DR:**
+**LISTER** is a worfklow and a tool that:
+- Parses annotated experiment documentation from **eLabFTW**
+- Extracts structured metadata in **Excel and JSON**
+- Produces a **clean Word document** without annotations
+- Supports both **single experiments** and **grouped containers** (like publications or projects)
+- Aim to improves **findability, reproducibility, and accessibility** of research metadata
+- The extracted metadata is indexable by data platform CMS **DSpace v7 onwards**, allowing contextual metadata search on the platform
 
-TABLE OF CONTENTS
-=================
+---
+
 # Table of Contents
 
 - [LISTER: Life Science Experiment Metadata Parser](#lister-life-science-experiment-metadata-parser)
